@@ -90,6 +90,12 @@ production build: pass
 docker build:   pass
 ```
 
+Docker build is enforced by GitHub Actions and can also be run locally with Docker installed:
+
+```bash
+docker build -t portfolio-template:ci .
+```
+
 `validate:content` checks project `meta.json`, project detail markdown, blog frontmatter, related project references, date format, enum fields, slug consistency, and unsafe markdown URLs.
 
 ## Benchmark
