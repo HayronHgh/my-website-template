@@ -1,0 +1,224 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { Container } from "@/components/ui/container";
+import { NeonButton } from "@/components/ui/neon-button";
+import { PixelCard } from "@/components/ui/pixel-card";
+import { PixelIcon } from "@/components/ui/pixel-icon";
+import { ui } from "@/components/ui/pixel-theme";
+import { Section } from "@/components/ui/section";
+import { cn, formatDate } from "@/lib/utils";
+import {
+  getAllProjectSlugs,
+  getProjectDetailBySlug,
+} from "@/lib/projects/details";
+
+type ProjectDetailPageProps = {
+  params: Promise<{
+    slug: string;
+  }>;
+};
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export async function generateStaticParams() {
+  const slugs = await getAllProjectSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: ProjectDetailPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const detail = await getProjectDetailBySlug(slug);
+
+  if (!detail) {
+    return {
+      title: "Project not found",
+    };
+  }
+
+  return {
+    title: detail.project.title,
+    description: detail.project.summary,
+    alternates: {
+      canonical: detail.project.detailsUrl,
+    },
+  };
+}
+
+export default async function ProjectDetailPage({ params }: ProjectDetailPageProps) {
+  const { slug } = await params;
+  const detail = await getProjectDetailBySlug(slug);
+
+  if (!detail) {
+    notFound();
+  }
+
+  const { project } = detail;
+
+  return (
+    <Section>
+      <Container>
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <NeonButton accent="cyan" href="/projects" size="md" variant="ghost">
+            <PixelIcon className="h-4 w-4" name="projects" />
+            Back to Projects
+          </NeonButton>
+          <div className="flex flex-wrap gap-2">
+            {project.caseStudyUrl ? (
+              <NeonButton accent="purple" href={project.caseStudyUrl} size="md" variant="ghost">
+                <PixelIcon className="h-4 w-4" name="file" />
+                Case Study
+              </NeonButton>
+            ) : null}
+            {project.repoUrl ? (
+              <NeonButton accent="purple" external href={project.repoUrl} size="md" variant="ghost">
+                <PixelIcon className="h-4 w-4" name="github" />
+                GitHub
+              </NeonButton>
+            ) : null}
+            {project.demoUrl ? (
+              <NeonButton accent="amber" external href={project.demoUrl} size="md" variant="ghost">
+                <PixelIcon className="h-4 w-4" name="projects" />
+                Live Demo
+              </NeonButton>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <article className="min-w-0">
+            <PixelCard accent={project.accent} as="article" className="space-y-5">
+              <div
+                aria-label={`${project.title} project preview`}
+                className={cn(
+                  `project-preview project-preview-${project.slug}`,
+                  "max-h-[460px] min-h-64 w-full",
+                )}
+                data-cover={project.cover}
+                role="img"
+                style={{ backgroundPosition: project.coverPosition }}
+              >
+                <div className="preview-toolbar">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <div className="preview-grid">
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </div>
+
+              <div
+                className="prose-content"
+                dangerouslySetInnerHTML={{ __html: detail.html }}
+              />
+            </PixelCard>
+          </article>
+
+          <aside className="space-y-5 xl:sticky xl:top-28 xl:self-start">
+            <PixelCard accent={project.accent} className="space-y-4">
+              <div className="space-y-2">
+                <p className="font-mono text-xs font-bold uppercase tracking-wide text-[#8ed2d8]">
+                  Project Brief
+                </p>
+                <p className="text-sm leading-6 text-[#c7d2e5]">{project.summary}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                {[
+                  ["Year", project.year],
+                  ["Category", project.category],
+                  ["Maturity", project.maturity],
+                  ["Scope", project.scope],
+                ].map(([label, value]) =>
+                  value ? (
+                    <div
+                      className="rounded-[4px] border border-[#26344d] bg-[#101827] p-3"
+                      key={label}
+                    >
+                      <p className="font-mono text-[10px] font-bold uppercase text-[#7f8ca8]">
+                        {label}
+                      </p>
+                      <p className="mt-1 font-mono text-xs font-bold text-[#eef3ff]">
+                        {value}
+                      </p>
+                    </div>
+                  ) : null,
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <p className="font-mono text-xs font-bold uppercase tracking-wide text-[#8ed2d8]">
+                  Tech Stack
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {project.tech.map((tag) => (
+                    <span className={ui.tinyTag} key={tag}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {project.outcomes?.length ? (
+                <div className="space-y-2">
+                  <p className="font-mono text-xs font-bold uppercase tracking-wide text-[#8ed2d8]">
+                    Verification Signals
+                  </p>
+                  <ul className="space-y-2 text-sm leading-6 text-[#c7d2e5]">
+                    {project.outcomes.map((outcome) => (
+                      <li className="flex gap-2" key={outcome}>
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-[2px] bg-[#8ed2d8]" />
+                        <span>{outcome}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {project.publicBoundary ? (
+                <div className="rounded-[4px] border border-[#5d4b32] bg-[#151009] p-3 text-sm leading-6 text-[#e0c28f]">
+                  <p className="font-mono text-[11px] font-bold uppercase">Public Boundary</p>
+                  <p className="mt-1">{project.publicBoundary}</p>
+                </div>
+              ) : null}
+            </PixelCard>
+
+            {detail.relatedPosts.length ? (
+              <PixelCard accent="purple" className="space-y-3">
+                <div className="flex items-center gap-2 font-mono text-base font-bold text-white">
+                  <PixelIcon className="h-5 w-5" name="file" />
+                  Related Articles
+                </div>
+                <div className="space-y-2">
+                  {detail.relatedPosts.map((post) => (
+                    <a
+                      className="block rounded-[4px] border border-[#26344d] bg-[#101827] p-3 transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
+                      href={`/blog/${post.slug}`}
+                      key={post.slug}
+                    >
+                      <p className="clamp-2 font-mono text-sm font-bold leading-6 text-[#eef3ff]">
+                        {post.title}
+                      </p>
+                      <p className="mt-1 font-mono text-[11px] text-[#7f8db3]">
+                        {formatDate(post.date)}
+                      </p>
+                    </a>
+                  ))}
+                </div>
+              </PixelCard>
+            ) : null}
+          </aside>
+        </div>
+      </Container>
+    </Section>
+  );
+}

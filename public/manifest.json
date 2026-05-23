@@ -1,0 +1,39 @@
+{
+  "nav": [
+    "home.svg",
+    "projects.svg",
+    "file.svg",
+    "journey.svg",
+    "resume.svg",
+    "contact.svg"
+  ],
+  "section": [
+    "about.svg",
+    "growth.svg",
+    "skills.svg",
+    "star.svg"
+  ],
+  "meta": [
+    "location.svg",
+    "mail.svg",
+    "clock.svg",
+    "heart.svg"
+  ],
+  "social": [
+    "github.svg",
+    "linkedin.svg",
+    "mail.svg",
+    "rss.svg"
+  ],
+  "tech_badges": [
+    "tech-js.svg",
+    "tech-ts.svg",
+    "tech-react.svg",
+    "tech-node.svg",
+    "tech-python.svg",
+    "tech-sql.svg"
+  ],
+  "avatar": [],
+  "page_backgrounds": [],
+  "react_usage": "pixel-icon-usage.tsx"
+}
