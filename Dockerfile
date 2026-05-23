@@ -3,8 +3,9 @@ FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PNPM_VERSION=10.30.1
 
-RUN corepack enable
+RUN npm install -g pnpm@${PNPM_VERSION}
 
 FROM base AS deps
 WORKDIR /app
