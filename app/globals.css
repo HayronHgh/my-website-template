@@ -975,6 +975,20 @@ a {
   content: "";
 }
 
+.project-preview-image {
+  background-repeat: no-repeat;
+}
+
+.project-preview-image::before,
+.project-preview-image::after {
+  display: none;
+}
+
+.project-preview-image .preview-toolbar,
+.project-preview-image .preview-grid {
+  display: none;
+}
+
 .preview-toolbar {
   position: absolute;
   top: 10px;

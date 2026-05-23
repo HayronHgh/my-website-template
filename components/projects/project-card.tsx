@@ -1,6 +1,7 @@
 import { NeonButton } from "@/components/ui/neon-button";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
+import { getProjectAssetUrl } from "@/lib/projects/assets";
 import { cn } from "@/lib/utils";
 import type { ProjectItem } from "@/data/site";
 
@@ -15,6 +16,16 @@ const tagClassName =
 
 export function ProjectCard({ compact, project, showLinks }: ProjectCardProps) {
   const shouldShowLinks = showLinks ?? !compact;
+  const coverImageUrl = project.cover.startsWith("generated:")
+    ? undefined
+    : getProjectAssetUrl(project.slug, project.cover);
+  const previewStyle = coverImageUrl
+    ? {
+        backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(3, 7, 18, 0.34)), url(${JSON.stringify(coverImageUrl)})`,
+        backgroundPosition: project.coverPosition,
+        backgroundSize: "cover",
+      }
+    : { backgroundPosition: project.coverPosition };
   const projectLinks = [
     project.caseStudyUrl
       ? {
@@ -60,12 +71,13 @@ export function ProjectCard({ compact, project, showLinks }: ProjectCardProps) {
         aria-label={`${project.title} project preview`}
         className={cn(
           `project-preview project-preview-${project.slug}`,
+          coverImageUrl && "project-preview-image",
           compact && "project-preview-compact",
           "transition duration-200 group-hover:brightness-110",
         )}
         data-cover={project.cover}
         role="img"
-        style={{ backgroundPosition: project.coverPosition }}
+        style={previewStyle}
       >
         <div className="preview-toolbar">
           <span />

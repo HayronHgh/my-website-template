@@ -7,6 +7,7 @@ import { PixelIcon } from "@/components/ui/pixel-icon";
 import { ui } from "@/components/ui/pixel-theme";
 import { Section } from "@/components/ui/section";
 import { cn, formatDate } from "@/lib/utils";
+import { getProjectAssetUrl } from "@/lib/projects/assets";
 import {
   getAllProjectSlugs,
   getProjectDetailBySlug,
@@ -57,6 +58,16 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
   }
 
   const { project } = detail;
+  const coverImageUrl = project.cover.startsWith("generated:")
+    ? undefined
+    : getProjectAssetUrl(project.slug, project.cover);
+  const previewStyle = coverImageUrl
+    ? {
+        backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(3, 7, 18, 0.34)), url(${JSON.stringify(coverImageUrl)})`,
+        backgroundPosition: project.coverPosition,
+        backgroundSize: "cover",
+      }
+    : { backgroundPosition: project.coverPosition };
 
   return (
     <Section>
@@ -95,11 +106,12 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 aria-label={`${project.title} project preview`}
                 className={cn(
                   `project-preview project-preview-${project.slug}`,
+                  coverImageUrl && "project-preview-image",
                   "max-h-[460px] min-h-64 w-full",
                 )}
                 data-cover={project.cover}
                 role="img"
-                style={{ backgroundPosition: project.coverPosition }}
+                style={previewStyle}
               >
                 <div className="preview-toolbar">
                   <span />
