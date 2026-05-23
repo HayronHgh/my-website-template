@@ -27,6 +27,8 @@ lib/
   projects/meta.ts             Runtime project metadata loader
   projects/details.ts          Project markdown loader
   projects/relations.ts        Blog/project relation matching
+  content/validation.ts        Zod content schema validation
+  content/cache.ts             mtime-based runtime file cache
   blog/posts.ts                Runtime blog loader
   blog/markdown.ts             Markdown to HTML pipeline
 ```
@@ -57,25 +59,40 @@ Project-to-blog relations work in two ways:
 - Explicit: blog `relatedProjects` points to a project slug.
 - Tag-based: project `relatedTags` overlaps with blog `tags`.
 
-## Benchmark
+## Validation And CI
 
-Current local validation checklist:
+Local full check:
+
+```bash
+pnpm check
+```
+
+Equivalent individual commands:
 
 ```bash
 pnpm audit --audit-level moderate
 pnpm typecheck
+pnpm validate:content
+pnpm test:run
 pnpm lint
 pnpm build
 ```
 
-Expected baseline after setup:
+CI runs the same quality gates before the Docker image build:
 
 ```txt
 pnpm audit:     No known vulnerabilities found
 typecheck:      pass
+content schema: pass
+unit tests:     pass
 lint:           pass
 production build: pass
+docker build:   pass
 ```
+
+`validate:content` checks project `meta.json`, project detail markdown, blog frontmatter, related project references, date format, enum fields, slug consistency, and unsafe markdown URLs.
+
+## Benchmark
 
 Runtime content behavior:
 
@@ -83,6 +100,8 @@ Runtime content behavior:
 - `/projects/[slug]` reads `content/projects/[slug]/main.md` on request.
 - `/blog` reads `content/blog/**/main.md` on request.
 - `dynamic = "force-dynamic"` and `revalidate = 0` are used on runtime content routes.
+- File reads and markdown rendering use an in-memory mtime cache keyed by file path, `mtimeMs`, and file size.
+- Mounted content changes are picked up on the next request after the file timestamp or size changes.
 
 ## Screenshots
 
@@ -115,6 +134,7 @@ Key reasons:
 - Project details need long-form Markdown.
 - Blog posts need tags, dates, frontmatter, and direct routes.
 - Docker deployments can update content by mounting folders.
+- Runtime content keeps a small mtime cache so repeated reads avoid unnecessary markdown conversion.
 - Git-based content history remains simple and reviewable.
 
 The result is a small content system without requiring a CMS, database, or admin panel on day one.
@@ -124,10 +144,10 @@ The result is a small content system without requiring a CMS, database, or admin
 This design intentionally accepts a few constraints:
 
 - File writes are not handled by this app. Use Git, a sync job, a mounted volume, or a separate admin tool.
-- Runtime file reads are simpler than a database, but not ideal for very large content collections.
-- Markdown raw HTML is disabled for safer template usage.
+- Runtime file reads plus mtime cache are simpler than a database, but not ideal for very large content collections.
+- Markdown raw HTML is disabled and rendered HTML is passed through `rehype-sanitize`.
 - Images are not bundled as hero backgrounds by default; add your own optimized WebP/AVIF assets when ready.
-- Project metadata schema is lightweight and validated conservatively at runtime.
+- Project and blog content schemas are validated by `pnpm validate:content`, but the app still normalizes runtime content defensively.
 
 ## Getting Started
 
@@ -217,8 +237,11 @@ With this setup, editing mounted content does not require rebuilding the Docker 
 ## Security Notes
 
 - Markdown raw HTML is disabled.
+- Rendered markdown is sanitized with `rehype-sanitize`.
+- Markdown links allow `http`, `https`, `mailto`, `tel`, safe relative paths, and hash links.
+- Markdown images allow `http`, `https`, safe relative paths, and root-relative public paths.
 - Blog and project asset routes constrain paths to their content directories.
-- Dependency audit is expected to pass after install.
+- Dependency audit is enforced by CI with `pnpm audit --audit-level moderate`.
 - Do not expose a write-enabled admin tool without authentication, CSRF protection, and path validation.
 
 ## Commit Convention

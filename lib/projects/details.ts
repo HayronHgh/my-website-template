@@ -1,8 +1,8 @@
-import { promises as fs } from "node:fs";
 import matter from "gray-matter";
 import type { ProjectItem } from "@/data/site";
 import { getPublishedPosts } from "@/lib/blog";
 import { markdownToHtml } from "@/lib/blog/markdown";
+import { readTextFileWithMtimeCache } from "@/lib/content/cache";
 import {
   getProjectAssetUrl,
   getProjectMarkdownFilePath,
@@ -28,38 +28,37 @@ function createProjectTemplate(project: ProjectItem) {
   return `# ${project.title}
 
 ## Problem
-這個專案解決什麼問題？原本流程痛點是什麼？
+Describe the problem this project solves and the original workflow pain.
 
 ## My Role
-我負責哪些部分？哪些不是我做的？
+Describe what you built, owned, or intentionally did not own.
 
 ## Core Features
-核心功能列表。
+List the core user-facing and system-facing features.
 
 ## Architecture
-系統架構圖與資料流。
+Describe the system boundary, data flow, and major modules.
 
 ## Tech Stack
-技術棧與選用理由。
+Explain the stack and why each major choice was made.
 
 ## How to Run
-如何本地啟動。
+Document local setup or explain why the project is private.
 
 ## Demo
-截圖、影片、live demo。
+Add screenshots, video, or a live demo link.
 
 ## Verification
-測試、benchmark、實際資料量、使用紀錄、效能數據。
+Document tests, benchmark data, usage records, or performance evidence.
 
 ## Tradeoffs
-做了哪些取捨？為什麼？
+Explain the alternatives and why this implementation was chosen.
 
 ## Limitations
-目前還不能做什麼？
+List what the current version does not handle yet.
 
 ## Future Work
-下一步會怎麼改。
-`;
+Describe the next improvements you would make.`;
 }
 
 async function readProjectMarkdown(project: ProjectItem) {
@@ -75,7 +74,7 @@ async function readProjectMarkdown(project: ProjectItem) {
   try {
     return {
       isTemplate: false,
-      source: await fs.readFile(filePath, "utf8"),
+      source: await readTextFileWithMtimeCache(filePath),
     };
   } catch {
     return {

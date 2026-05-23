@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { readTextFileWithMtimeCache } from "@/lib/content/cache";
 import { PROJECT_CONTENT_DIRECTORY } from "@/lib/projects/constants";
 import { getProjectMetaFilePath, getProjectSlugSegments } from "@/lib/projects/assets";
 import type {
@@ -167,7 +168,7 @@ async function readProjectMetaBySlug(slug: string) {
   }
 
   try {
-    const source = await fs.readFile(filePath, "utf8");
+    const source = await readTextFileWithMtimeCache(filePath);
     const parsedSource = JSON.parse(source) as ProjectMetaSource;
     return normalizeProjectMeta(slug, parsedSource);
   } catch {

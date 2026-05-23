@@ -8,6 +8,10 @@ import {
 import { BLOG_CONTENT_DIRECTORY, BLOG_POST_FILE_NAME } from "@/lib/blog/constants";
 import { markdownToHtml } from "@/lib/blog/markdown";
 import { parseBlogFrontmatter } from "@/lib/blog/parse-frontmatter";
+import {
+  getMtimeCachedValue,
+  readTextFileWithMtimeCache,
+} from "@/lib/content/cache";
 import type { BlogHashtagIndex, BlogPost, BlogPostMeta } from "@/types/blog";
 
 const MAX_POST_DEPTH = 2;
@@ -99,14 +103,14 @@ async function getPostSlugs() {
   }));
 }
 
-async function readPostSourceBySlug(slug: string) {
+function getPostSourceFilePath(slug: string) {
   const filePath = getPostMarkdownFilePath(slug);
 
   if (!filePath) {
     throw new Error(`Invalid blog post slug: ${slug}`);
   }
 
-  return fs.readFile(filePath, "utf8");
+  return filePath;
 }
 
 function resolvePostAssetUrls(meta: BlogPostMeta): BlogPostMeta {
@@ -117,17 +121,21 @@ function resolvePostAssetUrls(meta: BlogPostMeta): BlogPostMeta {
 }
 
 async function readPostBySlug(slug: string): Promise<BlogPost> {
-  const source = await readPostSourceBySlug(slug);
-  const pathSegments = slug.split("/");
-  const { content, meta } = parseBlogFrontmatter(source, slug, pathSegments);
-  const resolvedMeta = resolvePostAssetUrls(meta);
-  const html = await markdownToHtml(content, { slug });
+  const filePath = getPostSourceFilePath(slug);
 
-  return {
-    ...resolvedMeta,
-    content,
-    html,
-  };
+  return getMtimeCachedValue(`blog-post:${slug}`, filePath, async () => {
+    const source = await readTextFileWithMtimeCache(filePath);
+    const pathSegments = slug.split("/");
+    const { content, meta } = parseBlogFrontmatter(source, slug, pathSegments);
+    const resolvedMeta = resolvePostAssetUrls(meta);
+    const html = await markdownToHtml(content, { slug });
+
+    return {
+      ...resolvedMeta,
+      content,
+      html,
+    };
+  });
 }
 
 export async function getAllPosts() {
