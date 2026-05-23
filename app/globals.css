@@ -1021,19 +1021,19 @@ a {
   display: none;
 }
 
-.project-preview-devflow .preview-grid span:nth-child(2),
-.project-preview-devflow .preview-grid span:nth-child(5) {
+.project-preview-project-a .preview-grid span:nth-child(2),
+.project-preview-project-a .preview-grid span:nth-child(5) {
   background: rgba(34, 211, 238, 0.28);
   box-shadow: 0 0 18px rgba(34, 211, 238, 0.24);
 }
 
-.project-preview-devflow {
+.project-preview-project-a {
   background:
     radial-gradient(circle at 76% 64%, rgba(34, 211, 238, 0.24), transparent 25%),
     linear-gradient(135deg, #111827, #1e1b4b 48%, #082f49);
 }
 
-.project-preview-devflow::after {
+.project-preview-project-a::after {
   position: absolute;
   right: 11%;
   bottom: 20%;
@@ -1046,12 +1046,12 @@ a {
   content: "";
 }
 
-.project-preview-pixelrpg {
+.project-preview-project-b {
   background:
     linear-gradient(180deg, #60a5fa 0 28%, #8b5cf6 28% 46%, #166534 46% 100%);
 }
 
-.project-preview-pixelrpg::after {
+.project-preview-project-b::after {
   position: absolute;
   bottom: 18%;
   left: 42%;
@@ -1066,31 +1066,31 @@ a {
   content: "";
 }
 
-.project-preview-pixelrpg .preview-grid {
+.project-preview-project-b .preview-grid {
   display: none;
 }
 
-.project-preview-pixelrpg::before {
+.project-preview-project-b::before {
   background:
     linear-gradient(90deg, transparent 0 10%, #14532d 10% 16%, transparent 16% 35%, #166534 35% 42%, transparent 42% 68%, #14532d 68% 76%, transparent 76% 100%),
     linear-gradient(180deg, transparent 0 58%, rgba(22, 101, 52, 0.78) 58% 100%);
 }
 
-.project-preview-shellcraft {
+.project-preview-project-c {
   background: linear-gradient(135deg, #020617, #111827 45%, #164e63);
 }
 
-.project-preview-shellcraft::before {
+.project-preview-project-c::before {
   background:
     linear-gradient(90deg, rgba(34, 211, 238, 0.18) 0 16%, transparent 16% 100%),
     repeating-linear-gradient(180deg, transparent 0 13px, rgba(125, 211, 252, 0.15) 13px 14px);
 }
 
-.project-preview-shellcraft .preview-grid {
+.project-preview-project-c .preview-grid {
   display: block;
 }
 
-.project-preview-shellcraft .preview-grid span {
+.project-preview-project-c .preview-grid span {
   display: block;
   height: 8px;
   margin-bottom: 10px;
@@ -1099,18 +1099,18 @@ a {
   box-shadow: 0 0 12px rgba(34, 211, 238, 0.32);
 }
 
-.project-preview-shellcraft .preview-grid span:nth-child(even) {
+.project-preview-project-c .preview-grid span:nth-child(even) {
   width: 66%;
   background: #f59e0b;
 }
 
-.project-preview-trade-risk-control {
+.project-preview-project-d {
   background:
     radial-gradient(circle at 74% 35%, rgba(34, 211, 238, 0.2), transparent 24%),
     linear-gradient(135deg, #06111f, #0f2742 48%, #111827);
 }
 
-.project-preview-trade-risk-control::after {
+.project-preview-project-d::after {
   position: absolute;
   right: 12%;
   bottom: 18%;
@@ -1122,13 +1122,13 @@ a {
   content: "";
 }
 
-.project-preview-vip-customer-tool {
+.project-preview-project-e {
   background:
     radial-gradient(circle at 72% 68%, rgba(251, 191, 36, 0.18), transparent 24%),
     linear-gradient(135deg, #111827, #2a1b08 52%, #082f49);
 }
 
-.project-preview-vip-customer-tool::after {
+.project-preview-project-e::after {
   position: absolute;
   right: 14%;
   bottom: 18%;
@@ -1139,68 +1139,6 @@ a {
     linear-gradient(90deg, rgba(251, 191, 36, 0.35) 0 18%, transparent 18% 100%),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 2px, transparent 2px 9px);
   content: "";
-}
-
-.project-preview-local-erp-workflow {
-  background:
-    radial-gradient(circle at 82% 20%, rgba(168, 85, 247, 0.2), transparent 24%),
-    linear-gradient(135deg, #07101f, #1a1230 52%, #111827);
-}
-
-.project-preview-local-erp-workflow::after {
-  position: absolute;
-  right: 12%;
-  bottom: 16%;
-  left: 16%;
-  height: 40%;
-  background:
-    linear-gradient(90deg, rgba(196, 181, 253, 0.22) 0 3px, transparent 3px 100%),
-    linear-gradient(0deg, rgba(196, 181, 253, 0.2) 0 3px, transparent 3px 100%),
-    repeating-linear-gradient(90deg, transparent 0 22px, rgba(34, 211, 238, 0.16) 22px 24px);
-  box-shadow: 0 0 0 1px rgba(196, 181, 253, 0.16);
-  content: "";
-}
-
-.project-preview-ai-traffic-simulator {
-  background:
-    linear-gradient(135deg, rgba(34, 197, 94, 0.12), transparent 42%),
-    linear-gradient(180deg, #07101f, #0b2140 48%, #14251a);
-}
-
-.project-preview-ai-traffic-simulator::after {
-  position: absolute;
-  inset: 28% 12% 18%;
-  border: 1px solid rgba(125, 211, 252, 0.26);
-  background:
-    linear-gradient(35deg, transparent 0 28%, rgba(132, 204, 22, 0.35) 28% 30%, transparent 30% 100%),
-    linear-gradient(145deg, transparent 0 44%, rgba(34, 211, 238, 0.34) 44% 46%, transparent 46% 100%);
-  content: "";
-}
-
-.project-preview-fastk-store-engine {
-  background:
-    radial-gradient(circle at 72% 30%, rgba(132, 204, 22, 0.16), transparent 24%),
-    linear-gradient(135deg, #06111f, #13230f 52%, #07101f);
-}
-
-.project-preview-fastk-store-engine::after {
-  position: absolute;
-  inset: 30% 16% 22%;
-  background:
-    repeating-linear-gradient(90deg, rgba(184, 216, 137, 0.34) 0 10px, transparent 10px 16px),
-    linear-gradient(0deg, rgba(34, 211, 238, 0.18), rgba(34, 211, 238, 0.02));
-  box-shadow: inset 0 0 0 1px rgba(184, 216, 137, 0.24);
-  content: "";
-}
-
-.project-preview-godot-game-demo,
-.project-preview-web-game,
-.project-preview-web-007-game,
-.project-preview-algorithm-simulation-lab,
-.project-preview-reverse-engineering-study {
-  background:
-    radial-gradient(circle at 72% 28%, rgba(251, 191, 36, 0.14), transparent 20%),
-    linear-gradient(135deg, #07101f, #21124a 48%, #091426);
 }
 
 .project-preview-compact .preview-toolbar {
