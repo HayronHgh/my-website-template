@@ -1,0 +1,34 @@
+﻿{
+    "slug":  "project-a",
+    "title":  "Project A",
+    "category":  "Product System",
+    "summary":  "Replace this summary with the problem, audience, and outcome for Project A.",
+    "description":  "Write one short paragraph that explains what Project A does, who it serves, and why it matters.",
+    "tech":  [
+                 "Next.js",
+                 "TypeScript",
+                 "Markdown"
+             ],
+    "cover":  "generated:project-a",
+    "coverPosition":  "center center",
+    "accent":  "cyan",
+    "detailsUrl":  "/projects/project-a",
+    "group":  "featured",
+    "maturity":  "Case Study",
+    "order":  0,
+    "privateCase":  false,
+    "published":  true,
+    "publicBoundary":  "Replace this with what can and cannot be shown publicly.",
+    "scope":  "Template scope / replace with your role",
+    "year":  "2026",
+    "relatedTags":  [
+                        "Architecture",
+                        "Next.js",
+                        "Case Study"
+                    ],
+    "outcomes":  [
+                     "Replace with measurable result 1",
+                     "Replace with measurable result 2",
+                     "Replace with measurable result 3"
+                 ]
+}

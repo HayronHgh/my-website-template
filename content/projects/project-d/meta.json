@@ -1,0 +1,34 @@
+﻿{
+    "slug":  "project-d",
+    "title":  "Project D",
+    "category":  "System Lab",
+    "summary":  "Replace this summary with the problem, audience, and outcome for Project D.",
+    "description":  "Write one short paragraph that explains what Project D does, who it serves, and why it matters.",
+    "tech":  [
+                 "Next.js",
+                 "TypeScript",
+                 "Markdown"
+             ],
+    "cover":  "generated:project-d",
+    "coverPosition":  "center center",
+    "accent":  "blue",
+    "detailsUrl":  "/projects/project-d",
+    "group":  "systems",
+    "maturity":  "Case Study",
+    "order":  10,
+    "privateCase":  false,
+    "published":  true,
+    "publicBoundary":  "Replace this with what can and cannot be shown publicly.",
+    "scope":  "Template scope / replace with your role",
+    "year":  "2026",
+    "relatedTags":  [
+                        "System Design",
+                        "Performance",
+                        "API"
+                    ],
+    "outcomes":  [
+                     "Replace with measurable result 1",
+                     "Replace with measurable result 2",
+                     "Replace with measurable result 3"
+                 ]
+}
