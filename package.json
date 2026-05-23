@@ -1,0 +1,47 @@
+{
+  "name": "portfolio-content-template",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "katex": "^0.16.45",
+    "lucide-react": "^1.14.0",
+    "next": "16.2.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "rehype-katex": "^7.0.1",
+    "rehype-stringify": "^10.0.1",
+    "remark": "^15.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "remark-rehype": "^11.1.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.6",
+    "postcss": "8.5.15",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "pnpm": {
+    "overrides": {
+      "flatted": "3.4.2",
+      "picomatch@<3": "2.3.2",
+      "picomatch@>=4 <4.0.4": "4.0.4",
+      "brace-expansion@<2": "1.1.13",
+      "brace-expansion@>=4 <5.0.6": "5.0.6",
+      "postcss": "8.5.15"
+    }
+  }
+}
