@@ -31,4 +31,11 @@ describe("content path helpers", () => {
     expect(getPostAssetFilePath("post", ["..", "secret.png"])).toBeNull();
     expect(getProjectAssetFilePath("project-a", ["..", "secret.png"])).toBeNull();
   });
+
+  it("limits blog asset filesystem paths to images", () => {
+    expect(getPostAssetFilePath("post", ["diagram.png"])).not.toBeNull();
+    expect(getPostAssetFilePath("post", ["main.md"])).toBeNull();
+    expect(getPostAssetFilePath("series", ["post", "main.md"])).toBeNull();
+    expect(getPostAssetFilePath("post", [".env"])).toBeNull();
+  });
 });

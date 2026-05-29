@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import {
   getBlogAssetUrl,
-  getPostMarkdownFilePath,
+  getSafePostMarkdownFilePath,
   getSlugFromSegments,
 } from "@/lib/blog/assets";
 import { BLOG_CONTENT_DIRECTORY, BLOG_POST_FILE_NAME } from "@/lib/blog/constants";
@@ -48,18 +48,8 @@ const toPostMeta = (post: BlogPost): BlogPostMeta => ({
 });
 
 async function hasPostMarkdownFile(segments: string[]) {
-  const filePath = getPostMarkdownFilePath(segments);
-
-  if (!filePath || path.basename(filePath) !== BLOG_POST_FILE_NAME) {
-    return false;
-  }
-
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
+  const filePath = await getSafePostMarkdownFilePath(segments);
+  return Boolean(filePath && path.basename(filePath) === BLOG_POST_FILE_NAME);
 }
 
 async function collectPostSegments(
@@ -103,8 +93,8 @@ async function getPostSlugs() {
   }));
 }
 
-function getPostSourceFilePath(slug: string) {
-  const filePath = getPostMarkdownFilePath(slug);
+async function getPostSourceFilePath(slug: string) {
+  const filePath = await getSafePostMarkdownFilePath(slug);
 
   if (!filePath) {
     throw new Error(`Invalid blog post slug: ${slug}`);
@@ -121,7 +111,7 @@ function resolvePostAssetUrls(meta: BlogPostMeta): BlogPostMeta {
 }
 
 async function readPostBySlug(slug: string): Promise<BlogPost> {
-  const filePath = getPostSourceFilePath(slug);
+  const filePath = await getPostSourceFilePath(slug);
 
   return getMtimeCachedValue(`blog-post:${slug}`, filePath, async () => {
     const source = await readTextFileWithMtimeCache(filePath);

@@ -1,7 +1,11 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
-import { getPostAssetFilePath } from "@/lib/blog/assets";
+import { getPostBySlug } from "@/lib/blog";
+import {
+  getSafePostAssetFilePath,
+  getSlugFromSegments,
+} from "@/lib/blog/assets";
 
 type BlogAssetRouteContext = {
   params: Promise<{
@@ -30,9 +34,15 @@ export async function GET(_request: Request, { params }: BlogAssetRouteContext) 
   for (let postDepth = maxPostDepth; postDepth >= 1; postDepth -= 1) {
     const slugSegments = asset.slice(0, postDepth);
     const assetSegments = asset.slice(postDepth);
-    const filePath = getPostAssetFilePath(slugSegments, assetSegments);
+    const filePath = await getSafePostAssetFilePath(slugSegments, assetSegments);
 
     if (!filePath) {
+      continue;
+    }
+
+    const post = await getPostBySlug(getSlugFromSegments(slugSegments));
+
+    if (!post?.published) {
       continue;
     }
 

@@ -1,10 +1,23 @@
+import { promises as fs } from "node:fs";
 import path from "node:path";
 import { BLOG_CONTENT_DIRECTORY, BLOG_POST_FILE_NAME } from "@/lib/blog/constants";
 
 const URL_SCHEME_PATTERN = /^[a-z][a-z\d+.-]*:/i;
+const BLOG_ASSET_EXTENSIONS = new Set([
+  ".avif",
+  ".gif",
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".svg",
+  ".webp",
+]);
 
 const hasUnsafeSegment = (segment: string) =>
   segment.length === 0 || segment === "." || segment === ".." || /[\\/]/.test(segment);
+
+const hasAllowedBlogAssetExtension = (filePath: string) =>
+  BLOG_ASSET_EXTENSIONS.has(path.extname(filePath).toLowerCase());
 
 const getContentRoot = () => path.resolve(BLOG_CONTENT_DIRECTORY);
 
@@ -83,11 +96,41 @@ export function getPostMarkdownFilePath(slug: string | string[]) {
   return postDirectory ? path.join(postDirectory, BLOG_POST_FILE_NAME) : null;
 }
 
+export async function getSafePostMarkdownFilePath(slug: string | string[]) {
+  const postDirectory = getPostDirectoryPath(slug);
+  const filePath = getPostMarkdownFilePath(slug);
+
+  if (!postDirectory || !filePath) {
+    return null;
+  }
+
+  try {
+    const [contentRoot, realPostDirectory, realFilePath] = await Promise.all([
+      fs.realpath(getContentRoot()),
+      fs.realpath(postDirectory),
+      fs.realpath(filePath),
+    ]);
+    const realPostMarkdownPath = path.join(realPostDirectory, BLOG_POST_FILE_NAME);
+
+    return realPostDirectory !== contentRoot &&
+      isInsideDirectory(contentRoot, realPostDirectory) &&
+      realFilePath === realPostMarkdownPath
+      ? realFilePath
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getPostAssetFilePath(
   slug: string | string[],
   assetSegments: string[],
 ) {
-  if (assetSegments.length === 0 || assetSegments.some(hasUnsafeSegment)) {
+  if (
+    assetSegments.length === 0 ||
+    assetSegments.some(hasUnsafeSegment) ||
+    !hasAllowedBlogAssetExtension(assetSegments.at(-1) ?? "")
+  ) {
     return null;
   }
 
@@ -105,4 +148,39 @@ export function getPostAssetFilePath(
     assetFilePath !== postMarkdownPath
     ? assetFilePath
     : null;
+}
+
+export async function getSafePostAssetFilePath(
+  slug: string | string[],
+  assetSegments: string[],
+) {
+  const postDirectory = getPostDirectoryPath(slug);
+  const assetFilePath = getPostAssetFilePath(slug, assetSegments);
+
+  if (!postDirectory || !assetFilePath) {
+    return null;
+  }
+
+  try {
+    const postMarkdownPath = await getSafePostMarkdownFilePath(slug);
+
+    if (!postMarkdownPath) {
+      return null;
+    }
+
+    const [realPostDirectory, realPostMarkdownPath, realAssetFilePath] =
+      await Promise.all([
+        fs.realpath(postDirectory),
+        fs.realpath(postMarkdownPath),
+        fs.realpath(assetFilePath),
+      ]);
+
+    return isInsideDirectory(realPostDirectory, realAssetFilePath) &&
+      realAssetFilePath !== realPostMarkdownPath &&
+      hasAllowedBlogAssetExtension(realAssetFilePath)
+      ? realAssetFilePath
+      : null;
+  } catch {
+    return null;
+  }
 }
