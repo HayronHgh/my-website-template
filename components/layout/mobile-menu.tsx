@@ -5,13 +5,15 @@ import Link from "next/link";
 import { NeonButton } from "@/components/ui/neon-button";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
-import { navigationItems } from "@/data/site";
 import { preloadRouteImageForHref } from "@/lib/performance/preload-image";
 import { cn } from "@/lib/utils";
 import type { NavigationItem } from "@/data/site";
+import type { RouteImageEntry } from "@/lib/performance/route-images";
 
 type MobileMenuProps = {
+  navigationItems: NavigationItem[];
   pathname: string;
+  routeImageMap: RouteImageEntry[];
 };
 
 function normalizeHref(href: string) {
@@ -23,7 +25,7 @@ function isActivePath(pathname: string, item: NavigationItem) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-export function MobileMenu({ pathname }: MobileMenuProps) {
+export function MobileMenu({ navigationItems, pathname, routeImageMap }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -60,9 +62,9 @@ export function MobileMenu({ pathname }: MobileMenuProps) {
                   )}
                   href={item.href}
                   key={item.href}
-                  onFocus={() => preloadRouteImageForHref(item.href)}
+                  onFocus={() => preloadRouteImageForHref(item.href, routeImageMap)}
                   onClick={() => setIsOpen(false)}
-                  onTouchStart={() => preloadRouteImageForHref(item.href)}
+                  onTouchStart={() => preloadRouteImageForHref(item.href, routeImageMap)}
                 >
                   <PixelIcon className="h-4 w-4 shrink-0" name={item.icon} />
                   <span className="truncate">{item.label}</span>

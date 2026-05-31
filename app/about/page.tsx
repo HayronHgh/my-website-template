@@ -8,7 +8,7 @@ import { SkillBar } from "@/components/ui/skill-bar";
 import { Timeline } from "@/components/ui/timeline";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import { siteProfile, skillItems, timelineItems } from "@/data/site";
+import { getSiteSettings } from "@/lib/site/settings";
 
 export const metadata: Metadata = {
   title: "About",
@@ -21,15 +21,22 @@ const journeyPrinciples = [
   "工具不是展示用清單，只有能降低交付摩擦、讓下一次迭代更清楚，才算有價值。",
 ];
 
-export default function AboutPage() {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function AboutPage() {
+  const { pageImages, siteProfile, skillItems, timelineItems } = await getSiteSettings();
+
   return (
     <Section className="!pt-0 sm:!pt-0">
       <PageHero
         accent="blue"
         artClassName="page-hero-art-journey"
+        background={pageImages.aboutHero.src}
         description="從資訊科、資工系到獨立系統交付的成長路線，整理我如何把技術轉成可用工具。"
         icon="journey"
-        imagePosition="center center"
+        imagePosition={pageImages.aboutHero.position}
         title="Journey"
       />
 

@@ -5,6 +5,7 @@ import { PageHero } from "@/components/ui/page-hero";
 import { Section } from "@/components/ui/section";
 import { getHashtagIndex, getPublishedPosts } from "@/lib/blog";
 import { getPublishedProjects } from "@/lib/projects/meta";
+import { getSiteSettings } from "@/lib/site/settings";
 import type { BlogTagOption } from "@/types/blog";
 
 export const runtime = "nodejs";
@@ -32,10 +33,11 @@ const toTagOptions = (hashtagIndex: Awaited<ReturnType<typeof getHashtagIndex>>)
     });
 
 export default async function BlogPage() {
-  const [posts, hashtagIndex, projects] = await Promise.all([
+  const [posts, hashtagIndex, projects, siteSettings] = await Promise.all([
     getPublishedPosts(),
     getHashtagIndex(),
     getPublishedProjects(),
+    getSiteSettings(),
   ]);
 
   return (
@@ -43,9 +45,10 @@ export default async function BlogPage() {
       <PageHero
         accent="purple"
         artClassName="page-hero-art-blog"
+        background={siteSettings.pageImages.blogHero.src}
         description="A local markdown workspace for notes, case studies, and implementation writeups."
         icon="file"
-        imagePosition="center center"
+        imagePosition={siteSettings.pageImages.blogHero.position}
         title="Blog Signals"
       />
 

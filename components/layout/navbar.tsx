@@ -5,10 +5,17 @@ import { usePathname } from "next/navigation";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 import { Container } from "@/components/ui/container";
 import { PixelIcon } from "@/components/ui/pixel-icon";
-import { navigationItems, siteProfile } from "@/data/site";
 import { preloadRouteImageForHref } from "@/lib/performance/preload-image";
 import { cn } from "@/lib/utils";
 import type { NavigationItem } from "@/data/site";
+import type { RouteImageEntry } from "@/lib/performance/route-images";
+
+type NavbarProps = {
+  brandName: string;
+  navigationItems: NavigationItem[];
+  role: string;
+  routeImageMap: RouteImageEntry[];
+};
 
 const navItemBase =
   "inline-flex h-10 max-w-[8.5rem] items-center gap-2 rounded-[4px] border px-4 font-mono text-sm font-bold leading-none tracking-wide transition duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200";
@@ -26,7 +33,7 @@ function isActivePath(pathname: string, item: NavigationItem) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-export function Navbar() {
+export function Navbar({ brandName, navigationItems, role, routeImageMap }: NavbarProps) {
   const pathname = usePathname();
 
   return (
@@ -37,9 +44,9 @@ export function Navbar() {
           href="/"
         >
           <span className="truncate font-mono text-lg font-black tracking-wide text-white transition group-hover:text-cyan-100">
-            {"{<>}"} {siteProfile.brandName}
+            {"{<>}"} {brandName}
           </span>
-          <span className="truncate font-mono text-xs text-[#b7c2e0]">{siteProfile.role}</span>
+          <span className="truncate font-mono text-xs text-[#b7c2e0]">{role}</span>
         </Link>
 
         <nav className="ml-auto hidden items-center gap-2 px-1.5 py-1.5 lg:flex">
@@ -55,8 +62,8 @@ export function Navbar() {
                 )}
                 href={item.href}
                 key={item.href}
-                onFocus={() => preloadRouteImageForHref(item.href)}
-                onMouseEnter={() => preloadRouteImageForHref(item.href)}
+                onFocus={() => preloadRouteImageForHref(item.href, routeImageMap)}
+                onMouseEnter={() => preloadRouteImageForHref(item.href, routeImageMap)}
               >
                 <PixelIcon className="h-4 w-4" name={item.icon} />
                 <span className="truncate whitespace-nowrap">{item.label}</span>
@@ -66,7 +73,11 @@ export function Navbar() {
         </nav>
 
         <div className="lg:hidden">
-          <MobileMenu pathname={pathname} />
+          <MobileMenu
+            navigationItems={navigationItems}
+            pathname={pathname}
+            routeImageMap={routeImageMap}
+          />
         </div>
       </Container>
     </header>

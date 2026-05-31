@@ -18,6 +18,16 @@ const PROJECT_MATURITIES = [
 const ACCENTS = ["cyan", "blue", "purple", "pink", "amber", "green"] as const;
 const SINGLE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const BLOG_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const SITE_ASSET_EXTENSIONS = new Set([
+  ".avif",
+  ".gif",
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".svg",
+  ".webp",
+]);
+const URL_SCHEME_PATTERN = /^[a-z][a-z\d+.-]*:/i;
 
 export type ContentValidationIssue = {
   filePath: string;
@@ -28,6 +38,7 @@ export type ContentValidationResult = {
   blogPosts: number;
   issues: ContentValidationIssue[];
   projects: number;
+  siteSettings: boolean;
 };
 
 type MarkdownNode = {
@@ -79,6 +90,108 @@ const blogFrontmatterSchema = z.object({
   featuredRank: z.coerce.number().finite().optional(),
   relatedProjects: stringArraySchema.optional(),
   series: z.string().trim().min(1).optional(),
+}).passthrough();
+
+const siteImageSchema = z.union([
+  z.string().trim().min(1),
+  z.object({
+    position: z.string().trim().min(1).optional(),
+    src: z.string().trim().min(1),
+  }).passthrough(),
+]);
+
+const contactLinkSchema = z.object({
+  accent: z.enum(ACCENTS),
+  href: z.string().trim().min(1),
+  icon: z.enum(["github", "linkedin", "mail", "rss"]),
+  label: z.string().trim().min(1),
+  value: z.string().trim().min(1),
+}).passthrough();
+
+const siteSettingsSchema = z.object({
+  adjustmentNotes: z.array(z.object({
+    accent: z.enum(ACCENTS),
+    id: z.string().trim().min(1),
+    text: z.string().trim().min(1),
+  }).passthrough()).optional(),
+  blogPreviewPosts: z.array(z.object({
+    category: z.string().trim().min(1),
+    date: z.string().trim().min(1),
+    excerpt: z.string().trim().min(1),
+    href: z.string().trim().min(1),
+    slug: z.string().trim().min(1),
+    title: z.string().trim().min(1),
+  }).passthrough()).optional(),
+  contactLinks: z.array(contactLinkSchema).optional(),
+  homePageData: z.object({
+    hero: z.object({
+      description: z.string().trim().min(1).optional(),
+      eyebrow: z.string().trim().min(1).optional(),
+      techStack: stringArraySchema.optional(),
+      titleBottom: z.string().trim().min(1).optional(),
+      titleTop: z.string().trim().min(1).optional(),
+    }).passthrough().optional(),
+  }).passthrough().optional(),
+  navigationItems: z.array(z.object({
+    glow: z.enum(["cyan", "blue", "purple", "pink", "amber"]),
+    href: z.string().trim().min(1),
+    icon: z.enum(["home", "projects", "file", "journey", "resume", "contact"]),
+    key: z.string().trim().min(1),
+    label: z.string().trim().min(1),
+  }).passthrough()).optional(),
+  pageImages: z.record(z.string(), siteImageSchema).optional(),
+  profileMeta: z.object({
+    email: z.string().trim().min(1).optional(),
+    location: z.string().trim().min(1).optional(),
+    status: z.string().trim().min(1).optional(),
+    timezone: z.string().trim().min(1).optional(),
+  }).passthrough().optional(),
+  resumeExperience: z.array(z.object({
+    description: z.string().trim().min(1),
+    highlights: stringArraySchema,
+    organization: z.string().trim().min(1),
+    period: z.string().trim().min(1),
+    tech: stringArraySchema.optional(),
+    title: z.string().trim().min(1),
+  }).passthrough()).optional(),
+  resumeSections: z.array(z.object({
+    items: stringArraySchema,
+    title: z.string().trim().min(1),
+  }).passthrough()).optional(),
+  resumeSummary: z.string().trim().min(1).optional(),
+  routeImageMap: z.array(z.object({
+    href: z.string().trim().min(1),
+    src: z.string().trim().min(1),
+  }).passthrough()).optional(),
+  siteProfile: z.object({
+    brandName: z.string().trim().min(1).optional(),
+    facts: z.array(z.object({
+      label: z.string().trim().min(1),
+      value: z.string().trim().min(1),
+    }).passthrough()).optional(),
+    headline: z.string().trim().min(1).optional(),
+    heroSkills: stringArraySchema.optional(),
+    intro: z.string().trim().min(1).optional(),
+    name: z.string().trim().min(1).optional(),
+    positioning: z.string().trim().min(1).optional(),
+    resumeDownloadUrl: z.string().trim().min(1).optional(),
+    role: z.string().trim().min(1).optional(),
+    specialties: stringArraySchema.optional(),
+    workingStyle: stringArraySchema.optional(),
+  }).passthrough().optional(),
+  skillItems: z.array(z.object({
+    evidence: stringArraySchema.optional(),
+    level: z.enum(["Strong", "Practical", "Applied", "Exploring"]).optional(),
+    name: z.string().trim().min(1),
+    note: z.string().trim().min(1).optional(),
+    tone: z.enum(["cyan", "green", "blue", "purple", "amber"]),
+    value: z.coerce.number().finite().min(0).max(100),
+  }).passthrough()).optional(),
+  timelineItems: z.array(z.object({
+    summary: z.string().trim().min(1),
+    title: z.string().trim().min(1),
+    year: z.string().trim().min(1),
+  }).passthrough()).optional(),
 }).passthrough();
 
 function toDisplayPath(rootDirectory: string, filePath: string) {
@@ -150,6 +263,108 @@ function isSafePublicOrRemoteImage(value: string) {
   }
 
   return isSafeMarkdownUrl(value, "image");
+}
+
+function isRelativeContentPath(value: string) {
+  const trimmedValue = value.trim();
+
+  return (
+    trimmedValue.length > 0 &&
+    !URL_SCHEME_PATTERN.test(trimmedValue) &&
+    !trimmedValue.startsWith("/") &&
+    !trimmedValue.startsWith("#")
+  );
+}
+
+function getSiteImageSrc(value: unknown) {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (
+    value &&
+    typeof value === "object" &&
+    "src" in value &&
+    typeof value.src === "string"
+  ) {
+    return value.src;
+  }
+
+  return null;
+}
+
+async function validateSiteImagePath(
+  value: string,
+  filePath: string,
+  rootDirectory: string,
+  siteAssetDirectory: string,
+  issues: ContentValidationIssue[],
+) {
+  if (!isSafeMarkdownUrl(value, "image")) {
+    issues.push({
+      filePath: toDisplayPath(rootDirectory, filePath),
+      message: `site image path is not allowed: ${value}`,
+    });
+    return;
+  }
+
+  if (!isRelativeContentPath(value)) {
+    return;
+  }
+
+  const assetSegments = value
+    .replace(/^\.\/+/, "")
+    .split(/[\\/]+/)
+    .filter(Boolean);
+  const displayPath = toDisplayPath(rootDirectory, filePath);
+
+  if (
+    assetSegments.length === 0 ||
+    assetSegments.some((segment) => segment === "." || segment === "..")
+  ) {
+    issues.push({
+      filePath: displayPath,
+      message: `site image path is not allowed: ${value}`,
+    });
+    return;
+  }
+
+  if (!SITE_ASSET_EXTENSIONS.has(path.extname(assetSegments.at(-1) ?? "").toLowerCase())) {
+    issues.push({
+      filePath: displayPath,
+      message: `site image extension is not allowed: ${value}`,
+    });
+    return;
+  }
+
+  const assetPath = path.resolve(siteAssetDirectory, ...assetSegments);
+
+  if (!(await pathExists(assetPath))) {
+    issues.push({
+      filePath: displayPath,
+      message: `site image file is missing: ${value}`,
+    });
+    return;
+  }
+
+  try {
+    const [assetRoot, realAssetPath] = await Promise.all([
+      fs.realpath(siteAssetDirectory),
+      fs.realpath(assetPath),
+    ]);
+
+    if (!(realAssetPath === assetRoot || realAssetPath.startsWith(`${assetRoot}${path.sep}`))) {
+      issues.push({
+        filePath: displayPath,
+        message: `site image resolves outside content/site/assets: ${value}`,
+      });
+    }
+  } catch {
+    issues.push({
+      filePath: displayPath,
+      message: `site image file is not readable: ${value}`,
+    });
+  }
 }
 
 function visitMarkdownNodes(node: unknown, visitor: (node: MarkdownNode) => void) {
@@ -326,11 +541,81 @@ async function validateBlogPosts(
   return postFiles.length;
 }
 
+async function validateSiteSettings(
+  rootDirectory: string,
+  siteDirectory: string,
+  issues: ContentValidationIssue[],
+) {
+  const settingsPath = path.join(siteDirectory, "site.json");
+
+  if (!(await pathExists(settingsPath))) {
+    return false;
+  }
+
+  let rawSettings: unknown;
+  try {
+    rawSettings = JSON.parse(stripByteOrderMark(await fs.readFile(settingsPath, "utf8")));
+  } catch (error) {
+    issues.push({
+      filePath: toDisplayPath(rootDirectory, settingsPath),
+      message: `Invalid JSON: ${error instanceof Error ? error.message : "unknown error"}`,
+    });
+    return false;
+  }
+
+  const parsedSettings = siteSettingsSchema.safeParse(rawSettings);
+
+  if (!parsedSettings.success) {
+    addZodIssues(issues, rootDirectory, settingsPath, parsedSettings.error);
+    return false;
+  }
+
+  const settings = parsedSettings.data;
+  const siteAssetDirectory = path.join(siteDirectory, "assets");
+  const siteImageValues = [
+    ...Object.values(settings.pageImages ?? {}).map(getSiteImageSrc),
+    ...(settings.routeImageMap ?? []).map((entry) => entry.src),
+  ].filter((value): value is string => typeof value === "string");
+
+  await Promise.all(
+    siteImageValues.map((value) =>
+      validateSiteImagePath(
+        value,
+        settingsPath,
+        rootDirectory,
+        siteAssetDirectory,
+        issues,
+      ),
+    ),
+  );
+
+  settings.contactLinks?.forEach((link) => {
+    if (!isSafeMarkdownUrl(link.href, "link")) {
+      issues.push({
+        filePath: toDisplayPath(rootDirectory, settingsPath),
+        message: `contact link URL is not allowed: ${link.href}`,
+      });
+    }
+  });
+
+  settings.blogPreviewPosts?.forEach((post) => {
+    if (!isSafeMarkdownUrl(post.href, "link")) {
+      issues.push({
+        filePath: toDisplayPath(rootDirectory, settingsPath),
+        message: `blog preview URL is not allowed: ${post.href}`,
+      });
+    }
+  });
+
+  return true;
+}
+
 export async function validateContent(rootDirectory = process.cwd()): Promise<ContentValidationResult> {
   const issues: ContentValidationIssue[] = [];
   const contentDirectory = path.join(rootDirectory, "content");
   const projectDirectory = path.join(contentDirectory, "projects");
   const blogDirectory = path.join(contentDirectory, "blog");
+  const siteDirectory = path.join(contentDirectory, "site");
 
   const { projectCount, projectSlugs } = await validateProjects(
     rootDirectory,
@@ -343,18 +628,24 @@ export async function validateContent(rootDirectory = process.cwd()): Promise<Co
     projectSlugs,
     issues,
   );
+  const siteSettings = await validateSiteSettings(
+    rootDirectory,
+    siteDirectory,
+    issues,
+  );
 
   return {
     blogPosts: blogPostCount,
     issues,
     projects: projectCount,
+    siteSettings,
   };
 }
 
 export function formatContentValidationResult(result: ContentValidationResult) {
   if (!result.issues.length) {
     return [
-      `Content validation passed: ${result.projects} projects, ${result.blogPosts} blog posts.`,
+      `Content validation passed: ${result.projects} projects, ${result.blogPosts} blog posts, site settings ${result.siteSettings ? "present" : "not present"}.`,
     ];
   }
 

@@ -1,9 +1,15 @@
-type RouteImage = {
+export type RouteImageEntry = {
   href: string;
   src: string;
 };
 
-const routeImageMap: RouteImage[] = [];
+const routeImageMap: RouteImageEntry[] = [
+  { href: "/", src: "/globe.svg" },
+  { href: "/projects", src: "/projects.svg" },
+  { href: "/blog", src: "/file.svg" },
+  { href: "/about", src: "/journey.svg" },
+  { href: "/resume", src: "/resume.svg" },
+];
 
 function normalizeHref(href: string) {
   return href.split("#")[0] || "/";
@@ -11,7 +17,7 @@ function normalizeHref(href: string) {
 
 export const routeImagePreloads = routeImageMap.map((item) => item.src);
 
-export function getRouteImageForHref(href: string) {
+export function getRouteImageForHref(href: string, routes = routeImageMap) {
   const normalizedHref = normalizeHref(href);
-  return routeImageMap.find((item) => item.href === normalizedHref)?.src;
+  return routes.find((item) => item.href === normalizedHref)?.src;
 }

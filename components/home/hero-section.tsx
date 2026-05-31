@@ -2,14 +2,20 @@ import { PixelHeroScene } from "@/components/home/pixel-hero-scene";
 import { NeonButton } from "@/components/ui/neon-button";
 import { Container } from "@/components/ui/container";
 import { PixelIcon } from "@/components/ui/pixel-icon";
-import { homePageData, siteProfile } from "@/data/site";
+import type { SitePageImages, SiteSettings } from "@/lib/site/settings";
 
-export function HeroSection() {
+type HeroSectionProps = {
+  homePageData: SiteSettings["homePageData"];
+  pageImages: SitePageImages;
+  siteProfile: SiteSettings["siteProfile"];
+};
+
+export function HeroSection({ homePageData, pageImages, siteProfile }: HeroSectionProps) {
   const { hero } = homePageData;
 
   return (
     <section className="relative min-h-[420px] overflow-hidden border-b border-cyan-200/10 sm:min-h-[430px] lg:min-h-[430px] 2xl:min-h-[450px]">
-      <PixelHeroScene />
+      <PixelHeroScene imageSrc={pageImages.homeHero.src} />
       <Container className="relative z-10 flex min-h-[inherit] items-end pb-12 pt-20 sm:pb-14 lg:pb-16 lg:pt-24">
         <div className="max-w-[560px] space-y-4 lg:max-w-[590px]">
           <div>

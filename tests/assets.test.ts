@@ -4,6 +4,7 @@ import {
   getPostAssetFilePath,
   getSlugSegments,
 } from "@/lib/blog/assets";
+import { getSafeSiteAssetFilePath, getSiteAssetUrl } from "@/lib/site/assets";
 import {
   getProjectAssetFilePath,
   getProjectAssetUrl,
@@ -37,5 +38,12 @@ describe("content path helpers", () => {
     expect(getPostAssetFilePath("post", ["main.md"])).toBeNull();
     expect(getPostAssetFilePath("series", ["post", "main.md"])).toBeNull();
     expect(getPostAssetFilePath("post", [".env"])).toBeNull();
+  });
+
+  it("rewrites and constrains runtime site assets", async () => {
+    expect(getSiteAssetUrl("bg.png")).toBe("/site/assets/bg.png");
+    expect(getSiteAssetUrl("../secret.png")).toBe("../secret.png");
+    await expect(getSafeSiteAssetFilePath(["..", "secret.png"])).resolves.toBeNull();
+    await expect(getSafeSiteAssetFilePath(["site.json"])).resolves.toBeNull();
   });
 });

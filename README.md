@@ -2,7 +2,7 @@
 
 A sanitized, file-driven developer portfolio template built with Next.js, TypeScript, Tailwind CSS, runtime Markdown, and a pixel-night terminal interface.
 
-The goal is to let project cards, project detail pages, and blog posts update from files without rebuilding the app. This is useful when the same Docker image should keep running while `content/blog` or `content/projects` is mounted from a volume, Git sync job, or private admin tool.
+The goal is to let personal site settings, page images, project cards, project detail pages, and blog posts update from files without rebuilding the app. This is useful when the same Docker image should keep running while `content/site`, `content/blog`, or `content/projects` is mounted from a volume, Git sync job, or private admin tool.
 
 ## Architecture
 
@@ -15,6 +15,9 @@ app/
   blog/[...slug]/page.tsx      Direct article route
 
 content/
+  site/
+    site.json                 Runtime profile, navigation, resume, and page images
+    assets/                   Personal runtime images served through /site/assets
   projects/
     project-a/
       meta.json                Project card metadata
@@ -29,6 +32,8 @@ lib/
   projects/relations.ts        Blog/project relation matching
   content/validation.ts        Zod content schema validation
   content/cache.ts             mtime-based runtime file cache
+  site/settings.ts             Runtime site settings loader
+  site/assets.ts               Runtime site asset path guard
   blog/posts.ts                Runtime blog loader
   blog/markdown.ts             Markdown to HTML pipeline
 ```
@@ -96,12 +101,13 @@ Docker build is enforced by GitHub Actions and can also be run locally with Dock
 docker build -t portfolio-template:ci .
 ```
 
-`validate:content` checks project `meta.json`, project detail markdown, blog frontmatter, related project references, date format, enum fields, slug consistency, and unsafe markdown URLs.
+`validate:content` checks site settings, runtime site image paths, project `meta.json`, project detail markdown, blog frontmatter, related project references, date format, enum fields, slug consistency, and unsafe markdown URLs.
 
 ## Benchmark
 
 Runtime content behavior:
 
+- Layout, navigation, footer, homepage copy, resume sections, and page images read `content/site/site.json` on request.
 - `/projects` reads `content/projects/*/meta.json` on request.
 - `/projects/[slug]` reads `content/projects/[slug]/main.md` on request.
 - `/blog` reads `content/blog/**/main.md` on request.
@@ -152,8 +158,8 @@ This design intentionally accepts a few constraints:
 - File writes are not handled by this app. Use Git, a sync job, a mounted volume, or a separate admin tool.
 - Runtime file reads plus mtime cache are simpler than a database, but not ideal for very large content collections.
 - Markdown raw HTML is disabled and rendered HTML is passed through `rehype-sanitize`.
-- Images are not bundled as hero backgrounds by default; add your own optimized WebP/AVIF assets when ready.
-- Project and blog content schemas are validated by `pnpm validate:content`, but the app still normalizes runtime content defensively.
+- Personal page images can live under `content/site/assets`; add your own optimized WebP/AVIF assets when ready.
+- Site, project, and blog content schemas are validated by `pnpm validate:content`, but the app still normalizes runtime content defensively.
 
 ## Getting Started
 
@@ -221,6 +227,19 @@ featuredRank: 0
 ---
 ```
 
+## Editing Site Settings
+
+Create or edit:
+
+```txt
+content/site/site.json
+content/site/assets/
+```
+
+Use `site.json` for profile text, navigation, contact links, resume content, homepage copy, and page image mapping. Public root paths such as `/globe.svg` can reference files in `public/`. Relative image paths such as `hero/home.webp` are served from `content/site/assets/hero/home.webp` through `/site/assets/hero/home.webp`.
+
+Relative site image paths are constrained to `content/site/assets` and must use an allowed image extension: `avif`, `gif`, `jpg`, `jpeg`, `png`, `svg`, or `webp`.
+
 ## Docker Runtime Content
 
 Build the image:
@@ -233,6 +252,7 @@ Run with mounted content:
 
 ```bash
 docker run --rm -p 3000:3000 \
+  -v ./content/site:/app/content/site:ro \
   -v ./content/blog:/app/content/blog:ro \
   -v ./content/projects:/app/content/projects:ro \
   portfolio-kit
@@ -247,6 +267,7 @@ With this setup, editing mounted content does not require rebuilding the Docker 
 - Markdown links allow `http`, `https`, `mailto`, `tel`, safe relative paths, and hash links.
 - Markdown images allow `http`, `https`, safe relative paths, and root-relative public paths.
 - Blog and project asset routes constrain paths to their content directories.
+- Site image assets served from `/site/assets` are constrained to `content/site/assets`.
 - Dependency audit is enforced by CI with `pnpm audit --audit-level moderate`.
 - Do not expose a write-enabled admin tool without authentication, CSRF protection, and path validation.
 

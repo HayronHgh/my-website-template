@@ -6,7 +6,7 @@ import { PixelIcon } from "@/components/ui/pixel-icon";
 import { ui } from "@/components/ui/pixel-theme";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import { contactLinks, siteProfile } from "@/data/site";
+import { getSiteSettings } from "@/lib/site/settings";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -23,7 +23,13 @@ const collaborationTopics = [
 
 const briefChecklist = ["Problem", "Target users", "Constraints", "Timeline"];
 
-export default function ContactPage() {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function ContactPage() {
+  const { contactLinks, siteProfile } = await getSiteSettings();
+
   return (
     <Section>
       <Container className="space-y-5">

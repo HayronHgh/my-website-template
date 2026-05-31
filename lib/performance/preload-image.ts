@@ -1,4 +1,5 @@
 import { getRouteImageForHref } from "@/lib/performance/route-images";
+import type { RouteImageEntry } from "@/lib/performance/route-images";
 
 const preloadedImages = new Set<string>();
 
@@ -18,8 +19,8 @@ export function preloadImage(src: string) {
   }
 }
 
-export function preloadRouteImageForHref(href: string) {
-  const imageSrc = getRouteImageForHref(href);
+export function preloadRouteImageForHref(href: string, routes?: RouteImageEntry[]) {
+  const imageSrc = getRouteImageForHref(href, routes);
 
   if (imageSrc) {
     preloadImage(imageSrc);

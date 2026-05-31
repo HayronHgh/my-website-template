@@ -1,10 +1,15 @@
 import { Container } from "@/components/ui/container";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { ui } from "@/components/ui/pixel-theme";
-import { contactLinks, siteProfile } from "@/data/site";
 import { cn } from "@/lib/utils";
+import type { ContactLink, SiteProfile } from "@/data/site";
 
-export function Footer() {
+type FooterProps = {
+  contactLinks: ContactLink[];
+  siteProfile: SiteProfile;
+};
+
+export function Footer({ contactLinks, siteProfile }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (

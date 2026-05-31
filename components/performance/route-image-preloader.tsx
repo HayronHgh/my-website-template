@@ -2,7 +2,10 @@
 
 import { useEffect } from "react";
 import { preloadImage } from "@/lib/performance/preload-image";
-import { routeImagePreloads } from "@/lib/performance/route-images";
+
+type RouteImagePreloaderProps = {
+  images: string[];
+};
 
 type NavigatorConnection = {
   effectiveType?: string;
@@ -33,7 +36,7 @@ function scheduleIdleWarmup(callback: () => void) {
   return () => globalThis.clearTimeout(timeoutId);
 }
 
-export function RouteImagePreloader() {
+export function RouteImagePreloader({ images }: RouteImagePreloaderProps) {
   useEffect(() => {
     if (shouldSkipImageWarmup()) {
       return undefined;
@@ -41,7 +44,7 @@ export function RouteImagePreloader() {
 
     let active = true;
     const cancelIdleWarmup = scheduleIdleWarmup(() => {
-      routeImagePreloads.forEach((src, index) => {
+      images.forEach((src, index) => {
         window.setTimeout(() => {
           if (active) {
             preloadImage(src);
@@ -54,7 +57,7 @@ export function RouteImagePreloader() {
       active = false;
       cancelIdleWarmup();
     };
-  }, []);
+  }, [images]);
 
   return null;
 }

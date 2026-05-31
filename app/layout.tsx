@@ -3,8 +3,8 @@ import { JetBrains_Mono, Manrope } from "next/font/google";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { RouteImagePreloader } from "@/components/performance/route-image-preloader";
-import { siteProfile } from "@/data/site";
 import { siteConfig } from "@/lib/env";
+import { getSiteSettings } from "@/lib/site/settings";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 
@@ -18,52 +18,69 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
-  title: {
-    default: `${siteProfile.brandName} | ${siteProfile.role}`,
-    template: `%s | ${siteProfile.brandName}`,
-  },
-  description: siteProfile.positioning,
-  applicationName: siteProfile.brandName,
-  keywords: [
-    "Software Engineer",
-    "Next.js",
-    "TypeScript",
-    "React",
-    "Technical Blog",
-    "Portfolio",
-  ],
-  openGraph: {
-    title: `${siteProfile.brandName} | ${siteProfile.role}`,
-    description: siteProfile.positioning,
-    url: siteConfig.url,
-    siteName: siteProfile.brandName,
-    locale: "zh_TW",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${siteProfile.brandName} | ${siteProfile.role}`,
-    description: siteProfile.positioning,
-  },
-};
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-export default function RootLayout({
+export async function generateMetadata(): Promise<Metadata> {
+  const { siteProfile } = await getSiteSettings();
+
+  return {
+    metadataBase: new URL(siteConfig.url),
+    title: {
+      default: `${siteProfile.brandName} | ${siteProfile.role}`,
+      template: `%s | ${siteProfile.brandName}`,
+    },
+    description: siteProfile.positioning,
+    applicationName: siteProfile.brandName,
+    keywords: [
+      "Software Engineer",
+      "Next.js",
+      "TypeScript",
+      "React",
+      "Technical Blog",
+      "Portfolio",
+    ],
+    openGraph: {
+      title: `${siteProfile.brandName} | ${siteProfile.role}`,
+      description: siteProfile.positioning,
+      url: siteConfig.url,
+      siteName: siteProfile.brandName,
+      locale: "zh_TW",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${siteProfile.brandName} | ${siteProfile.role}`,
+      description: siteProfile.positioning,
+    },
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { contactLinks, navigationItems, routeImageMap, siteProfile } =
+    await getSiteSettings();
+  const routeImagePreloads = routeImageMap.map((item) => item.src);
+
   return (
     <html lang="zh-Hant">
       <body
         className={`${manrope.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        <RouteImagePreloader />
+        <RouteImagePreloader images={routeImagePreloads} />
         <div className="flex min-h-screen flex-col">
-          <Navbar />
+          <Navbar
+            brandName={siteProfile.brandName}
+            navigationItems={navigationItems}
+            role={siteProfile.role}
+            routeImageMap={routeImageMap}
+          />
           <main className="flex-1">{children}</main>
-          <Footer />
+          <Footer contactLinks={contactLinks} siteProfile={siteProfile} />
         </div>
       </body>
     </html>

@@ -8,14 +8,8 @@ import { ui } from "@/components/ui/pixel-theme";
 import { SkillBar } from "@/components/ui/skill-bar";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import {
-  resumeExperience,
-  resumeSections,
-  resumeSummary,
-  siteProfile,
-  skillItems,
-} from "@/data/site";
 import { getPublishedProjects } from "@/lib/projects/meta";
+import { getSiteSettings } from "@/lib/site/settings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +21,18 @@ export const metadata: Metadata = {
 };
 
 export default async function ResumePage() {
-  const projects = await getPublishedProjects();
+  const [projects, siteSettings] = await Promise.all([
+    getPublishedProjects(),
+    getSiteSettings(),
+  ]);
+  const {
+    pageImages,
+    resumeExperience,
+    resumeSections,
+    resumeSummary,
+    siteProfile,
+    skillItems,
+  } = siteSettings;
   const resumeProjectHighlights = projects.filter((project) => project.group === "featured");
 
   return (
@@ -35,9 +40,10 @@ export default async function ResumePage() {
       <PageHero
         accent="amber"
         artClassName="page-hero-art-resume"
+        background={pageImages.resumeHero.src}
         description={resumeSummary}
         icon="resume"
-        imagePosition="center center"
+        imagePosition={pageImages.resumeHero.position}
         title="Resume"
       >
         <div className="flex flex-wrap gap-3">

@@ -113,4 +113,66 @@ published: true
     expect(messages).toContain('relatedProjects references missing project "missing-project".');
     expect(messages.some((message) => message.includes("URL is not allowed"))).toBe(true);
   });
+
+  it("validates runtime site settings and site image assets", async () => {
+    await writeValidProject();
+    await writeFile("content/site/assets/bg.png", "fake image");
+    await writeFile(
+      "content/site/site.json",
+      JSON.stringify({
+        contactLinks: [
+          {
+            accent: "cyan",
+            href: "https://example.com",
+            icon: "github",
+            label: "GitHub",
+            value: "example",
+          },
+        ],
+        pageImages: {
+          homeHero: {
+            src: "bg.png",
+          },
+        },
+      }),
+    );
+
+    const result = await validateContent(rootDirectory);
+
+    expect(result.issues).toEqual([]);
+    expect(result.siteSettings).toBe(true);
+  });
+
+  it("reports unsafe runtime site settings", async () => {
+    await writeValidProject();
+    await writeFile(
+      "content/site/site.json",
+      JSON.stringify({
+        contactLinks: [
+          {
+            accent: "cyan",
+            href: "javascript:alert(1)",
+            icon: "github",
+            label: "GitHub",
+            value: "example",
+          },
+        ],
+        pageImages: {
+          homeHero: {
+            src: "../secret.png",
+          },
+          resumeHero: {
+            src: "resume.txt",
+          },
+        },
+      }),
+    );
+
+    const result = await validateContent(rootDirectory);
+    const messages = result.issues.map((issue) => issue.message);
+
+    expect(messages).toContain("site image path is not allowed: ../secret.png");
+    expect(messages).toContain("site image extension is not allowed: resume.txt");
+    expect(messages).toContain("contact link URL is not allowed: javascript:alert(1)");
+  });
 });

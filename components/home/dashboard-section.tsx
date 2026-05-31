@@ -6,38 +6,46 @@ import { PixelIcon } from "@/components/ui/pixel-icon";
 import { SkillBar } from "@/components/ui/skill-bar";
 import { Timeline } from "@/components/ui/timeline";
 import { Container } from "@/components/ui/container";
-import { homePageData, contactLinks, siteProfile } from "@/data/site";
 import type { ProjectItem } from "@/data/site";
+import type { SiteSettings } from "@/lib/site/settings";
 
 type DashboardSectionProps = {
+  contactLinks: SiteSettings["contactLinks"];
+  homePageData: SiteSettings["homePageData"];
   projects: ProjectItem[];
+  siteProfile: SiteSettings["siteProfile"];
 };
 
-const profileFacts = [
-  {
-    icon: "location",
-    label: "Location",
-    value: homePageData.profileMeta.location,
-  },
-  {
-    icon: "mail",
-    label: "Email",
-    value: homePageData.profileMeta.email,
-  },
-  {
-    icon: "clock",
-    label: "Timezone",
-    value: homePageData.profileMeta.timezone,
-  },
-  {
-    icon: "heart",
-    label: "Status",
-    value: homePageData.profileMeta.status,
-    status: true,
-  },
-];
+export function DashboardSection({
+  contactLinks,
+  homePageData,
+  projects,
+  siteProfile,
+}: DashboardSectionProps) {
+  const profileFacts = [
+    {
+      icon: "location",
+      label: "Location",
+      value: homePageData.profileMeta.location,
+    },
+    {
+      icon: "mail",
+      label: "Email",
+      value: homePageData.profileMeta.email,
+    },
+    {
+      icon: "clock",
+      label: "Timezone",
+      value: homePageData.profileMeta.timezone,
+    },
+    {
+      icon: "heart",
+      label: "Status",
+      value: homePageData.profileMeta.status,
+      status: true,
+    },
+  ];
 
-export function DashboardSection({ projects }: DashboardSectionProps) {
   return (
     <section className="relative overflow-hidden bg-[#050714] pb-14 pt-5 after:pointer-events-none after:absolute after:inset-0 after:bg-[radial-gradient(circle_at_top,#11182b,transparent_42%)] sm:pb-16">
       <Container className="relative z-10 space-y-5">

@@ -9,6 +9,7 @@ import { ui } from "@/components/ui/pixel-theme";
 import { Section } from "@/components/ui/section";
 import type { ProjectGroup } from "@/data/site";
 import { getPublishedProjects } from "@/lib/projects/meta";
+import { getSiteSettings } from "@/lib/site/settings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,7 +33,10 @@ const projectGroupDescriptions: Record<ProjectGroup, string> = {
 };
 
 export default async function ProjectsPage() {
-  const projectItems = await getPublishedProjects();
+  const [projectItems, siteSettings] = await Promise.all([
+    getPublishedProjects(),
+    getSiteSettings(),
+  ]);
   const techCount = new Set(projectItems.flatMap((project) => project.tech)).size;
   const featuredCount = projectItems.filter((project) => project.group === "featured").length;
   const systemCount = projectItems.filter((project) => project.group === "systems").length;
@@ -50,10 +54,11 @@ export default async function ProjectsPage() {
       <PageHero
         accent="cyan"
         artClassName="page-hero-art-projects"
+        background={siteSettings.pageImages.projectsHero.src}
         contentClassName="!items-end !pb-12 !pt-24 sm:!pb-14 sm:!pt-28 lg:!pb-16"
         description="Anonymized case studies, system builds, and experiments presented as pixel-night engineering cartridges."
         icon="projects"
-        imagePosition="center center"
+        imagePosition={siteSettings.pageImages.projectsHero.position}
         title="Projects"
       >
         <div className="grid max-w-152 grid-cols-2 gap-2 sm:grid-cols-4">
