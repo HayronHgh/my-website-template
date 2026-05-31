@@ -7,21 +7,29 @@ import { ui } from "@/components/ui/pixel-theme";
 import { getRelatedProjectsForPost } from "@/lib/projects/relations";
 import { formatDate } from "@/lib/utils";
 import type { ProjectItem } from "@/data/site";
+import type { SiteSettings } from "@/lib/site/settings";
 import type { BlogPost } from "@/types/blog";
 
 type BlogReaderProps = {
+  copy: SiteSettings["pages"]["blog"]["reader"];
   onBack: () => void;
   onSelectTag: (tag: string) => void;
   post?: BlogPost;
   projects: ProjectItem[];
 };
 
-export function BlogReader({ onBack, onSelectTag, post, projects }: BlogReaderProps) {
+export function BlogReader({
+  copy,
+  onBack,
+  onSelectTag,
+  post,
+  projects,
+}: BlogReaderProps) {
   if (!post) {
     return (
       <PixelCard accent="purple" className="min-h-96">
         <div className="flex min-h-72 items-center justify-center text-center text-sm text-[#9fb0d8]">
-          Select an article to read.
+          {copy.noSelectionMessage}
         </div>
       </PixelCard>
     );
@@ -37,7 +45,7 @@ export function BlogReader({ onBack, onSelectTag, post, projects }: BlogReaderPr
         type="button"
       >
         <span aria-hidden className="font-mono">{"<"}</span>
-        Back to articles
+        {copy.backLabel}
       </button>
 
       <header className="space-y-5">
@@ -89,7 +97,7 @@ export function BlogReader({ onBack, onSelectTag, post, projects }: BlogReaderPr
                 key={project.slug}
               >
                 <p className="font-mono text-[11px] font-bold uppercase text-[#8ed2d8]">
-                  Related Project
+                  {copy.relatedProjectLabel}
                 </p>
                 <p className="clamp-2 mt-1 font-mono text-sm font-bold leading-6 text-white">
                   {project.title}

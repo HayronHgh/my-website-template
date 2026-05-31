@@ -10,15 +10,31 @@ import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { getPublishedProjects } from "@/lib/projects/meta";
 import { getSiteSettings } from "@/lib/site/settings";
+import type { SiteSettings } from "@/lib/site/settings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export const metadata: Metadata = {
-  title: "Resume",
-  description: "Practical build log, skills, experience, and project highlights.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { pages } = await getSiteSettings();
+
+  return {
+    title: pages.resume.metadata.title,
+    description: pages.resume.metadata.description,
+  };
+}
+
+function resolveProfileToken(value: string, siteProfile: SiteSettings["siteProfile"]) {
+  const tokens: Record<string, string> = {
+    "{{email}}": siteProfile.email,
+    "{{location}}": siteProfile.location,
+    "{{status}}": siteProfile.status,
+    "{{timezone}}": siteProfile.timezone,
+  };
+
+  return tokens[value] ?? value;
+}
 
 export default async function ResumePage() {
   const [projects, siteSettings] = await Promise.all([
@@ -33,6 +49,7 @@ export default async function ResumePage() {
     siteProfile,
     skillItems,
   } = siteSettings;
+  const pageCopy = siteSettings.pages.resume;
   const resumeProjectHighlights = projects.filter((project) => project.group === "featured");
 
   return (
@@ -44,23 +61,28 @@ export default async function ResumePage() {
         description={resumeSummary}
         icon="resume"
         imagePosition={pageImages.resumeHero.position}
-        title="Resume"
+        title={pageCopy.heroTitle}
       >
         <div className="flex flex-wrap gap-3">
           <NeonButton
             accent="amber"
             className="border-amber-300/70 bg-[#241705] text-amber-100 hover:border-amber-200 hover:bg-[#322006]"
-            href={siteProfile.resumeDownloadUrl}
+            href={pageCopy.actions.download.href || siteProfile.resumeDownloadUrl}
             size="md"
             variant="primary"
             download
           >
             <PixelIcon className="h-4 w-4" name="resume" />
-            Download CV
+            {pageCopy.actions.download.label}
           </NeonButton>
-          <NeonButton accent="purple" href="/contact" size="md" variant="secondary">
+          <NeonButton
+            accent="purple"
+            href={pageCopy.actions.contact.href}
+            size="md"
+            variant="secondary"
+          >
             <PixelIcon className="h-4 w-4" name="contact" />
-            Contact Me
+            {pageCopy.actions.contact.label}
           </NeonButton>
         </div>
       </PageHero>
@@ -70,17 +92,12 @@ export default async function ResumePage() {
           accent="cyan"
           className="grid gap-4 p-4! sm:grid-cols-2 lg:grid-cols-4"
         >
-          {[
-            { icon: "journey" as const, label: "Years Experience", value: "3+" },
-            { icon: "location" as const, label: "Based in", value: siteProfile.location },
-            { icon: "mail" as const, label: "Email", value: siteProfile.email },
-            { icon: "heart" as const, label: "Status", value: "Available" },
-          ].map((item) => (
+          {pageCopy.stats.map((item) => (
             <div className="flex items-center gap-3" key={item.label}>
               <PixelIcon className="h-5 w-5" name={item.icon} />
               <div className="min-w-0">
                 <p className="truncate font-mono text-base font-black text-[#8ed2d8]">
-                  {item.value}
+                  {resolveProfileToken(item.value, siteProfile)}
                 </p>
                 <p className="mt-0.5 font-mono text-[11px] text-[#8fa0bf]">{item.label}</p>
               </div>
@@ -92,7 +109,9 @@ export default async function ResumePage() {
           <PixelCard accent="purple" className="space-y-5">
             <div className="flex items-center gap-2">
               <PixelIcon className="h-5 w-5" name="journey" />
-              <h2 className="font-mono text-xl font-black text-white">Experience</h2>
+              <h2 className="font-mono text-xl font-black text-white">
+                {pageCopy.experienceTitle}
+              </h2>
             </div>
             <div className="space-y-5">
               {resumeExperience.map((item) => (
@@ -106,7 +125,7 @@ export default async function ResumePage() {
                         {item.title}
                       </h3>
                       <p className="mt-1 text-sm text-[#9fb0d8]">
-                        Scope: {item.organization}
+                        {pageCopy.experienceScopeLabel}: {item.organization}
                       </p>
                     </div>
                     <p className="shrink-0 font-mono text-sm text-violet-200">{item.period}</p>
@@ -141,7 +160,7 @@ export default async function ResumePage() {
             <PixelCard accent="green" className="space-y-4">
               <div className="flex items-center gap-2 text-lime-200">
                 <PixelIcon className="h-5 w-5" name="skills" />
-                <h2 className="font-mono text-xl font-black text-white">Skills</h2>
+                <h2 className="font-mono text-xl font-black text-white">{pageCopy.skillsTitle}</h2>
               </div>
               {skillItems.map((skill) => (
                 <SkillBar compact key={skill.name} skill={skill} />
@@ -169,11 +188,18 @@ export default async function ResumePage() {
         <div className="space-y-5">
           <div className="flex items-center gap-2 text-amber-200">
             <PixelIcon className="h-5 w-5" name="projects" />
-            <h2 className="font-mono text-2xl font-bold text-white">Project Highlights</h2>
+            <h2 className="font-mono text-2xl font-bold text-white">
+              {pageCopy.projectHighlightsTitle}
+            </h2>
           </div>
           <div className="grid gap-5 lg:grid-cols-3">
             {resumeProjectHighlights.map((project) => (
-              <ProjectCard compact key={project.slug} project={project} />
+              <ProjectCard
+                compact
+                key={project.slug}
+                labels={siteSettings.pages.projectCard}
+                project={project}
+              />
             ))}
           </div>
         </div>

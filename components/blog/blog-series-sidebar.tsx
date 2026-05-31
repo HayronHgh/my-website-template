@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { cn, formatDate } from "@/lib/utils";
+import type { SiteSettings } from "@/lib/site/settings";
 import type { BlogPost } from "@/types/blog";
 
 type BlogSeriesSidebarProps = {
+  copy: SiteSettings["pages"]["blog"]["series"];
   onSelectPost: (slug: string) => void;
   posts: BlogPost[];
   selectedSlug?: string;
@@ -20,12 +22,12 @@ type SeriesGroup = {
 
 const STANDALONE_SERIES_SLUG = "__standalone";
 
-function createSeriesGroups(posts: BlogPost[]) {
+function createSeriesGroups(posts: BlogPost[], standaloneLabel: string) {
   const groups = new Map<string, SeriesGroup>();
 
   posts.forEach((post) => {
     const slug = post.series?.slug ?? STANDALONE_SERIES_SLUG;
-    const title = post.series?.title ?? "Standalone";
+    const title = post.series?.title ?? standaloneLabel;
     const group = groups.get(slug) ?? {
       slug,
       title,
@@ -57,11 +59,15 @@ function createSeriesGroups(posts: BlogPost[]) {
 }
 
 export function BlogSeriesSidebar({
+  copy,
   onSelectPost,
   posts,
   selectedSlug,
 }: BlogSeriesSidebarProps) {
-  const groups = useMemo(() => createSeriesGroups(posts), [posts]);
+  const groups = useMemo(
+    () => createSeriesGroups(posts, copy.standaloneLabel),
+    [copy.standaloneLabel, posts],
+  );
   const selectedGroup = groups.find((group) =>
     group.posts.some((post) => post.slug === selectedSlug),
   );
@@ -88,7 +94,7 @@ export function BlogSeriesSidebar({
     <PixelCard accent="cyan" className="space-y-4">
       <div className="flex items-center gap-2 font-mono text-base font-bold text-white">
         <PixelIcon className="h-5 w-5" name="journey" />
-        Series
+        {copy.title}
       </div>
 
       <div className="space-y-3">

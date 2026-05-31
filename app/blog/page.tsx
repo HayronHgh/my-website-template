@@ -12,11 +12,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export const metadata: Metadata = {
-  title: "Blog",
-  description:
-    "Searchable engineering notes with local markdown posts, hashtags, and a same-page reader.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { pages } = await getSiteSettings();
+
+  return {
+    title: pages.blog.metadata.title,
+    description: pages.blog.metadata.description,
+  };
+}
 
 const toTagOptions = (hashtagIndex: Awaited<ReturnType<typeof getHashtagIndex>>) =>
   Object.entries(hashtagIndex)
@@ -46,14 +49,19 @@ export default async function BlogPage() {
         accent="purple"
         artClassName="page-hero-art-blog"
         background={siteSettings.pageImages.blogHero.src}
-        description="A local markdown workspace for notes, case studies, and implementation writeups."
+        description={siteSettings.pages.blog.hero.description}
         icon="file"
         imagePosition={siteSettings.pageImages.blogHero.position}
-        title="Blog Signals"
+        title={siteSettings.pages.blog.hero.title}
       />
 
       <Container className="mt-5">
-        <BlogSearchApp posts={posts} projects={projects} tags={toTagOptions(hashtagIndex)} />
+        <BlogSearchApp
+          copy={siteSettings.pages.blog}
+          posts={posts}
+          projects={projects}
+          tags={toTagOptions(hashtagIndex)}
+        />
       </Container>
     </Section>
   );

@@ -5,10 +5,10 @@ import { Section } from "@/components/ui/section";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { ui } from "@/components/ui/pixel-theme";
-import { absoluteUrl } from "@/lib/env";
 import { getPostBySlug, getPublishedPosts } from "@/lib/blog";
 import { getPublishedProjects } from "@/lib/projects/meta";
 import { getRelatedProjectsForPost } from "@/lib/projects/relations";
+import { getSiteSettings } from "@/lib/site/settings";
 import { formatDate } from "@/lib/utils";
 
 type BlogPostPageProps = {
@@ -28,11 +28,14 @@ export async function generateMetadata({
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug: slugSegments } = await params;
   const slug = getSlug(slugSegments);
-  const post = await getPostBySlug(slug);
+  const [post, siteSettings] = await Promise.all([
+    getPostBySlug(slug),
+    getSiteSettings(),
+  ]);
 
   if (!post || !post.published) {
     return {
-      title: "Post not found",
+      title: siteSettings.pages.blog.metadata.title,
     };
   }
 
@@ -46,7 +49,7 @@ export async function generateMetadata({
       title: post.title,
       description: post.summary,
       type: "article",
-      url: absoluteUrl(`/blog/${post.slug}`),
+      url: new URL(`/blog/${post.slug}`, `${siteSettings.siteUrl}/`).toString(),
       publishedTime: post.date,
       tags: post.tags,
       images: post.coverImage ? [post.coverImage] : undefined,
@@ -57,10 +60,11 @@ export async function generateMetadata({
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug: slugSegments } = await params;
   const slug = getSlug(slugSegments);
-  const [post, posts, projects] = await Promise.all([
+  const [post, posts, projects, siteSettings] = await Promise.all([
     getPostBySlug(slug),
     getPublishedPosts(),
     getPublishedProjects(),
+    getSiteSettings(),
   ]);
 
   if (!post || !post.published) {
@@ -73,6 +77,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       : !candidate.series,
   );
   const relatedProjects = getRelatedProjectsForPost(post, projects, 4);
+  const pageCopy = siteSettings.pages.blog;
 
   return (
     <Section>
@@ -128,7 +133,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <aside className="xl:sticky xl:top-28 xl:self-start">
             <PixelCard accent="cyan" className="space-y-3">
               <h2 className="font-mono text-base font-bold text-white">
-                {post.series?.title ?? "Standalone"}
+                {post.series?.title ?? pageCopy.detail.standaloneLabel}
               </h2>
               <div className="space-y-2">
                 {seriesPosts.map((seriesPost) => (
@@ -151,7 +156,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <PixelCard accent="purple" className="mt-5 space-y-3">
                 <div className="flex items-center gap-2 font-mono text-base font-bold text-white">
                   <PixelIcon className="h-5 w-5" name="projects" />
-                  Related Projects
+                  {pageCopy.detail.relatedProjectsTitle}
                 </div>
                 <div className="space-y-2">
                   {relatedProjects.map((project) => (

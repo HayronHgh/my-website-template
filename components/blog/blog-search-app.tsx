@@ -14,17 +14,17 @@ import {
 import { BlogSeriesSidebar } from "@/components/blog/blog-series-sidebar";
 import { BlogTagFilter } from "@/components/blog/blog-tag-filter";
 import type { ProjectItem } from "@/data/site";
+import type { SiteSettings } from "@/lib/site/settings";
 import type { BlogPost, BlogTagOption } from "@/types/blog";
 
 type BlogSearchAppProps = {
+  copy: SiteSettings["pages"]["blog"];
   posts: BlogPost[];
   projects: ProjectItem[];
   tags: BlogTagOption[];
 };
 
 type BlogViewMode = "browse" | "read";
-
-const LATEST_POST_LIMIT = 6;
 
 function comparePostsByFeaturedRankAndDate(left: BlogPost, right: BlogPost) {
   const leftRank =
@@ -39,7 +39,7 @@ function comparePostsByFeaturedRankAndDate(left: BlogPost, right: BlogPost) {
   return new Date(right.date).getTime() - new Date(left.date).getTime();
 }
 
-export function BlogSearchApp({ posts, projects, tags }: BlogSearchAppProps) {
+export function BlogSearchApp({ copy, posts, projects, tags }: BlogSearchAppProps) {
   const [query, setQuery] = useState("");
   const [selectedSlug, setSelectedSlug] = useState<string | undefined>();
   const [viewMode, setViewMode] = useState<BlogViewMode>("browse");
@@ -78,7 +78,7 @@ export function BlogSearchApp({ posts, projects, tags }: BlogSearchAppProps) {
 
   const displayPosts = isSearching
     ? filteredPosts
-    : posts.slice(0, LATEST_POST_LIMIT);
+    : posts.slice(0, copy.latestLimit);
 
   const selectedPost =
     posts.find((post) => post.slug === selectedSlug) ?? displayPosts[0] ?? posts[0];
@@ -108,6 +108,7 @@ export function BlogSearchApp({ posts, projects, tags }: BlogSearchAppProps) {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0">
           <BlogReader
+            copy={copy.reader}
             onBack={() => setViewMode("browse")}
             onSelectTag={handleToggleTag}
             post={selectedPost}
@@ -117,6 +118,7 @@ export function BlogSearchApp({ posts, projects, tags }: BlogSearchAppProps) {
 
         <aside className="xl:sticky xl:top-28 xl:self-start">
           <BlogSeriesSidebar
+            copy={copy.series}
             onSelectPost={handleSelectPost}
             posts={posts}
             selectedSlug={selectedPost?.slug}
@@ -130,6 +132,7 @@ export function BlogSearchApp({ posts, projects, tags }: BlogSearchAppProps) {
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px]">
       <div className="min-w-0 xl:order-1">
         <BlogPostShowcase
+          copy={copy.search}
           isSearching={isSearching}
           onSelectPost={handleSelectPost}
           onSelectTag={handleToggleTag}
@@ -141,6 +144,7 @@ export function BlogSearchApp({ posts, projects, tags }: BlogSearchAppProps) {
         <div>
           <BlogSearchInput
             activeTags={activeTags}
+            copy={copy.search}
             onClear={() => setQuery("")}
             onQueryChange={setQuery}
             onRemoveTag={handleRemoveTag}
@@ -150,6 +154,7 @@ export function BlogSearchApp({ posts, projects, tags }: BlogSearchAppProps) {
         <div>
           <BlogTagFilter
             activeTagKeys={activeTagKeys}
+            copy={copy.search}
             onSelectTag={handleToggleTag}
             tags={tags}
           />

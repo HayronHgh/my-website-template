@@ -140,6 +140,7 @@ const siteSettingsSchema = z.object({
     label: z.string().trim().min(1),
   }).passthrough()).optional(),
   pageImages: z.record(z.string(), siteImageSchema).optional(),
+  pages: z.record(z.string(), z.unknown()).optional(),
   profileMeta: z.object({
     email: z.string().trim().min(1).optional(),
     location: z.string().trim().min(1).optional(),
@@ -163,6 +164,7 @@ const siteSettingsSchema = z.object({
     href: z.string().trim().min(1),
     src: z.string().trim().min(1),
   }).passthrough()).optional(),
+  siteUrl: z.string().trim().min(1).optional(),
   siteProfile: z.object({
     brandName: z.string().trim().min(1).optional(),
     facts: z.array(z.object({
@@ -291,6 +293,56 @@ function getSiteImageSrc(value: unknown) {
   }
 
   return null;
+}
+
+function isSafeSiteUrl(value: string) {
+  try {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function validateRuntimePageLinks(
+  value: unknown,
+  filePath: string,
+  rootDirectory: string,
+  issues: ContentValidationIssue[],
+  pathSegments: string[] = ["pages"],
+) {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => {
+      validateRuntimePageLinks(
+        item,
+        filePath,
+        rootDirectory,
+        issues,
+        [...pathSegments, String(index)],
+      );
+    });
+    return;
+  }
+
+  if (!value || typeof value !== "object") {
+    return;
+  }
+
+  Object.entries(value).forEach(([key, childValue]) => {
+    const childPath = [...pathSegments, key];
+
+    if (key.toLowerCase() === "href" && typeof childValue === "string") {
+      if (!isSafeMarkdownUrl(childValue, "link")) {
+        issues.push({
+          filePath: toDisplayPath(rootDirectory, filePath),
+          message: `page href URL is not allowed at ${childPath.join(".")}: ${childValue}`,
+        });
+      }
+      return;
+    }
+
+    validateRuntimePageLinks(childValue, filePath, rootDirectory, issues, childPath);
+  });
 }
 
 async function validateSiteImagePath(
@@ -606,6 +658,17 @@ async function validateSiteSettings(
       });
     }
   });
+
+  if (settings.siteUrl && !isSafeSiteUrl(settings.siteUrl)) {
+    issues.push({
+      filePath: toDisplayPath(rootDirectory, settingsPath),
+      message: `siteUrl must be an http(s) URL: ${settings.siteUrl}`,
+    });
+  }
+
+  if (settings.pages) {
+    validateRuntimePageLinks(settings.pages, settingsPath, rootDirectory, issues);
+  }
 
   return true;
 }

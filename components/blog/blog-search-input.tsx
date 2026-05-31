@@ -3,9 +3,11 @@
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { ui } from "@/components/ui/pixel-theme";
+import type { SiteSettings } from "@/lib/site/settings";
 
 type BlogSearchInputProps = {
   activeTags: string[];
+  copy: SiteSettings["pages"]["blog"]["search"];
   onClear: () => void;
   onQueryChange: (query: string) => void;
   onRemoveTag: (tag: string) => void;
@@ -14,6 +16,7 @@ type BlogSearchInputProps = {
 
 export function BlogSearchInput({
   activeTags,
+  copy,
   onClear,
   onQueryChange,
   onRemoveTag,
@@ -26,13 +29,13 @@ export function BlogSearchInput({
         <input
           className="min-w-0 flex-1 bg-transparent py-3 font-mono text-sm text-white outline-none placeholder:text-[#7f8db3]"
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Search title, summary, #tag"
+          placeholder={copy.placeholder}
           type="search"
           value={query}
         />
         {query ? (
           <button
-            aria-label="Clear search"
+            aria-label={copy.clearSearchLabel}
             className="inline-flex h-8 w-8 items-center justify-center rounded-[3px] border border-transparent text-[#9fb0d8] transition duration-200 hover:border-[#30445f] hover:bg-[#151e2f] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
             onClick={onClear}
             type="button"
@@ -49,6 +52,7 @@ export function BlogSearchInput({
               className={`${ui.tinyTag} inline-flex max-w-full items-center gap-2 leading-none transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50`}
               key={tag}
               onClick={() => onRemoveTag(tag)}
+              aria-label={`${copy.removeTagLabel}: ${tag}`}
               type="button"
             >
               <span aria-hidden className="shrink-0 text-[#8ed2d8]">#</span>

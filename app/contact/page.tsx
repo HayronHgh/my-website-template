@@ -8,58 +8,53 @@ import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { getSiteSettings } from "@/lib/site/settings";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description: "Contact links and collaboration channels for this portfolio template.",
-};
-
-const collaborationTopics = [
-  "Frontend architecture",
-  "Product interface implementation",
-  "Markdown / content workflow",
-  "Next.js / TypeScript systems",
-  "Engineering collaboration",
-];
-
-const briefChecklist = ["Problem", "Target users", "Constraints", "Timeline"];
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+export async function generateMetadata(): Promise<Metadata> {
+  const { pages } = await getSiteSettings();
+
+  return {
+    title: pages.contact.metadata.title,
+    description: pages.contact.metadata.description,
+  };
+}
+
 export default async function ContactPage() {
-  const { contactLinks, siteProfile } = await getSiteSettings();
+  const { contactLinks, pages, siteProfile } = await getSiteSettings();
+  const pageCopy = pages.contact;
 
   return (
     <Section>
       <Container className="space-y-5">
         <PageHeader
           accent="pink"
-          description="Open channels for product ideas, engineering collaboration, and technical notes."
-          eyebrow="Contact"
-          title="Open channel for product and engineering missions"
+          description={pageCopy.header.description}
+          eyebrow={pageCopy.header.eyebrow}
+          title={pageCopy.header.title}
         />
 
         <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
           <PixelCard accent="pink" className="h-full space-y-5 bg-[#0b1220]!">
             <div>
               <p className="font-mono text-xs font-bold uppercase text-[#cf9bb8]">
-                terminal://brief
+                {pageCopy.brief.kicker}
               </p>
-              <h2 className="mt-2 font-mono text-xl font-bold text-white">Signal Brief</h2>
+              <h2 className="mt-2 font-mono text-xl font-bold text-white">
+                {pageCopy.brief.title}
+              </h2>
             </div>
             <p className="text-base leading-8 text-[#b7c2e0]">
-              Send a focused brief with the problem, target users, constraints, and
-              preferred timeline. I can help shape the interface, architecture, or
-              delivery plan from there.
+              {pageCopy.brief.body}
             </p>
             <div className="grid gap-3">
               <div>
                 <p className="font-mono text-xs font-bold uppercase text-[#cf9bb8]">
-                  What to include
+                  {pageCopy.brief.checklistTitle}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {briefChecklist.map((item) => (
+                  {pageCopy.brief.checklist.map((item) => (
                     <span
                       className={ui.tinyTag}
                       key={item}
@@ -71,10 +66,10 @@ export default async function ContactPage() {
               </div>
               <div>
                 <p className="font-mono text-xs font-bold uppercase text-[#cf9bb8]">
-                  Collaboration topics
+                  {pageCopy.brief.topicsTitle}
                 </p>
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                  {collaborationTopics.map((topic) => (
+                  {pageCopy.brief.topics.map((topic) => (
                     <span
                       className="rounded-[4px] border border-[#26344d] bg-[#101827] px-3 py-2 font-mono text-sm text-[#b7c2e0] shadow-[inset_0_0_0_1px_#172238]"
                       key={topic}
@@ -87,7 +82,7 @@ export default async function ContactPage() {
             </div>
             <NeonButton accent="pink" href={`mailto:${siteProfile.email}`} size="lg">
               <PixelIcon className="h-5 w-5" name="mail" />
-              Email Me
+              {pageCopy.brief.emailButtonLabel}
             </NeonButton>
           </PixelCard>
 
@@ -114,7 +109,7 @@ export default async function ContactPage() {
                     rel={/^https?:\/\//.test(link.href) ? "noreferrer" : undefined}
                     target={/^https?:\/\//.test(link.href) ? "_blank" : undefined}
                   >
-                    Open link
+                    {pageCopy.linkButtonLabel}
                   </a>
                 </PixelCard>
               );

@@ -3,7 +3,6 @@ import { JetBrains_Mono, Manrope } from "next/font/google";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { RouteImagePreloader } from "@/components/performance/route-image-preloader";
-import { siteConfig } from "@/lib/env";
 import { getSiteSettings } from "@/lib/site/settings";
 import "katex/dist/katex.min.css";
 import "./globals.css";
@@ -23,10 +22,10 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteProfile } = await getSiteSettings();
+  const { siteProfile, siteUrl } = await getSiteSettings();
 
   return {
-    metadataBase: new URL(siteConfig.url),
+    metadataBase: new URL(siteUrl),
     title: {
       default: `${siteProfile.brandName} | ${siteProfile.role}`,
       template: `%s | ${siteProfile.brandName}`,
@@ -44,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: `${siteProfile.brandName} | ${siteProfile.role}`,
       description: siteProfile.positioning,
-      url: siteConfig.url,
+      url: siteUrl,
       siteName: siteProfile.brandName,
       locale: "zh_TW",
       type: "website",

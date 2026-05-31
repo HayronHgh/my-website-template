@@ -3,9 +3,11 @@
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { cn, formatDate } from "@/lib/utils";
+import type { SiteSettings } from "@/lib/site/settings";
 import type { BlogPost } from "@/types/blog";
 
 type BlogPostShowcaseProps = {
+  copy: SiteSettings["pages"]["blog"]["search"];
   isSearching: boolean;
   onSelectPost: (slug: string) => void;
   onSelectTag: (tag: string) => void;
@@ -64,6 +66,7 @@ function getCategoryToneClass(post: BlogPost) {
 }
 
 export function BlogPostShowcase({
+  copy,
   isSearching,
   onSelectPost,
   onSelectTag,
@@ -74,12 +77,14 @@ export function BlogPostShowcase({
       <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
         <div>
           <h2 className="font-mono text-xl font-black text-white">
-            {isSearching ? "Search results" : "Latest articles"}
+            {isSearching ? copy.searchResultsTitle : copy.latestArticlesTitle}
           </h2>
           <p className="mt-1 text-sm leading-6 text-[#9fb0d8]">
             {isSearching
-              ? `${posts.length} matching article${posts.length === 1 ? "" : "s"}`
-              : "Recently published notes and writeups"}
+              ? `${posts.length} ${
+                  posts.length === 1 ? copy.matchingArticleSingular : copy.matchingArticlePlural
+                }`
+              : copy.latestArticlesDescription}
           </p>
         </div>
       </div>
@@ -104,7 +109,7 @@ export function BlogPostShowcase({
                     <span aria-hidden className="shrink-0">
                       #
                     </span>
-                    {post.tags[0] ?? post.series?.title ?? "Article"}
+                    {post.tags[0] ?? post.series?.title ?? copy.categoryFallback}
                   </button>
                   <time className="inline-flex min-h-7 items-center" dateTime={post.date}>
                     {formatDate(post.date)}
@@ -127,14 +132,14 @@ export function BlogPostShowcase({
                 <div className="mt-auto flex items-end justify-between gap-3 pt-4">
                   <p className="inline-flex items-center gap-2 font-mono text-xs text-[#7f8db3]">
                     <PixelIcon className="h-3.5 w-3.5" name="clock" />
-                    {getReadTime(post)} min read
+                    {getReadTime(post)} {copy.readTimeSuffix}
                   </p>
                   <button
                     className="inline-flex h-9 items-center gap-2 rounded-[4px] border border-[#30445f] bg-[#101827] px-3 font-mono text-xs font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
                     onClick={() => onSelectPost(post.slug)}
                     type="button"
                   >
-                    Read Signal
+                    {copy.readButtonLabel}
                     <span aria-hidden>-&gt;</span>
                   </button>
                 </div>
@@ -166,7 +171,7 @@ export function BlogPostShowcase({
         </div>
       ) : (
         <p className="rounded-[4px] border border-[#26344d] bg-[#101827] p-5 text-sm leading-6 text-[#9fb0d8]">
-          No matching article.
+          {copy.emptyMessage}
         </p>
       )}
     </PixelCard>

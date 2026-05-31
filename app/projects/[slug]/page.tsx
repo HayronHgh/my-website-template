@@ -7,11 +7,12 @@ import { PixelIcon } from "@/components/ui/pixel-icon";
 import { ui } from "@/components/ui/pixel-theme";
 import { Section } from "@/components/ui/section";
 import { cn, formatDate } from "@/lib/utils";
-import { getProjectAssetUrl } from "@/lib/projects/assets";
 import {
   getAllProjectSlugs,
   getProjectDetailBySlug,
 } from "@/lib/projects/details";
+import { getProjectAssetUrl } from "@/lib/projects/assets";
+import { getSiteSettings } from "@/lib/site/settings";
 
 type ProjectDetailPageProps = {
   params: Promise<{
@@ -32,11 +33,14 @@ export async function generateMetadata({
   params,
 }: ProjectDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const detail = await getProjectDetailBySlug(slug);
+  const [detail, siteSettings] = await Promise.all([
+    getProjectDetailBySlug(slug),
+    getSiteSettings(),
+  ]);
 
   if (!detail) {
     return {
-      title: "Project not found",
+      title: siteSettings.pages.projectDetail.notFoundTitle,
     };
   }
 
@@ -51,13 +55,17 @@ export async function generateMetadata({
 
 export default async function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   const { slug } = await params;
-  const detail = await getProjectDetailBySlug(slug);
+  const [detail, siteSettings] = await Promise.all([
+    getProjectDetailBySlug(slug),
+    getSiteSettings(),
+  ]);
 
   if (!detail) {
     notFound();
   }
 
   const { project } = detail;
+  const pageCopy = siteSettings.pages.projectDetail;
   const coverImageUrl = project.cover.startsWith("generated:")
     ? undefined
     : getProjectAssetUrl(project.slug, project.cover);
@@ -75,25 +83,25 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <NeonButton accent="cyan" href="/projects" size="md" variant="ghost">
             <PixelIcon className="h-4 w-4" name="projects" />
-            Back to Projects
+            {pageCopy.actions.backToProjects}
           </NeonButton>
           <div className="flex flex-wrap gap-2">
             {project.caseStudyUrl ? (
               <NeonButton accent="purple" href={project.caseStudyUrl} size="md" variant="ghost">
                 <PixelIcon className="h-4 w-4" name="file" />
-                Case Study
+                {pageCopy.actions.caseStudy}
               </NeonButton>
             ) : null}
             {project.repoUrl ? (
               <NeonButton accent="purple" external href={project.repoUrl} size="md" variant="ghost">
                 <PixelIcon className="h-4 w-4" name="github" />
-                GitHub
+                {pageCopy.actions.repository}
               </NeonButton>
             ) : null}
             {project.demoUrl ? (
               <NeonButton accent="amber" external href={project.demoUrl} size="md" variant="ghost">
                 <PixelIcon className="h-4 w-4" name="projects" />
-                Live Demo
+                {pageCopy.actions.demo}
               </NeonButton>
             ) : null}
           </div>
@@ -139,17 +147,17 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
             <PixelCard accent={project.accent} className="space-y-4">
               <div className="space-y-2">
                 <p className="font-mono text-xs font-bold uppercase tracking-wide text-[#8ed2d8]">
-                  Project Brief
+                  {pageCopy.summaryTitle}
                 </p>
                 <p className="text-sm leading-6 text-[#c7d2e5]">{project.summary}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-sm">
                 {[
-                  ["Year", project.year],
-                  ["Category", project.category],
-                  ["Maturity", project.maturity],
-                  ["Scope", project.scope],
+                  [pageCopy.fields.year, project.year],
+                  [pageCopy.fields.category, project.category],
+                  [pageCopy.fields.maturity, project.maturity],
+                  [pageCopy.fields.scope, project.scope],
                 ].map(([label, value]) =>
                   value ? (
                     <div
@@ -169,7 +177,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
 
               <div className="space-y-2">
                 <p className="font-mono text-xs font-bold uppercase tracking-wide text-[#8ed2d8]">
-                  Tech Stack
+                  {pageCopy.techStackTitle}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {project.tech.map((tag) => (
@@ -183,7 +191,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
               {project.outcomes?.length ? (
                 <div className="space-y-2">
                   <p className="font-mono text-xs font-bold uppercase tracking-wide text-[#8ed2d8]">
-                    Verification Signals
+                    {pageCopy.verificationTitle}
                   </p>
                   <ul className="space-y-2 text-sm leading-6 text-[#c7d2e5]">
                     {project.outcomes.map((outcome) => (
@@ -198,7 +206,9 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
 
               {project.publicBoundary ? (
                 <div className="rounded-[4px] border border-[#5d4b32] bg-[#151009] p-3 text-sm leading-6 text-[#e0c28f]">
-                  <p className="font-mono text-[11px] font-bold uppercase">Public Boundary</p>
+                  <p className="font-mono text-[11px] font-bold uppercase">
+                    {pageCopy.publicBoundaryTitle}
+                  </p>
                   <p className="mt-1">{project.publicBoundary}</p>
                 </div>
               ) : null}
@@ -208,7 +218,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
               <PixelCard accent="purple" className="space-y-3">
                 <div className="flex items-center gap-2 font-mono text-base font-bold text-white">
                   <PixelIcon className="h-5 w-5" name="file" />
-                  Related Articles
+                  {pageCopy.relatedArticlesTitle}
                 </div>
                 <div className="space-y-2">
                   {detail.relatedPosts.map((post) => (

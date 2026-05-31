@@ -1,4 +1,5 @@
 {
+  "siteUrl": "https://portfolio.example.com",
   "profileMeta": {
     "location": "Remote / Your City",
     "email": "hello@example.com",
@@ -378,6 +379,292 @@
     "aboutAvatar": {
       "src": "/about.svg",
       "position": "center center"
+    }
+  },
+  "pages": {
+    "home": {
+      "metadata": {
+        "title": "Home",
+        "description": "A file-driven portfolio template for publishing project cards, case studies, and technical notes without rebuilding the app."
+      },
+      "heroActions": {
+        "projects": {
+          "label": "View Projects",
+          "href": "/projects"
+        },
+        "resume": {
+          "label": "Download Resume",
+          "href": "/resume.pdf"
+        },
+        "contact": {
+          "label": "Contact",
+          "href": "/contact"
+        }
+      },
+      "dashboard": {
+        "aboutTitle": "About",
+        "featuredProjectsTitle": "Featured Projects",
+        "featuredProjectsLink": {
+          "label": "View all ->",
+          "href": "/projects"
+        },
+        "blogTitle": "Blog Signals",
+        "blogLink": {
+          "label": "View blog ->",
+          "href": "/blog"
+        },
+        "skillsTitle": "Skills",
+        "skillsLink": {
+          "label": "More skills ->",
+          "href": "/resume"
+        },
+        "contactEyebrow": "Signal Links",
+        "contactTitle": "Connect",
+        "profileFactLabels": {
+          "location": "Location",
+          "email": "Email",
+          "timezone": "Timezone",
+          "status": "Status"
+        }
+      },
+      "timeline": {
+        "title": "Growth Timeline",
+        "link": {
+          "label": "More about this journey ->",
+          "href": "/about"
+        }
+      }
+    },
+    "about": {
+      "metadata": {
+        "title": "About",
+        "description": "Profile, working style, skills, and growth timeline for PortfolioKit."
+      },
+      "hero": {
+        "title": "Journey",
+        "description": "Show how your background, working style, and tool choices connect to the projects you publish."
+      },
+      "avatarAlt": "Portfolio avatar",
+      "timeline": {
+        "title": "Growth Timeline",
+        "link": {
+          "label": "More about this journey ->",
+          "href": "/about"
+        }
+      },
+      "stats": [
+        {
+          "icon": "journey",
+          "label": "Years of Journey",
+          "value": "4+"
+        },
+        {
+          "icon": "projects",
+          "label": "Published Cases",
+          "value": "3+"
+        },
+        {
+          "icon": "skills",
+          "label": "Skill Areas",
+          "value": "10+"
+        },
+        {
+          "icon": "heart",
+          "label": "Mode",
+          "value": "Build"
+        }
+      ],
+      "profileEyebrow": "Profile",
+      "profileTitle": "How this portfolio is organized",
+      "principlesTitle": "Publishing Principles",
+      "principles": [
+        "Keep public portfolio content separate from private client or personal material.",
+        "Use runtime files for copy, images, project metadata, and blog posts whenever rebuilds are unnecessary.",
+        "Make project evidence easy to update while keeping path validation and content boundaries strict."
+      ],
+      "toolsTitle": "Tools Along the Route"
+    },
+    "projects": {
+      "metadata": {
+        "title": "Projects",
+        "description": "Selected case studies, system builds, and experiments for PortfolioKit."
+      },
+      "hero": {
+        "title": "Projects",
+        "description": "Case studies, system builds, and experiments presented as editable runtime content."
+      },
+      "stats": {
+        "projects": "Projects",
+        "caseStudies": "Case Studies",
+        "systems": "Systems",
+        "techTags": "Tech Tags"
+      },
+      "groups": {
+        "featured": {
+          "title": "Featured Projects",
+          "description": "Primary case studies and public proof points."
+        },
+        "systems": {
+          "title": "Systems Projects",
+          "description": "System-oriented builds that show architecture and integration depth."
+        },
+        "experiments": {
+          "title": "Experiments / Side Projects",
+          "description": "Smaller builds, simulations, and learning archives."
+        }
+      },
+      "indexTitle": "Project Index",
+      "actions": {
+        "details": "Details",
+        "caseStudy": "Case Study",
+        "repository": "GitHub",
+        "demo": "Live Demo"
+      }
+    },
+    "projectCard": {
+      "details": "View Details",
+      "caseStudy": "Case Study",
+      "repository": "GitHub",
+      "demo": "Live Demo"
+    },
+    "projectDetail": {
+      "notFoundTitle": "Project not found",
+      "actions": {
+        "backToProjects": "Back to Projects",
+        "details": "Details",
+        "caseStudy": "Case Study",
+        "repository": "GitHub",
+        "demo": "Live Demo"
+      },
+      "summaryTitle": "Project Brief",
+      "fields": {
+        "year": "Year",
+        "category": "Category",
+        "maturity": "Maturity",
+        "scope": "Scope"
+      },
+      "techStackTitle": "Tech Stack",
+      "verificationTitle": "Verification Signals",
+      "publicBoundaryTitle": "Public Boundary",
+      "relatedArticlesTitle": "Related Articles"
+    },
+    "blog": {
+      "metadata": {
+        "title": "Blog",
+        "description": "Searchable engineering notes with local markdown posts, hashtags, and a same-page reader."
+      },
+      "hero": {
+        "title": "Blog Signals",
+        "description": "A local markdown workspace for notes, case studies, and implementation writeups."
+      },
+      "latestLimit": 6,
+      "card": {
+        "readLabel": "Read signal"
+      },
+      "search": {
+        "placeholder": "Search title, summary, #tag",
+        "clearSearchLabel": "Clear search",
+        "removeTagLabel": "Remove tag",
+        "hashtagsTitle": "Hashtags",
+        "searchResultsTitle": "Search results",
+        "latestArticlesTitle": "Latest articles",
+        "matchingArticleSingular": "matching article",
+        "matchingArticlePlural": "matching articles",
+        "latestArticlesDescription": "Recently published notes and writeups",
+        "categoryFallback": "Article",
+        "readTimeSuffix": "min read",
+        "readButtonLabel": "Read Signal",
+        "emptyMessage": "No matching article."
+      },
+      "reader": {
+        "noSelectionMessage": "Select an article to read.",
+        "backLabel": "Back to articles",
+        "relatedProjectLabel": "Related Project"
+      },
+      "series": {
+        "title": "Series",
+        "standaloneLabel": "Standalone"
+      },
+      "detail": {
+        "standaloneLabel": "Standalone",
+        "relatedProjectsTitle": "Related Projects"
+      }
+    },
+    "resume": {
+      "metadata": {
+        "title": "Resume",
+        "description": "Experience, skills, and project highlights."
+      },
+      "heroTitle": "Resume",
+      "actions": {
+        "download": {
+          "label": "Download Resume",
+          "href": "/resume.pdf"
+        },
+        "contact": {
+          "label": "Contact",
+          "href": "/contact"
+        }
+      },
+      "stats": [
+        {
+          "icon": "journey",
+          "label": "Years Experience",
+          "value": "3+"
+        },
+        {
+          "icon": "location",
+          "label": "Based in",
+          "value": "{{location}}"
+        },
+        {
+          "icon": "mail",
+          "label": "Email",
+          "value": "{{email}}"
+        },
+        {
+          "icon": "heart",
+          "label": "Status",
+          "value": "{{status}}"
+        }
+      ],
+      "experienceTitle": "Experience",
+      "experienceScopeLabel": "Scope",
+      "skillsTitle": "Skills",
+      "projectHighlightsTitle": "Project Highlights"
+    },
+    "contact": {
+      "metadata": {
+        "title": "Contact",
+        "description": "Contact links and collaboration channels for PortfolioKit."
+      },
+      "header": {
+        "eyebrow": "Contact",
+        "title": "Open channel for product and engineering work",
+        "description": "Editable contact copy, brief prompts, topics, and public links."
+      },
+      "brief": {
+        "kicker": "terminal://brief",
+        "title": "Signal Brief",
+        "body": "Send a focused brief with the problem, target users, constraints, and preferred timeline.",
+        "checklistTitle": "What to include",
+        "checklist": [
+          "Problem",
+          "Target users",
+          "Constraints",
+          "Timeline"
+        ],
+        "topicsTitle": "Collaboration topics",
+        "topics": [
+          "Frontend architecture",
+          "Product interface implementation",
+          "Markdown / content workflow",
+          "Next.js / TypeScript systems",
+          "Engineering collaboration"
+        ],
+        "emailButtonLabel": "Email"
+      },
+      "linkButtonLabel": "Open link"
     }
   }
 }

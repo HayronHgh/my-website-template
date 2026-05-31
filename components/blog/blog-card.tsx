@@ -7,9 +7,10 @@ import type { BlogPreviewPost } from "@/data/site";
 type BlogCardProps = {
   compact?: boolean;
   post: BlogPreviewPost;
+  readLabel?: string;
 };
 
-export function BlogCard({ compact, post }: BlogCardProps) {
+export function BlogCard({ compact, post, readLabel = "Read signal" }: BlogCardProps) {
   return (
     <PixelCard
       accent="purple"
@@ -75,7 +76,7 @@ export function BlogCard({ compact, post }: BlogCardProps) {
             )}
             href={post.href}
           >
-            Read signal
+            {readLabel}
           </Link>
         </div>
       </div>

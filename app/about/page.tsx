@@ -10,23 +10,22 @@ import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { getSiteSettings } from "@/lib/site/settings";
 
-export const metadata: Metadata = {
-  title: "About",
-  description: "Profile, working style, skills, and growth timeline for this portfolio template.",
-};
-
-const journeyPrinciples = [
-  "每個專案都先確認問題、使用者與資料流，再決定要做成網頁、桌面工具或後端服務。",
-  "交付時先讓核心流程可用，再逐步補上權限、紀錄、查詢效能與例外處理。",
-  "工具不是展示用清單，只有能降低交付摩擦、讓下一次迭代更清楚，才算有價值。",
-];
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+export async function generateMetadata(): Promise<Metadata> {
+  const { pages } = await getSiteSettings();
+
+  return {
+    title: pages.about.metadata.title,
+    description: pages.about.metadata.description,
+  };
+}
+
 export default async function AboutPage() {
-  const { pageImages, siteProfile, skillItems, timelineItems } = await getSiteSettings();
+  const { pageImages, pages, siteProfile, skillItems, timelineItems } = await getSiteSettings();
+  const pageCopy = pages.about;
 
   return (
     <Section className="!pt-0 sm:!pt-0">
@@ -34,24 +33,23 @@ export default async function AboutPage() {
         accent="blue"
         artClassName="page-hero-art-journey"
         background={pageImages.aboutHero.src}
-        description="從資訊科、資工系到獨立系統交付的成長路線，整理我如何把技術轉成可用工具。"
+        description={pageCopy.hero.description}
         icon="journey"
         imagePosition={pageImages.aboutHero.position}
-        title="Journey"
+        title={pageCopy.hero.title}
       />
 
       <Container className="mt-5 space-y-5">
         <div id="journey" className="scroll-mt-28">
-          <Timeline items={timelineItems} />
+          <Timeline
+            items={timelineItems}
+            link={pageCopy.timeline.link}
+            title={pageCopy.timeline.title}
+          />
         </div>
 
         <div className="grid gap-3 md:grid-cols-4">
-          {[
-            { icon: "journey" as const, label: "Years of Journey", value: "4+" },
-            { icon: "projects" as const, label: "Landed Cases", value: "3+" },
-            { icon: "skills" as const, label: "Tech Learned", value: "10+" },
-            { icon: "heart" as const, label: "Direction", value: "Build" },
-          ].map((stat) => (
+          {pageCopy.stats.map((stat) => (
               <PixelCard accent="blue" className="h-full p-4! text-center" key={stat.label}>
               <PixelIcon className="mx-auto h-5 w-5" name={stat.icon} />
               <p className="mt-3 font-mono text-2xl font-black text-[#8ed2d8]">
@@ -64,15 +62,13 @@ export default async function AboutPage() {
 
         <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
           <PixelCard accent="cyan" className="space-y-5">
-            <div
-              aria-label="Abstract pixel terminal avatar placeholder"
-              className="pixel-avatar pixel-avatar-compact mx-auto w-full max-w-[16.25rem]"
-              role="img"
-            >
-              <div className="avatar-screen" />
-              <div className="avatar-head" />
-              <div className="avatar-body" />
-              <div className="avatar-laptop" />
+            <div className="mx-auto max-w-[16.25rem] overflow-hidden rounded-[4px] border border-[#26344d] bg-[#07101d] shadow-[inset_0_0_0_1px_#111b2d]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt={pageCopy.avatarAlt}
+                className="block aspect-square w-full object-cover [image-rendering:pixelated]"
+                src={pageImages.aboutAvatar.src}
+              />
             </div>
             <div className="grid gap-3">
               {siteProfile.facts.map((fact) => (
@@ -91,8 +87,8 @@ export default async function AboutPage() {
             <SectionTitle
               accent="purple"
               description={siteProfile.intro}
-              eyebrow="Profile"
-              title="Growth notes from the route"
+              eyebrow={pageCopy.profileEyebrow}
+              title={pageCopy.profileTitle}
             />
             <div className="grid gap-3 sm:grid-cols-2">
               {siteProfile.specialties.map((item) => (
@@ -112,10 +108,12 @@ export default async function AboutPage() {
           <PixelCard accent="amber" className="space-y-5">
             <div className="flex items-center gap-2 text-amber-200">
               <PixelIcon className="h-5 w-5" name="star" />
-              <h2 className="font-mono text-xl font-bold text-white">Route Principles</h2>
+              <h2 className="font-mono text-xl font-bold text-white">
+                {pageCopy.principlesTitle}
+              </h2>
             </div>
             <div className="grid gap-3">
-              {journeyPrinciples.map((item) => (
+              {pageCopy.principles.map((item) => (
                 <p
                   className="rounded-[4px] border border-[#26344d] bg-[#101827] p-4 text-sm leading-7 text-[#b7c2e0] shadow-[inset_0_0_0_1px_#172238]"
                   key={item}
@@ -129,7 +127,7 @@ export default async function AboutPage() {
           <PixelCard accent="green" className="space-y-5">
             <div className="flex items-center gap-2 text-lime-200">
               <PixelIcon className="h-5 w-5" name="skills" />
-              <h2 className="font-mono text-xl font-bold text-white">Tools Along the Route</h2>
+              <h2 className="font-mono text-xl font-bold text-white">{pageCopy.toolsTitle}</h2>
             </div>
             {skillItems.map((skill) => (
               <SkillBar key={skill.name} skill={skill} />

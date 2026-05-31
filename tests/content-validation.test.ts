@@ -134,6 +134,17 @@ published: true
             src: "bg.png",
           },
         },
+        pages: {
+          home: {
+            heroActions: {
+              projects: {
+                href: "/projects",
+                label: "Projects",
+              },
+            },
+          },
+        },
+        siteUrl: "https://example.com",
       }),
     );
 
@@ -165,6 +176,17 @@ published: true
             src: "resume.txt",
           },
         },
+        pages: {
+          home: {
+            heroActions: {
+              projects: {
+                href: "javascript:alert(1)",
+                label: "Projects",
+              },
+            },
+          },
+        },
+        siteUrl: "javascript:alert(1)",
       }),
     );
 
@@ -174,5 +196,9 @@ published: true
     expect(messages).toContain("site image path is not allowed: ../secret.png");
     expect(messages).toContain("site image extension is not allowed: resume.txt");
     expect(messages).toContain("contact link URL is not allowed: javascript:alert(1)");
+    expect(messages).toContain("siteUrl must be an http(s) URL: javascript:alert(1)");
+    expect(messages).toContain(
+      "page href URL is not allowed at pages.home.heroActions.projects.href: javascript:alert(1)",
+    );
   });
 });

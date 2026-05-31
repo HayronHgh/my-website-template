@@ -15,22 +15,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export const metadata: Metadata = {
-  title: "Projects",
-  description: "Selected case studies, system builds, and experiments from file-based project content.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { pages } = await getSiteSettings();
 
-const projectGroupLabels: Record<ProjectGroup, string> = {
-  featured: "Featured Projects",
-  systems: "Systems Projects",
-  experiments: "Experiments / Side Projects",
-};
-
-const projectGroupDescriptions: Record<ProjectGroup, string> = {
-  featured: "Landed private cases presented as anonymized engineering case studies.",
-  systems: "System-oriented builds that show AI, storage, and integration depth.",
-  experiments: "Game, algorithm, simulation, and security-learning side work.",
-};
+  return {
+    title: pages.projects.metadata.title,
+    description: pages.projects.metadata.description,
+  };
+}
 
 export default async function ProjectsPage() {
   const [projectItems, siteSettings] = await Promise.all([
@@ -40,12 +32,13 @@ export default async function ProjectsPage() {
   const techCount = new Set(projectItems.flatMap((project) => project.tech)).size;
   const featuredCount = projectItems.filter((project) => project.group === "featured").length;
   const systemCount = projectItems.filter((project) => project.group === "systems").length;
+  const pageCopy = siteSettings.pages.projects;
   const groupedProjects = (["featured", "systems", "experiments"] as ProjectGroup[]).map(
     (group) => ({
-      description: projectGroupDescriptions[group],
+      description: pageCopy.groups[group].description,
       group,
       projects: projectItems.filter((project) => project.group === group),
-      title: projectGroupLabels[group],
+      title: pageCopy.groups[group].title,
     }),
   );
 
@@ -56,17 +49,17 @@ export default async function ProjectsPage() {
         artClassName="page-hero-art-projects"
         background={siteSettings.pageImages.projectsHero.src}
         contentClassName="!items-end !pb-12 !pt-24 sm:!pb-14 sm:!pt-28 lg:!pb-16"
-        description="Anonymized case studies, system builds, and experiments presented as pixel-night engineering cartridges."
+        description={pageCopy.hero.description}
         icon="projects"
         imagePosition={siteSettings.pageImages.projectsHero.position}
-        title="Projects"
+        title={pageCopy.hero.title}
       >
         <div className="grid max-w-152 grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { label: "Projects", value: `${projectItems.length}+` },
-            { label: "Case Studies", value: featuredCount },
-            { label: "Systems", value: systemCount },
-            { label: "Tech Tags", value: techCount },
+            { label: pageCopy.stats.projects, value: `${projectItems.length}+` },
+            { label: pageCopy.stats.caseStudies, value: featuredCount },
+            { label: pageCopy.stats.systems, value: systemCount },
+            { label: pageCopy.stats.techTags, value: techCount },
           ].map((stat) => (
             <div
               className="rounded-[5px] border border-[#26344d] bg-[#101827] px-4 py-3 shadow-[inset_0_0_0_1px_#172238]"
@@ -103,7 +96,13 @@ export default async function ProjectsPage() {
 
             <div className="grid gap-4 lg:grid-cols-3">
               {projects.map((project) => (
-                <ProjectCard compact key={project.slug} project={project} showLinks />
+                <ProjectCard
+                  compact
+                  key={project.slug}
+                  labels={siteSettings.pages.projectCard}
+                  project={project}
+                  showLinks
+                />
               ))}
             </div>
           </PixelCard>
@@ -112,7 +111,7 @@ export default async function ProjectsPage() {
         <PixelCard accent="blue" className="space-y-3" id="project-archive">
           <div className="flex items-center gap-2">
             <PixelIcon className="h-4 w-4" name="projects" />
-            <h2 className="font-mono text-lg font-black text-white">Project Index</h2>
+            <h2 className="font-mono text-lg font-black text-white">{pageCopy.indexTitle}</h2>
           </div>
           <div className="divide-y divide-cyan-300/10">
             {projectItems.map((project) => (
@@ -141,7 +140,7 @@ export default async function ProjectsPage() {
                     variant="ghost"
                   >
                     <PixelIcon className="h-4 w-4" name="projects" />
-                    Details
+                    {pageCopy.actions.details}
                   </NeonButton>
                   {project.caseStudyUrl ? (
                     <NeonButton
@@ -151,7 +150,7 @@ export default async function ProjectsPage() {
                       variant="ghost"
                     >
                       <PixelIcon className="h-4 w-4" name="file" />
-                      Case Study
+                      {pageCopy.actions.caseStudy}
                     </NeonButton>
                   ) : null}
                   {project.repoUrl ? (
@@ -163,7 +162,7 @@ export default async function ProjectsPage() {
                       variant="ghost"
                     >
                       <PixelIcon className="h-4 w-4" name="github" />
-                      GitHub
+                      {pageCopy.actions.repository}
                     </NeonButton>
                   ) : null}
                   {project.demoUrl ? (
@@ -175,7 +174,7 @@ export default async function ProjectsPage() {
                       variant="ghost"
                     >
                       <PixelIcon className="h-4 w-4" name="projects" />
-                      Live Demo
+                      {pageCopy.actions.demo}
                     </NeonButton>
                   ) : null}
                 </div>

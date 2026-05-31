@@ -4,9 +4,11 @@ import { PixelIcon } from "@/components/ui/pixel-icon";
 import { getProjectAssetUrl } from "@/lib/projects/assets";
 import { cn } from "@/lib/utils";
 import type { ProjectItem } from "@/data/site";
+import type { ProjectCardLabels } from "@/lib/site/settings";
 
 type ProjectCardProps = {
   compact?: boolean;
+  labels?: ProjectCardLabels;
   project: ProjectItem;
   showLinks?: boolean;
 };
@@ -14,7 +16,19 @@ type ProjectCardProps = {
 const tagClassName =
   "max-w-28 truncate rounded-[3px] border border-[#315467] bg-[#111c2f] px-2 py-1 font-mono text-[11px] font-bold leading-none text-[#b9dfe3]";
 
-export function ProjectCard({ compact, project, showLinks }: ProjectCardProps) {
+const defaultLabels: ProjectCardLabels = {
+  caseStudy: "Case Study",
+  demo: "線上展示",
+  details: "View Details",
+  repository: "GitHub 開源代碼",
+};
+
+export function ProjectCard({
+  compact,
+  labels = defaultLabels,
+  project,
+  showLinks,
+}: ProjectCardProps) {
   const shouldShowLinks = showLinks ?? !compact;
   const coverImageUrl = project.cover.startsWith("generated:")
     ? undefined
@@ -33,7 +47,7 @@ export function ProjectCard({ compact, project, showLinks }: ProjectCardProps) {
           external: false,
           href: project.caseStudyUrl,
           icon: "file" as const,
-          label: "Case Study",
+          label: labels.caseStudy,
         }
       : null,
     project.repoUrl
@@ -42,7 +56,7 @@ export function ProjectCard({ compact, project, showLinks }: ProjectCardProps) {
           external: true,
           href: project.repoUrl,
           icon: "github" as const,
-          label: "GitHub \u958b\u6e90\u4ee3\u78bc",
+          label: labels.repository,
         }
       : null,
     project.demoUrl
@@ -51,7 +65,7 @@ export function ProjectCard({ compact, project, showLinks }: ProjectCardProps) {
           external: true,
           href: project.demoUrl,
           icon: "projects" as const,
-          label: "\u7dda\u4e0a\u5c55\u793a",
+          label: labels.demo,
         }
       : null,
   ].filter(Boolean);
@@ -140,7 +154,7 @@ export function ProjectCard({ compact, project, showLinks }: ProjectCardProps) {
                 size="md"
               >
                 <PixelIcon className="h-4 w-4" name="projects" />
-                <span className="truncate">View Details</span>
+                <span className="truncate">{labels.details}</span>
               </NeonButton>
             )}
             {projectLinks.map((link) =>

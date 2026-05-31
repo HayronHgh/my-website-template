@@ -4,15 +4,22 @@ import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { getTagSearchKey } from "@/components/blog/blog-search-utils";
 import { cn } from "@/lib/utils";
+import type { SiteSettings } from "@/lib/site/settings";
 import type { BlogTagOption } from "@/types/blog";
 
 type BlogTagFilterProps = {
   activeTagKeys: Set<string>;
+  copy: SiteSettings["pages"]["blog"]["search"];
   onSelectTag: (tag: string) => void;
   tags: BlogTagOption[];
 };
 
-export function BlogTagFilter({ activeTagKeys, onSelectTag, tags }: BlogTagFilterProps) {
+export function BlogTagFilter({
+  activeTagKeys,
+  copy,
+  onSelectTag,
+  tags,
+}: BlogTagFilterProps) {
   if (tags.length === 0) {
     return null;
   }
@@ -21,7 +28,7 @@ export function BlogTagFilter({ activeTagKeys, onSelectTag, tags }: BlogTagFilte
     <PixelCard accent="purple" className="space-y-3">
       <div className="flex items-center gap-2 font-mono text-sm font-bold text-violet-100">
         <PixelIcon className="h-4 w-4" name="file" />
-        Hashtags
+        {copy.hashtagsTitle}
       </div>
       <div className="flex flex-wrap gap-2">
         {tags.map(({ count, tag }) => {

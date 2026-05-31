@@ -10,37 +10,45 @@ import type { ProjectItem } from "@/data/site";
 import type { SiteSettings } from "@/lib/site/settings";
 
 type DashboardSectionProps = {
+  blogCardReadLabel: string;
   contactLinks: SiteSettings["contactLinks"];
+  copy: SiteSettings["pages"]["home"]["dashboard"];
   homePageData: SiteSettings["homePageData"];
+  projectCardLabels: SiteSettings["pages"]["projectCard"];
   projects: ProjectItem[];
   siteProfile: SiteSettings["siteProfile"];
+  timelineCopy: SiteSettings["pages"]["home"]["timeline"];
 };
 
 export function DashboardSection({
+  blogCardReadLabel,
   contactLinks,
+  copy,
   homePageData,
+  projectCardLabels,
   projects,
   siteProfile,
+  timelineCopy,
 }: DashboardSectionProps) {
   const profileFacts = [
     {
       icon: "location",
-      label: "Location",
+      label: copy.profileFactLabels.location,
       value: homePageData.profileMeta.location,
     },
     {
       icon: "mail",
-      label: "Email",
+      label: copy.profileFactLabels.email,
       value: homePageData.profileMeta.email,
     },
     {
       icon: "clock",
-      label: "Timezone",
+      label: copy.profileFactLabels.timezone,
       value: homePageData.profileMeta.timezone,
     },
     {
       icon: "heart",
-      label: "Status",
+      label: copy.profileFactLabels.status,
       value: homePageData.profileMeta.status,
       status: true,
     },
@@ -58,7 +66,7 @@ export function DashboardSection({
             >
               <p className="pixel-section-kicker md:col-span-2">
                 <span className="pixel-section-icon pixel-section-icon-about" aria-hidden />
-                About Me
+                {copy.aboutTitle}
               </p>
 
               <div
@@ -109,19 +117,24 @@ export function DashboardSection({
               <div className="flex items-center justify-between gap-4">
                 <p className="pixel-section-kicker">
                   <span className="pixel-section-icon pixel-section-icon-star" aria-hidden />
-                  Featured Projects
+                  {copy.featuredProjectsTitle}
                 </p>
                 <Link
                   className="font-mono text-xs font-semibold text-cyan-200/75 transition hover:text-cyan-100"
-                  href="/projects"
+                  href={copy.featuredProjectsLink.href}
                 >
-                  View all -&gt;
+                  {copy.featuredProjectsLink.label}
                 </Link>
               </div>
 
               <div className="grid flex-1 gap-4 md:grid-cols-3">
                 {projects.map((project) => (
-                  <ProjectCard compact key={project.slug} project={project} />
+                  <ProjectCard
+                    compact
+                    key={project.slug}
+                    labels={projectCardLabels}
+                    project={project}
+                  />
                 ))}
               </div>
             </PixelCard>
@@ -130,26 +143,36 @@ export function DashboardSection({
               <div className="flex items-center justify-between gap-4">
                 <p className="pixel-section-kicker">
                   <span className="pixel-section-icon pixel-section-icon-blog" aria-hidden />
-                  Blog Signals
+                  {copy.blogTitle}
                 </p>
                 <Link
                   className="font-mono text-xs font-semibold text-cyan-200/75 transition hover:text-cyan-100"
-                  href="/blog"
+                  href={copy.blogLink.href}
                 >
-                  View blog -&gt;
+                  {copy.blogLink.label}
                 </Link>
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
                 {homePageData.articles.map((post) => (
-                  <BlogCard compact key={post.slug} post={post} />
+                  <BlogCard
+                    compact
+                    key={post.slug}
+                    post={post}
+                    readLabel={blogCardReadLabel}
+                  />
                 ))}
               </div>
             </PixelCard>
           </div>
 
           <div className="space-y-5">
-            <Timeline compact items={homePageData.timeline} />
+            <Timeline
+              compact
+              items={homePageData.timeline}
+              link={timelineCopy.link}
+              title={timelineCopy.title}
+            />
 
             <PixelCard
               accent="purple"
@@ -158,7 +181,7 @@ export function DashboardSection({
             >
               <p className="pixel-section-kicker">
                 <span className="pixel-section-icon pixel-section-icon-skills" aria-hidden />
-                Skills
+                {copy.skillsTitle}
               </p>
               <div className="mt-4 grid gap-3.5">
                 {homePageData.skills.map((skill) => (
@@ -167,19 +190,19 @@ export function DashboardSection({
               </div>
               <Link
                 className="mt-auto block w-fit self-end font-mono text-xs font-semibold text-cyan-200/75 transition hover:text-cyan-100"
-                href="/resume"
+                href={copy.skillsLink.href}
               >
-                More skills -&gt;
+                {copy.skillsLink.label}
               </Link>
             </PixelCard>
 
             <PixelCard accent="pink" as="section" className="space-y-5">
               <div>
                 <p className="font-mono text-sm font-extrabold uppercase tracking-wide text-fuchsia-200">
-                  Signal Links
+                  {copy.contactEyebrow}
                 </p>
                 <h2 className="mt-2 font-mono text-2xl font-black text-white">
-                  Connect
+                  {copy.contactTitle}
                 </h2>
               </div>
               <div className="flex flex-wrap gap-3">

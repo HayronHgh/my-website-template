@@ -6,9 +6,19 @@ import type { TimelineItem } from "@/data/site";
 type TimelineProps = {
   compact?: boolean;
   items: TimelineItem[];
+  link?: {
+    href: string;
+    label: string;
+  };
+  title?: string;
 };
 
-export function Timeline({ compact, items }: TimelineProps) {
+export function Timeline({
+  compact,
+  items,
+  link = { href: "/about", label: "More about my journey ->" },
+  title = "Growth Timeline",
+}: TimelineProps) {
   const displayItems = compact ? [...items].reverse() : items;
 
   return (
@@ -29,7 +39,7 @@ export function Timeline({ compact, items }: TimelineProps) {
           )}
         />
         <h2 className={cn("font-mono font-extrabold text-white", compact ? "text-sm text-[#eef3ff]" : "text-lg")}>
-          Growth Timeline
+          {title}
         </h2>
       </div>
       <ol className={cn(compact ? "space-y-1" : "space-y-5")}>
@@ -88,9 +98,9 @@ export function Timeline({ compact, items }: TimelineProps) {
       {compact ? (
         <Link
           className="mt-2 self-end rounded-sm px-1 py-1 font-mono text-xs font-semibold text-[#9dcdd3] transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
-          href="/about"
+          href={link.href}
         >
-          More about my journey -&gt;
+          {link.label}
         </Link>
       ) : null}
     </PixelCard>
