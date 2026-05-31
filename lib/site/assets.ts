@@ -32,11 +32,11 @@ function isRelativeSiteAssetPath(assetPath: string) {
   );
 }
 
-export function getSiteAssetUrl(assetPath: string) {
+function getRelativeSiteAssetSegments(assetPath: string) {
   const trimmedPath = assetPath.trim();
 
   if (!isRelativeSiteAssetPath(trimmedPath)) {
-    return trimmedPath;
+    return null;
   }
 
   const assetSegments = trimmedPath
@@ -44,11 +44,42 @@ export function getSiteAssetUrl(assetPath: string) {
     .split(/[\\/]+/)
     .filter(Boolean);
 
-  if (assetSegments.length === 0 || assetSegments.some(hasUnsafeSegment)) {
+  return assetSegments.length > 0 && !assetSegments.some(hasUnsafeSegment)
+    ? assetSegments
+    : null;
+}
+
+export function getSiteAssetUrl(assetPath: string) {
+  const trimmedPath = assetPath.trim();
+  const assetSegments = getRelativeSiteAssetSegments(trimmedPath);
+
+  if (!assetSegments) {
     return trimmedPath;
   }
 
   return `/site/assets/${assetSegments.map((segment) => encodeURIComponent(segment)).join("/")}`;
+}
+
+export async function getVersionedSiteAssetUrl(assetPath: string) {
+  const assetUrl = getSiteAssetUrl(assetPath);
+  const assetSegments = getRelativeSiteAssetSegments(assetPath);
+
+  if (!assetSegments) {
+    return assetUrl;
+  }
+
+  const filePath = await getSafeSiteAssetFilePath(assetSegments);
+
+  if (!filePath) {
+    return assetUrl;
+  }
+
+  try {
+    const stats = await fs.stat(filePath);
+    return `${assetUrl}?v=${Math.trunc(stats.mtimeMs)}-${stats.size}`;
+  } catch {
+    return assetUrl;
+  }
 }
 
 export async function getSafeSiteAssetFilePath(assetSegments: string[]) {

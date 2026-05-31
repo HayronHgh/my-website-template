@@ -114,6 +114,7 @@ Runtime content behavior:
 - `dynamic = "force-dynamic"` and `revalidate = 0` are used on runtime content routes.
 - File reads and markdown rendering use an in-memory mtime cache keyed by file path, `mtimeMs`, and file size.
 - Mounted content changes are picked up on the next request after the file timestamp or size changes.
+- Runtime site image URLs include a file mtime/size version so replacing an image with the same filename invalidates the Next image cache.
 
 ## Screenshots
 

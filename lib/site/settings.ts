@@ -13,7 +13,7 @@ import {
   timelineItems as fallbackTimelineItems,
 } from "@/data/site";
 import { readTextFileWithMtimeCache } from "@/lib/content/cache";
-import { getSiteAssetUrl, SITE_CONTENT_DIRECTORY } from "@/lib/site/assets";
+import { getVersionedSiteAssetUrl, SITE_CONTENT_DIRECTORY } from "@/lib/site/assets";
 import type {
   AdjustmentNote,
   BlogPreviewPost,
@@ -116,27 +116,43 @@ function createFacts(profileMeta: ProfileMeta) {
   ];
 }
 
-function resolveSiteImage(
+async function resolveSiteImage(
   source: Partial<SiteImage> | string | undefined,
   fallback: SiteImage,
-): SiteImage {
+): Promise<SiteImage> {
   const rawImage = typeof source === "string" ? { src: source } : source;
   const src = stringOrFallback(rawImage?.src, fallback.src);
 
   return {
     position: stringOrFallback(rawImage?.position, fallback.position ?? "center center"),
-    src: getSiteAssetUrl(src),
+    src: await getVersionedSiteAssetUrl(src),
   };
 }
 
-function resolvePageImages(source: SiteSettingsFile["pageImages"]): SitePageImages {
+async function resolvePageImages(source: SiteSettingsFile["pageImages"]): Promise<SitePageImages> {
+  const [
+    aboutAvatar,
+    aboutHero,
+    blogHero,
+    homeHero,
+    projectsHero,
+    resumeHero,
+  ] = await Promise.all([
+    resolveSiteImage(source?.aboutAvatar, defaultPageImages.aboutAvatar),
+    resolveSiteImage(source?.aboutHero, defaultPageImages.aboutHero),
+    resolveSiteImage(source?.blogHero, defaultPageImages.blogHero),
+    resolveSiteImage(source?.homeHero, defaultPageImages.homeHero),
+    resolveSiteImage(source?.projectsHero, defaultPageImages.projectsHero),
+    resolveSiteImage(source?.resumeHero, defaultPageImages.resumeHero),
+  ]);
+
   return {
-    aboutAvatar: resolveSiteImage(source?.aboutAvatar, defaultPageImages.aboutAvatar),
-    aboutHero: resolveSiteImage(source?.aboutHero, defaultPageImages.aboutHero),
-    blogHero: resolveSiteImage(source?.blogHero, defaultPageImages.blogHero),
-    homeHero: resolveSiteImage(source?.homeHero, defaultPageImages.homeHero),
-    projectsHero: resolveSiteImage(source?.projectsHero, defaultPageImages.projectsHero),
-    resumeHero: resolveSiteImage(source?.resumeHero, defaultPageImages.resumeHero),
+    aboutAvatar,
+    aboutHero,
+    blogHero,
+    homeHero,
+    projectsHero,
+    resumeHero,
   };
 }
 
@@ -148,7 +164,7 @@ function patchEmailContactLink(links: ContactLink[], profileMeta: ProfileMeta) {
   );
 }
 
-function resolveRouteImageMap(
+async function resolveRouteImageMap(
   source: SiteSettingsFile["routeImageMap"],
   pageImages: SitePageImages,
 ) {
@@ -160,10 +176,12 @@ function resolveRouteImageMap(
     { href: "/resume", src: pageImages.resumeHero.src },
   ];
 
-  return arrayOrFallback(source, fallback).map((entry) => ({
-    href: entry.href,
-    src: getSiteAssetUrl(entry.src),
-  }));
+  return Promise.all(
+    arrayOrFallback(source, fallback).map(async (entry) => ({
+      href: entry.href,
+      src: await getVersionedSiteAssetUrl(entry.src),
+    })),
+  );
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
@@ -191,8 +209,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     arrayOrFallback(settings.contactLinks, fallbackContactLinks),
     profileMeta,
   );
-  const pageImages = resolvePageImages(settings.pageImages);
-  const routeImageMap = resolveRouteImageMap(settings.routeImageMap, pageImages);
+  const pageImages = await resolvePageImages(settings.pageImages);
+  const routeImageMap = await resolveRouteImageMap(settings.routeImageMap, pageImages);
   const homePageData: RuntimeHomePageData = {
     ...fallbackHomePageData,
     ...settings.homePageData,
