@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { cn, formatDate } from "@/lib/utils";
@@ -116,10 +117,9 @@ export function BlogPostShowcase({
                   </time>
                 </div>
 
-                <button
+                <Link
                   className="mt-4 block rounded-[4px] text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200"
-                  onClick={() => onSelectPost(post.slug)}
-                  type="button"
+                  href={`/blog/${post.slug}`}
                 >
                   <h3 className="clamp-2 font-mono text-xl font-black leading-7 text-white transition group-hover:text-cyan-100">
                     {post.title}
@@ -127,21 +127,29 @@ export function BlogPostShowcase({
                   <p className="clamp-2 mt-3 max-w-[64ch] text-sm leading-6 text-[#aeb9cc]">
                     {post.summary}
                   </p>
-                </button>
+                </Link>
 
                 <div className="mt-auto flex items-end justify-between gap-3 pt-4">
                   <p className="inline-flex items-center gap-2 font-mono text-xs text-[#7f8db3]">
                     <PixelIcon className="h-3.5 w-3.5" name="clock" />
                     {getReadTime(post)} {copy.readTimeSuffix}
                   </p>
-                  <button
-                    className="inline-flex h-9 items-center gap-2 rounded-[4px] border border-[#30445f] bg-[#101827] px-3 font-mono text-xs font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
-                    onClick={() => onSelectPost(post.slug)}
-                    type="button"
-                  >
-                    {copy.readButtonLabel}
-                    <span aria-hidden>-&gt;</span>
-                  </button>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <button
+                      className="inline-flex h-9 items-center gap-2 rounded-[4px] border border-[#26344d] bg-[#0b1220] px-3 font-mono text-xs font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+                      onClick={() => onSelectPost(post.slug)}
+                      type="button"
+                    >
+                      {copy.quickReadButtonLabel}
+                    </button>
+                    <Link
+                      className="inline-flex h-9 items-center gap-2 rounded-[4px] border border-[#30445f] bg-[#101827] px-3 font-mono text-xs font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+                      href={`/blog/${post.slug}`}
+                    >
+                      {copy.readButtonLabel}
+                      <span aria-hidden>-&gt;</span>
+                    </Link>
+                  </div>
                 </div>
               </div>
 

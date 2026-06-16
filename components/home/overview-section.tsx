@@ -13,15 +13,13 @@ export function OverviewSection() {
       <Container>
         <div className="grid gap-6 lg:grid-cols-[1.18fr_0.82fr]">
           <PixelCard accent="cyan" className="grid gap-6 md:grid-cols-[220px_1fr]">
-            <div
-              aria-label="Abstract pixel terminal avatar placeholder"
-              className="pixel-avatar pixel-avatar-compact w-full"
-              role="img"
-            >
-              <div className="avatar-screen" />
-              <div className="avatar-head" />
-              <div className="avatar-body" />
-              <div className="avatar-laptop" />
+            <div className="overflow-hidden rounded-[4px] border border-[#26344d] bg-[#07101d] shadow-[inset_0_0_0_1px_#111b2d]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt="Pixel style engineer avatar"
+                className="block aspect-square w-full object-cover [image-rendering:pixelated]"
+                src="/pixel-engineer-avatar.svg"
+              />
             </div>
 
             <div className="space-y-5">

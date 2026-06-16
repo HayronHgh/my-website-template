@@ -5,6 +5,7 @@ import { remark } from "remark";
 import { z } from "zod";
 import { stripByteOrderMark } from "./cache";
 import { isSafeMarkdownUrl } from "./url-policy";
+import { isSafeResumeDownloadUrl } from "@/lib/site/assets";
 
 const PROJECT_GROUPS = ["featured", "systems", "experiments"] as const;
 const PROJECT_MATURITIES = [
@@ -186,8 +187,9 @@ const siteSettingsSchema = z.object({
     level: z.enum(["Strong", "Practical", "Applied", "Exploring"]).optional(),
     name: z.string().trim().min(1),
     note: z.string().trim().min(1).optional(),
+    subtitle: z.string().trim().min(1).optional(),
     tone: z.enum(["cyan", "green", "blue", "purple", "amber"]),
-    value: z.coerce.number().finite().min(0).max(100),
+    value: z.coerce.number().finite().min(0).max(100).optional(),
   }).passthrough()).optional(),
   timelineItems: z.array(z.object({
     summary: z.string().trim().min(1),
@@ -343,6 +345,39 @@ function validateRuntimePageLinks(
 
     validateRuntimePageLinks(childValue, filePath, rootDirectory, issues, childPath);
   });
+}
+
+function getNestedString(value: unknown, pathSegments: string[]) {
+  let currentValue = value;
+
+  for (const segment of pathSegments) {
+    if (!currentValue || typeof currentValue !== "object" || !(segment in currentValue)) {
+      return null;
+    }
+
+    currentValue = (currentValue as Record<string, unknown>)[segment];
+  }
+
+  return typeof currentValue === "string" ? currentValue : null;
+}
+
+function validateResumeDownloadUrl(
+  value: string | null | undefined,
+  fieldPath: string,
+  filePath: string,
+  rootDirectory: string,
+  issues: ContentValidationIssue[],
+) {
+  if (!value) {
+    return;
+  }
+
+  if (!isSafeResumeDownloadUrl(value)) {
+    issues.push({
+      filePath: toDisplayPath(rootDirectory, filePath),
+      message: `resume download URL is not allowed at ${fieldPath}: ${value}`,
+    });
+  }
 }
 
 async function validateSiteImagePath(
@@ -669,6 +704,28 @@ async function validateSiteSettings(
   if (settings.pages) {
     validateRuntimePageLinks(settings.pages, settingsPath, rootDirectory, issues);
   }
+
+  validateResumeDownloadUrl(
+    settings.siteProfile?.resumeDownloadUrl,
+    "siteProfile.resumeDownloadUrl",
+    settingsPath,
+    rootDirectory,
+    issues,
+  );
+  validateResumeDownloadUrl(
+    getNestedString(settings.pages, ["home", "heroActions", "resume", "href"]),
+    "pages.home.heroActions.resume.href",
+    settingsPath,
+    rootDirectory,
+    issues,
+  );
+  validateResumeDownloadUrl(
+    getNestedString(settings.pages, ["resume", "actions", "download", "href"]),
+    "pages.resume.actions.download.href",
+    settingsPath,
+    rootDirectory,
+    issues,
+  );
 
   return true;
 }

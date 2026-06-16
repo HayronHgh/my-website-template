@@ -3,6 +3,9 @@ import path from "node:path";
 
 export const SITE_CONTENT_DIRECTORY = path.join(process.cwd(), "content", "site");
 export const SITE_ASSET_DIRECTORY = path.join(SITE_CONTENT_DIRECTORY, "assets");
+export const RESUME_PDF_FILE_NAME = "resume.pdf";
+export const RESUME_PDF_ROUTE = "/resume.pdf";
+export const RESUME_PDF_DOWNLOAD_NAME = "hayron-cv.pdf";
 
 const URL_SCHEME_PATTERN = /^[a-z][a-z\d+.-]*:/i;
 const SITE_ASSET_EXTENSIONS = new Set([
@@ -13,6 +16,11 @@ const SITE_ASSET_EXTENSIONS = new Set([
   ".png",
   ".svg",
   ".webp",
+]);
+const RESUME_DOWNLOAD_URL_ALIASES = new Set([
+  RESUME_PDF_FILE_NAME,
+  RESUME_PDF_ROUTE,
+  `/site/assets/${RESUME_PDF_FILE_NAME}`,
 ]);
 
 const hasUnsafeSegment = (segment: string) =>
@@ -94,6 +102,39 @@ export async function getSafeSiteAssetFilePath(assetSegments: string[]) {
   try {
     const assetRoot = await fs.realpath(SITE_ASSET_DIRECTORY);
     const assetFilePath = path.resolve(assetRoot, ...assetSegments);
+    const realAssetFilePath = await fs.realpath(assetFilePath);
+
+    return isInsideDirectory(assetRoot, realAssetFilePath) ? realAssetFilePath : null;
+  } catch {
+    return null;
+  }
+}
+
+export function isSafeResumeDownloadUrl(value: string) {
+  return RESUME_DOWNLOAD_URL_ALIASES.has(value.trim());
+}
+
+export function normalizeResumeDownloadUrl(value: unknown) {
+  return typeof value === "string" && isSafeResumeDownloadUrl(value)
+    ? RESUME_PDF_ROUTE
+    : RESUME_PDF_ROUTE;
+}
+
+export async function getSafeResumePdfFilePath(
+  assetSegments: string[] = [RESUME_PDF_FILE_NAME],
+  assetDirectory = SITE_ASSET_DIRECTORY,
+) {
+  if (
+    assetSegments.length !== 1 ||
+    assetSegments.some(hasUnsafeSegment) ||
+    assetSegments[0].toLowerCase() !== RESUME_PDF_FILE_NAME
+  ) {
+    return null;
+  }
+
+  try {
+    const assetRoot = await fs.realpath(assetDirectory);
+    const assetFilePath = path.resolve(assetRoot, RESUME_PDF_FILE_NAME);
     const realAssetFilePath = await fs.realpath(assetFilePath);
 
     return isInsideDirectory(assetRoot, realAssetFilePath) ? realAssetFilePath : null;

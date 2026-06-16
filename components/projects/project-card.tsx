@@ -18,9 +18,9 @@ const tagClassName =
 
 const defaultLabels: ProjectCardLabels = {
   caseStudy: "Case Study",
-  demo: "線上展示",
+  demo: "Live Demo",
   details: "View Details",
-  repository: "GitHub 開源代碼",
+  repository: "GitHub",
 };
 
 export function ProjectCard({

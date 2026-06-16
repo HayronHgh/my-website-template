@@ -141,10 +141,33 @@ published: true
                 href: "/projects",
                 label: "Projects",
               },
+              resume: {
+                href: "/resume.pdf",
+                label: "Download Resume",
+              },
+            },
+          },
+          resume: {
+            actions: {
+              download: {
+                href: "resume.pdf",
+                label: "Download CV",
+              },
             },
           },
         },
+        siteProfile: {
+          resumeDownloadUrl: "/site/assets/resume.pdf",
+        },
         siteUrl: "https://example.com",
+        skillItems: [
+          {
+            evidence: ["Shipped project", "SQLite workflow"],
+            name: "Desktop Systems",
+            subtitle: "Local-first desktop tools",
+            tone: "cyan",
+          },
+        ],
       }),
     );
 
@@ -183,8 +206,23 @@ published: true
                 href: "javascript:alert(1)",
                 label: "Projects",
               },
+              resume: {
+                href: "../secret.pdf",
+                label: "Download Resume",
+              },
             },
           },
+          resume: {
+            actions: {
+              download: {
+                href: "/resume.txt",
+                label: "Download CV",
+              },
+            },
+          },
+        },
+        siteProfile: {
+          resumeDownloadUrl: "https://example.com/resume.pdf",
         },
         siteUrl: "javascript:alert(1)",
       }),
@@ -199,6 +237,15 @@ published: true
     expect(messages).toContain("siteUrl must be an http(s) URL: javascript:alert(1)");
     expect(messages).toContain(
       "page href URL is not allowed at pages.home.heroActions.projects.href: javascript:alert(1)",
+    );
+    expect(messages).toContain(
+      "resume download URL is not allowed at siteProfile.resumeDownloadUrl: https://example.com/resume.pdf",
+    );
+    expect(messages).toContain(
+      "resume download URL is not allowed at pages.home.heroActions.resume.href: ../secret.pdf",
+    );
+    expect(messages).toContain(
+      "resume download URL is not allowed at pages.resume.actions.download.href: /resume.txt",
     );
   });
 });

@@ -23,7 +23,7 @@
       "Project Case Studies",
       "Markdown Blog",
       "Docker Friendly",
-      "Tag Relations"
+      "Security-aware Assets"
     ],
     "facts": [
       {
@@ -131,7 +131,6 @@
   "skillItems": [
     {
       "name": "Frontend Systems",
-      "value": 90,
       "tone": "cyan",
       "level": "Strong",
       "note": "Replace this with evidence from your UI, app shell, and interaction work.",
@@ -139,11 +138,11 @@
         "React",
         "Next.js",
         "UI architecture"
-      ]
+      ],
+      "subtitle": "Interface architecture for real portfolio workflows."
     },
     {
       "name": "Content Workflow",
-      "value": 86,
       "tone": "green",
       "level": "Strong",
       "note": "Projects and posts are editable through files and can be mounted at runtime.",
@@ -151,11 +150,11 @@
         "Markdown",
         "JSON metadata",
         "Runtime loader"
-      ]
+      ],
+      "subtitle": "File-driven content that can update at runtime."
     },
     {
       "name": "Backend/API",
-      "value": 78,
       "tone": "blue",
       "level": "Practical",
       "note": "Use this row for API, server actions, database, or integration experience.",
@@ -163,11 +162,11 @@
         "API routes",
         "Data flow",
         "Integration"
-      ]
+      ],
+      "subtitle": "Server routes, data boundaries, and integration points."
     },
     {
       "name": "Performance",
-      "value": 74,
       "tone": "amber",
       "level": "Applied",
       "note": "Document benchmark evidence, bundle size, image strategy, and caching choices.",
@@ -175,11 +174,11 @@
         "Build check",
         "Audit check",
         "Runtime IO"
-      ]
+      ],
+      "subtitle": "Evidence-first checks for speed, runtime IO, and build health."
     },
     {
       "name": "Security",
-      "value": 72,
       "tone": "purple",
       "level": "Applied",
       "note": "Raw HTML is disabled in markdown and asset paths are constrained to content folders.",
@@ -187,11 +186,11 @@
         "Path guard",
         "No raw HTML",
         "Audit workflow"
-      ]
+      ],
+      "subtitle": "Path guards and rendering defaults for safer public content."
     },
     {
       "name": "Documentation",
-      "value": 80,
       "tone": "cyan",
       "level": "Practical",
       "note": "README, project detail pages, and blog posts explain design decisions.",
@@ -199,7 +198,8 @@
         "Architecture",
         "Tradeoffs",
         "Screenshots"
-      ]
+      ],
+      "subtitle": "Readable project evidence, tradeoffs, screenshots, and notes."
     }
   ],
   "blogPreviewPosts": [
@@ -351,33 +351,33 @@
         "Project Case Studies",
         "Markdown Blog",
         "Docker Friendly",
-        "Tag Relations"
+        "Security-aware Assets"
       ]
     }
   },
   "pageImages": {
     "homeHero": {
-      "src": "/globe.svg",
+      "src": "bg.png",
       "position": "center center"
     },
     "projectsHero": {
-      "src": "/projects.svg",
+      "src": "page-bg-projects.png",
       "position": "center center"
     },
     "blogHero": {
-      "src": "/file.svg",
+      "src": "page-bg-blog.png",
       "position": "center center"
     },
     "aboutHero": {
-      "src": "/journey.svg",
+      "src": "page-bg-journey.png",
       "position": "center center"
     },
     "resumeHero": {
-      "src": "/resume.svg",
+      "src": "page-bg-resume.png",
       "position": "center center"
     },
     "aboutAvatar": {
-      "src": "/about.svg",
+      "src": "pixel-engineer-avatar.svg",
       "position": "center center"
     }
   },
@@ -573,8 +573,9 @@
         "latestArticlesDescription": "Recently published notes and writeups",
         "categoryFallback": "Article",
         "readTimeSuffix": "min read",
-        "readButtonLabel": "Read Signal",
-        "emptyMessage": "No matching article."
+        "readButtonLabel": "Open article",
+        "emptyMessage": "No matching article.",
+        "quickReadButtonLabel": "Quick read"
       },
       "reader": {
         "noSelectionMessage": "Select an article to read.",
@@ -598,7 +599,7 @@
       "heroTitle": "Resume",
       "actions": {
         "download": {
-          "label": "Download Resume",
+          "label": "Download CV",
           "href": "/resume.pdf"
         },
         "contact": {

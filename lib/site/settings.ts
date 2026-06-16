@@ -15,7 +15,11 @@ import {
 import { readTextFileWithMtimeCache } from "@/lib/content/cache";
 import { isSafeMarkdownUrl } from "@/lib/content/url-policy";
 import { siteConfig } from "@/lib/env";
-import { getVersionedSiteAssetUrl, SITE_CONTENT_DIRECTORY } from "@/lib/site/assets";
+import {
+  getVersionedSiteAssetUrl,
+  normalizeResumeDownloadUrl,
+  SITE_CONTENT_DIRECTORY,
+} from "@/lib/site/assets";
 import type { PixelIconName } from "@/components/ui/pixel-icon";
 import type {
   AdjustmentNote,
@@ -122,6 +126,7 @@ export type SitePages = {
       matchingArticleSingular: string;
       placeholder: string;
       readButtonLabel: string;
+      quickReadButtonLabel: string;
       readTimeSuffix: string;
       removeTagLabel: string;
       searchResultsTitle: string;
@@ -256,12 +261,12 @@ type SiteSettingsFile = Partial<
 const SITE_SETTINGS_FILE_PATH = path.join(SITE_CONTENT_DIRECTORY, "site.json");
 
 const defaultPageImages: SitePageImages = {
-  aboutAvatar: { src: "/about.svg" },
-  aboutHero: { position: "center center", src: "/journey.svg" },
-  blogHero: { position: "center center", src: "/file.svg" },
-  homeHero: { position: "center center", src: "/globe.svg" },
-  projectsHero: { position: "center center", src: "/projects.svg" },
-  resumeHero: { position: "center center", src: "/resume.svg" },
+  aboutAvatar: { src: "/pixel-engineer-avatar.svg" },
+  aboutHero: { position: "center center", src: "/page-bg-journey.png" },
+  blogHero: { position: "center center", src: "/page-bg-blog.png" },
+  homeHero: { position: "center center", src: "/bg.png" },
+  projectsHero: { position: "center center", src: "/page-bg-projects.png" },
+  resumeHero: { position: "center center", src: "/page-bg-resume.png" },
 };
 
 const defaultPages: SitePages = {
@@ -324,6 +329,7 @@ const defaultPages: SitePages = {
       matchingArticleSingular: "matching article",
       placeholder: "Search title, summary, #tag",
       readButtonLabel: "Read Signal",
+      quickReadButtonLabel: "Quick read",
       readTimeSuffix: "min read",
       removeTagLabel: "Remove tag",
       searchResultsTitle: "Search results",
@@ -396,9 +402,9 @@ const defaultPages: SitePages = {
   },
   projectCard: {
     caseStudy: "Case Study",
-    demo: "線上展示",
+    demo: "Live Demo",
     details: "View Details",
-    repository: "GitHub 開源代碼",
+    repository: "GitHub",
   },
   projectDetail: {
     actions: {
@@ -690,6 +696,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     ...profileMeta,
     facts: settings.siteProfile?.facts ?? createFacts(profileMeta),
     heroSkills: arrayOrFallback(settings.siteProfile?.heroSkills, fallbackSiteProfile.heroSkills),
+    resumeDownloadUrl: normalizeResumeDownloadUrl(settings.siteProfile?.resumeDownloadUrl),
     workingStyle: arrayOrFallback(settings.siteProfile?.workingStyle, fallbackSiteProfile.workingStyle),
     specialties: arrayOrFallback(settings.siteProfile?.specialties, fallbackSiteProfile.specialties),
   };
@@ -733,6 +740,13 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   if (!settings.pages?.resume?.actions?.download?.href) {
     pages.resume.actions.download.href = siteProfile.resumeDownloadUrl;
   }
+
+  pages.home.heroActions.resume.href = normalizeResumeDownloadUrl(
+    pages.home.heroActions.resume.href,
+  );
+  pages.resume.actions.download.href = normalizeResumeDownloadUrl(
+    pages.resume.actions.download.href,
+  );
 
   return {
     adjustmentNotes: arrayOrFallback(settings.adjustmentNotes, fallbackAdjustmentNotes),

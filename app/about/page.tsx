@@ -4,7 +4,7 @@ import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { ui } from "@/components/ui/pixel-theme";
 import { SectionTitle } from "@/components/ui/section-title";
-import { SkillBar } from "@/components/ui/skill-bar";
+import { SkillCard } from "@/components/ui/skill-card";
 import { Timeline } from "@/components/ui/timeline";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
@@ -130,7 +130,7 @@ export default async function AboutPage() {
               <h2 className="font-mono text-xl font-bold text-white">{pageCopy.toolsTitle}</h2>
             </div>
             {skillItems.map((skill) => (
-              <SkillBar key={skill.name} skill={skill} />
+              <SkillCard key={skill.name} skill={skill} />
             ))}
           </PixelCard>
         </div>

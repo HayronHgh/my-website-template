@@ -13,7 +13,7 @@ export const siteConfig = {
   name: env.siteName,
   url: env.siteUrl,
   description:
-    "A file-driven developer portfolio built with Next.js, TypeScript, local markdown, and a pixel-night interface.",
+    "A file-driven portfolio template built with Next.js, TypeScript, local markdown, and a pixel-night interface.",
 };
 
 export function absoluteUrl(pathname = "/") {

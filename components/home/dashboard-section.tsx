@@ -3,7 +3,7 @@ import { BlogCard } from "@/components/blog/blog-card";
 import { ProjectCard } from "@/components/projects/project-card";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
-import { SkillBar } from "@/components/ui/skill-bar";
+import { SkillCard } from "@/components/ui/skill-card";
 import { Timeline } from "@/components/ui/timeline";
 import { Container } from "@/components/ui/container";
 import type { ProjectItem } from "@/data/site";
@@ -185,7 +185,7 @@ export function DashboardSection({
               </p>
               <div className="mt-4 grid gap-3.5">
                 {homePageData.skills.map((skill) => (
-                  <SkillBar compact key={skill.name} skill={skill} />
+                  <SkillCard compact key={skill.name} skill={skill} />
                 ))}
               </div>
               <Link

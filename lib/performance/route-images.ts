@@ -4,11 +4,11 @@ export type RouteImageEntry = {
 };
 
 const routeImageMap: RouteImageEntry[] = [
-  { href: "/", src: "/globe.svg" },
-  { href: "/projects", src: "/projects.svg" },
-  { href: "/blog", src: "/file.svg" },
-  { href: "/about", src: "/journey.svg" },
-  { href: "/resume", src: "/resume.svg" },
+  { href: "/", src: "/bg.png" },
+  { href: "/projects", src: "/page-bg-projects.png" },
+  { href: "/blog", src: "/page-bg-blog.png" },
+  { href: "/about", src: "/page-bg-journey.png" },
+  { href: "/resume", src: "/page-bg-resume.png" },
 ];
 
 function normalizeHref(href: string) {

@@ -1,0 +1,90 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 1135 >>
+stream
+BT
+/F1 10 Tf
+/F1 24 Tf
+72 760 Td
+(Your Name) Tj
+-72 -760 Td
+/F1 14 Tf
+72 734 Td
+(Software Engineer) Tj
+-72 -734 Td
+/F1 10 Tf
+72 714 Td
+(Remote / Your City | hello@example.com | UTC+0) Tj
+-72 -714 Td
+/F1 14 Tf
+72 680 Td
+(Profile) Tj
+-72 -680 Td
+/F1 10 Tf
+72 660 Td
+(A template CV placeholder generated from public portfolio content.) Tj
+-72 -660 Td
+/F1 10 Tf
+72 646 Td
+(Replace content/site/assets/resume.pdf to hot-update this download.) Tj
+-72 -646 Td
+/F1 14 Tf
+72 612 Td
+(Core Skills) Tj
+-72 -612 Td
+/F1 10 Tf
+72 592 Td
+(- Frontend Systems: React, Next.js, UI architecture) Tj
+-72 -592 Td
+/F1 10 Tf
+72 578 Td
+(- Content Workflow: Markdown, JSON metadata, runtime loader) Tj
+-72 -578 Td
+/F1 10 Tf
+72 564 Td
+(- Security: path guards, no raw HTML, PDF route guard) Tj
+-72 -564 Td
+/F1 14 Tf
+72 530 Td
+(Template Notes) Tj
+-72 -530 Td
+/F1 10 Tf
+72 510 Td
+(- Keep personal data out of the template until you customize it.) Tj
+-72 -510 Td
+/F1 10 Tf
+72 496 Td
+(- The /resume.pdf route serves only this fixed PDF asset.) Tj
+-72 -496 Td
+/F1 10 Tf
+72 482 Td
+(- Update content/site/site.json for page copy and runtime settings.) Tj
+-72 -482 Td
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1498
+%%EOF

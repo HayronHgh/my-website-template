@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getPostBySlug, getPublishedPosts } from "@/lib/blog";
 import { parseBlogFrontmatter } from "@/lib/blog/parse-frontmatter";
 import { sortPostsByFeaturedRankAndDate } from "@/lib/blog/posts";
 import type { BlogPostMeta } from "@/types/blog";
@@ -40,5 +41,23 @@ Body`;
       "featured-2",
       "latest",
     ]);
+  });
+
+  it("keeps published posts usable for routed pages and component readers", async () => {
+    const posts = await getPublishedPosts();
+    const firstPost = posts[0];
+
+    expect(firstPost).toBeDefined();
+    if (!firstPost) {
+      throw new Error("Expected at least one published blog post.");
+    }
+
+    expect(firstPost.slug).not.toContain("..");
+    expect(firstPost.html.trim().length).toBeGreaterThan(0);
+
+    const routedPost = await getPostBySlug(firstPost.slug);
+
+    expect(routedPost?.published).toBe(true);
+    expect(routedPost?.html.trim().length).toBeGreaterThan(0);
   });
 });

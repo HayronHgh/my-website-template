@@ -8,7 +8,7 @@ type PageHeroProps = {
   accent?: Accent;
   artClassName?: string;
   artImageClassName?: string;
-  background?: string;
+  background: string;
   children?: ReactNode;
   className?: string;
   contentClassName?: string;
@@ -43,7 +43,7 @@ export function PageHero({
   title,
 }: PageHeroProps) {
   const imageStyle = {
-    "--page-hero-image": background ? `url(${background})` : "none",
+    "--page-hero-image": `url(${background})`,
     "--page-hero-position": imagePosition,
     "--page-hero-safe-top": "86px",
     "--page-hero-safe-bottom": "12px",
@@ -51,7 +51,7 @@ export function PageHero({
 
   return (
     <>
-      {background ? <link as="image" fetchPriority="high" href={background} rel="preload" /> : null}
+      <link as="image" fetchPriority="high" href={background} rel="preload" />
       <section
         className={cn(
           "relative isolate w-full overflow-hidden border-y border-[#26344d] bg-[#050714]",
@@ -64,11 +64,9 @@ export function PageHero({
           className="absolute inset-x-[-4%] inset-y-[-10%] -z-30 bg-cover opacity-[0.9] blur-[2px] brightness-110 saturate-110 [background-image:var(--page-hero-image)] [background-position:var(--page-hero-position)] [image-rendering:pixelated] [transform:scale(1.03)]"
         />
         */}
-        {background ? (
-          <div className={cn("page-hero-art", artClassName)}>
-            <div className={cn("page-hero-art-image", artImageClassName)} />
-          </div>
-        ) : null}
+        <div className={cn("page-hero-art", artClassName)}>
+          <div className={cn("page-hero-art-image", artImageClassName)} />
+        </div>
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#050714_0%,rgba(5,7,20,0.24)_11%,rgba(5,7,20,0.04)_38%,rgba(5,7,20,0.04)_62%,rgba(5,7,20,0.24)_89%,#050714_100%),linear-gradient(180deg,rgba(5,7,20,0.16)_0%,rgba(5,7,20,0)_48%,rgba(5,7,20,0.24)_100%)]" />
         <div className="absolute inset-x-0 top-0 -z-10 h-24 bg-[linear-gradient(180deg,#050714_0%,rgba(5,7,20,0.44)_48%,rgba(5,7,20,0)_100%)]" />
         <div className="absolute inset-y-0 left-0 -z-10 w-[36%] bg-[linear-gradient(90deg,rgba(5,7,20,0.26)_0%,rgba(5,7,20,0.08)_52%,transparent_100%)]" />

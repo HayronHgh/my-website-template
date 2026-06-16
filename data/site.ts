@@ -48,10 +48,11 @@ export type SkillLevel = "Strong" | "Practical" | "Applied" | "Exploring";
 
 export type SkillItem = {
   name: string;
-  value: number;
+  value?: number;
   tone: SkillTone;
   note?: string;
   level?: SkillLevel;
+  subtitle?: string;
   evidence?: string[];
 };
 
@@ -222,6 +223,7 @@ export const skillItems: SkillItem[] = [
     value: 90,
     tone: "cyan",
     level: "Strong",
+    subtitle: "Interface architecture for real portfolio workflows.",
     note: "Replace this with evidence from your UI, app shell, and interaction work.",
     evidence: ["React", "Next.js", "UI architecture"],
   },
@@ -230,6 +232,7 @@ export const skillItems: SkillItem[] = [
     value: 86,
     tone: "green",
     level: "Strong",
+    subtitle: "File-driven content that can update at runtime.",
     note: "Projects and posts are editable through files and can be mounted at runtime.",
     evidence: ["Markdown", "JSON metadata", "Runtime loader"],
   },
@@ -238,6 +241,7 @@ export const skillItems: SkillItem[] = [
     value: 78,
     tone: "blue",
     level: "Practical",
+    subtitle: "Server routes, data boundaries, and integration points.",
     note: "Use this row for API, server actions, database, or integration experience.",
     evidence: ["API routes", "Data flow", "Integration"],
   },
@@ -246,6 +250,7 @@ export const skillItems: SkillItem[] = [
     value: 74,
     tone: "amber",
     level: "Applied",
+    subtitle: "Evidence-first checks for speed, runtime IO, and build health.",
     note: "Document benchmark evidence, bundle size, image strategy, and caching choices.",
     evidence: ["Build check", "Audit check", "Runtime IO"],
   },
@@ -254,6 +259,7 @@ export const skillItems: SkillItem[] = [
     value: 72,
     tone: "purple",
     level: "Applied",
+    subtitle: "Path guards and rendering defaults for safer public content.",
     note: "Raw HTML is disabled in markdown and asset paths are constrained to content folders.",
     evidence: ["Path guard", "No raw HTML", "Audit workflow"],
   },
@@ -262,6 +268,7 @@ export const skillItems: SkillItem[] = [
     value: 80,
     tone: "cyan",
     level: "Practical",
+    subtitle: "Readable project evidence, tradeoffs, screenshots, and notes.",
     note: "README, project detail pages, and blog posts explain design decisions.",
     evidence: ["Architecture", "Tradeoffs", "Screenshots"],
   },

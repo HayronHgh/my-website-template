@@ -5,7 +5,7 @@ import { PageHero } from "@/components/ui/page-hero";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { ui } from "@/components/ui/pixel-theme";
-import { SkillBar } from "@/components/ui/skill-bar";
+import { SkillCard } from "@/components/ui/skill-card";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { getPublishedProjects } from "@/lib/projects/meta";
@@ -163,7 +163,7 @@ export default async function ResumePage() {
                 <h2 className="font-mono text-xl font-black text-white">{pageCopy.skillsTitle}</h2>
               </div>
               {skillItems.map((skill) => (
-                <SkillBar compact key={skill.name} skill={skill} />
+                <SkillCard compact key={skill.name} skill={skill} />
               ))}
             </PixelCard>
 
