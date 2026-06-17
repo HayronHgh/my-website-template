@@ -1,9 +1,9 @@
-import matter from "gray-matter";
 import {
   DEFAULT_BLOG_POST_FRONTMATTER,
   type BlogPostFrontmatter,
   type BlogPostMeta,
 } from "@/types/blog";
+import { parseFrontmatter } from "@/lib/content/frontmatter";
 
 const toNonEmptyString = (value: unknown, fallback: string) => {
   if (typeof value !== "string") {
@@ -97,7 +97,7 @@ export function parseBlogFrontmatter(
   content: string;
   meta: BlogPostMeta;
 } {
-  const { data, content } = matter(source);
+  const { data, content } = parseFrontmatter(source);
 
   const defaults: BlogPostFrontmatter = {
     ...DEFAULT_BLOG_POST_FRONTMATTER,

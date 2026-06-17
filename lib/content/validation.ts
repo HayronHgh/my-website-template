@@ -1,9 +1,9 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import matter from "gray-matter";
 import { remark } from "remark";
 import { z } from "zod";
 import { stripByteOrderMark } from "./cache";
+import { parseFrontmatter } from "./frontmatter";
 import { isSafeMarkdownUrl } from "./url-policy";
 import { isSafeResumeDownloadUrl } from "@/lib/site/assets";
 
@@ -590,7 +590,7 @@ async function validateBlogPosts(
 
   for (const filePath of postFiles) {
     const source = stripByteOrderMark(await fs.readFile(filePath, "utf8"));
-    const { data, content } = matter(source);
+    const { data, content } = parseFrontmatter(source);
     const parsedFrontmatter = blogFrontmatterSchema.safeParse(data);
 
     if (!parsedFrontmatter.success) {

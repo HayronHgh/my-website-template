@@ -1,8 +1,8 @@
-import matter from "gray-matter";
 import type { ProjectItem } from "@/data/site";
 import { getPublishedPosts } from "@/lib/blog";
 import { markdownToHtml } from "@/lib/blog/markdown";
 import { readTextFileWithMtimeCache } from "@/lib/content/cache";
+import { parseFrontmatter } from "@/lib/content/frontmatter";
 import {
   getProjectAssetUrl,
   getProjectMarkdownFilePath,
@@ -95,7 +95,7 @@ export async function getProjectDetailBySlug(slug: string): Promise<ProjectDetai
     readProjectMarkdown(project),
     getPublishedPosts(),
   ]);
-  const { content } = matter(source);
+  const { content } = parseFrontmatter(source);
   const html = await markdownToHtml(content, {
     resolveAssetUrl: (assetPath) => getProjectAssetUrl(project.slug, assetPath),
   });

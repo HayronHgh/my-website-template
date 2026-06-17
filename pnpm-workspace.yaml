@@ -1,3 +1,7 @@
+packages:
+  - .
+  - "!dist/**"
+
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
