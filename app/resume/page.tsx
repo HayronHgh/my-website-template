@@ -157,14 +157,16 @@ export default async function ResumePage() {
           </PixelCard>
 
           <div className="grid gap-5">
-            <PixelCard accent="green" className="space-y-4">
+            <PixelCard accent="green" className="flex max-h-[32rem] min-h-0 flex-col space-y-4">
               <div className="flex items-center gap-2 text-lime-200">
                 <PixelIcon className="h-5 w-5" name="skills" />
                 <h2 className="font-mono text-xl font-black text-white">{pageCopy.skillsTitle}</h2>
               </div>
-              {skillItems.map((skill) => (
-                <SkillCard compact key={skill.name} skill={skill} />
-              ))}
+              <div className="pixel-scrollbar grid min-h-0 gap-3 overflow-y-auto pr-1.5">
+                {skillItems.map((skill) => (
+                  <SkillCard compact key={skill.name} skill={skill} />
+                ))}
+              </div>
             </PixelCard>
 
             {resumeSections.map((section) => (
