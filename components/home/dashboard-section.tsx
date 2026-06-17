@@ -182,16 +182,15 @@ export function DashboardSection({
                 <span className="pixel-section-icon pixel-section-icon-skills" aria-hidden />
                 {copy.skillsTitle}
               </p>
-              <div className="mt-4 grid min-h-0 flex-1 auto-rows-min gap-2.5 overflow-y-auto pr-1">
+              <div className="pixel-scrollbar mt-4 grid min-h-0 flex-1 auto-rows-min gap-2.5 overflow-y-auto pr-1.5">
                 {homePageData.skills.map((skill) => (
                   <div
-                    className="flex min-h-11 items-center gap-3 rounded-[5px] border border-[#26344d] bg-[#101827] px-3 shadow-[inset_0_0_0_1px_#172238]"
+                    className="flex min-h-10 items-center rounded-[5px] border border-[#26344d] bg-[#101827] px-3 shadow-[inset_0_0_0_1px_#172238]"
                     key={skill.name}
                   >
-                    <PixelIcon className="h-4 w-4 shrink-0" name="skills" />
-                    <p className="truncate font-mono text-sm font-black text-white">
+                    <h3 className="truncate font-mono text-sm font-black leading-5 text-white">
                       {skill.name}
-                    </p>
+                    </h3>
                   </div>
                 ))}
               </div>

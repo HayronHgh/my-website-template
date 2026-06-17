@@ -124,14 +124,16 @@ export default async function AboutPage() {
             </div>
           </PixelCard>
 
-          <PixelCard accent="green" className="space-y-5">
+          <PixelCard accent="green" className="flex max-h-[42rem] min-h-0 flex-col space-y-5">
             <div className="flex items-center gap-2 text-lime-200">
               <PixelIcon className="h-5 w-5" name="skills" />
               <h2 className="font-mono text-xl font-bold text-white">{pageCopy.toolsTitle}</h2>
             </div>
-            {skillItems.map((skill) => (
-              <SkillCard key={skill.name} skill={skill} />
-            ))}
+            <div className="pixel-scrollbar grid min-h-0 gap-4 overflow-y-auto pr-1.5">
+              {skillItems.map((skill) => (
+                <SkillCard key={skill.name} skill={skill} />
+              ))}
+            </div>
           </PixelCard>
         </div>
       </Container>
