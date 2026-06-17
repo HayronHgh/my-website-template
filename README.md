@@ -261,6 +261,20 @@ docker run --rm -p 3000:3000 \
 
 With this setup, editing mounted content does not require rebuilding the Docker image.
 
+## Standalone Dist Without Content
+
+Build and package the app shell:
+
+```bash
+pnpm build
+pnpm package:dist
+```
+
+The generated `dist/portfolio-template-standalone` and zip intentionally do not
+include `content/`. Deploy the app shell once, then update site data by replacing
+or mounting `content/site`, `content/blog`, and `content/projects` on the server.
+This prevents a packaged app update from accidentally overwriting live content.
+
 ## Security Notes
 
 - Markdown raw HTML is disabled.

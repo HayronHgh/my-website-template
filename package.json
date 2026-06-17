@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
+    "package:dist": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -ExecutionPolicy Bypass -File scripts/package-dist.ps1",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

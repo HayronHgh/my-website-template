@@ -3,7 +3,6 @@ import { BlogCard } from "@/components/blog/blog-card";
 import { ProjectCard } from "@/components/projects/project-card";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
-import { SkillCard } from "@/components/ui/skill-card";
 import { Timeline } from "@/components/ui/timeline";
 import { Container } from "@/components/ui/container";
 import type { ProjectItem } from "@/data/site";
@@ -183,13 +182,21 @@ export function DashboardSection({
                 <span className="pixel-section-icon pixel-section-icon-skills" aria-hidden />
                 {copy.skillsTitle}
               </p>
-              <div className="mt-4 grid gap-3.5">
+              <div className="mt-4 grid min-h-0 flex-1 auto-rows-min gap-2.5 overflow-y-auto pr-1">
                 {homePageData.skills.map((skill) => (
-                  <SkillCard compact key={skill.name} skill={skill} />
+                  <div
+                    className="flex min-h-11 items-center gap-3 rounded-[5px] border border-[#26344d] bg-[#101827] px-3 shadow-[inset_0_0_0_1px_#172238]"
+                    key={skill.name}
+                  >
+                    <PixelIcon className="h-4 w-4 shrink-0" name="skills" />
+                    <p className="truncate font-mono text-sm font-black text-white">
+                      {skill.name}
+                    </p>
+                  </div>
                 ))}
               </div>
               <Link
-                className="mt-auto block w-fit self-end font-mono text-xs font-semibold text-cyan-200/75 transition hover:text-cyan-100"
+                className="mt-4 block w-fit self-end font-mono text-xs font-semibold text-cyan-200/75 transition hover:text-cyan-100"
                 href={copy.skillsLink.href}
               >
                 {copy.skillsLink.label}

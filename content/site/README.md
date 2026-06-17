@@ -11,3 +11,6 @@ the template app.
   to this folder. Parent directory segments and unsupported file extensions are
   rejected.
 - Public root paths such as `/globe.svg` still work for template-provided icons.
+- Production app packages created by `pnpm package:dist` intentionally exclude
+  this folder. Mount or copy `content/` separately so app updates do not replace
+  live site content.
