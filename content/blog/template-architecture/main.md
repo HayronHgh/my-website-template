@@ -31,3 +31,23 @@ Explain the alternatives and why this approach was chosen.
 
 ## Next Steps
 List follow-up work, open questions, or links to related project pages.
+
+## Latex Test
+Inline math should render inside a sentence: $\sum_{n=1}^{10} n = 55$.
+
+Display math should render as a separate block:
+
+$$
+\mathrm{Payload}_{page 1} = R_1 + L_1 + L_2
+$$
+
+Where $R_1$ is the first recommended batch, $L_1$ is the current latest page, and $L_2$ is the prefetched next page.
+
+## Table Test
+
+| Layer | Responsibility | Runtime Source | Hot Update |
+| --- | --- | --- | --- |
+| Content | Blog posts, project notes, and profile copy | `content/**` markdown/json files | Yes |
+| Rendering | Markdown, tables, math, and embeds | Next.js server components and API routes | No |
+| Interaction | Search, pagination, and quick read cache | Client components | No |
+| Assets | Blog/project/site images and PDF downloads | `content/**/assets` folders | Yes |

@@ -10,9 +10,12 @@ import { getBlogAssetUrl } from "@/lib/blog/assets";
 import { sanitizeMarkdownUrl } from "@/lib/content/url-policy";
 
 type MarkdownNode = {
+  children?: unknown;
+  properties?: Record<string, unknown>;
+  tagName?: unknown;
   type?: unknown;
   url?: unknown;
-  children?: unknown;
+  value?: unknown;
 };
 
 type MarkdownToHtmlOptions = {
@@ -40,6 +43,14 @@ const sanitizeSchema = {
       "src",
       "title",
     ],
+    iframe: [
+      "allow",
+      "allowFullScreen",
+      "loading",
+      "referrerPolicy",
+      "src",
+      "title",
+    ],
     math: ["display", "xmlns"],
   },
   protocols: {
@@ -50,6 +61,7 @@ const sanitizeSchema = {
   tagNames: [
     ...(defaultSchema.tagNames ?? []),
     "annotation",
+    "iframe",
     "math",
     "mfrac",
     "mi",
@@ -107,6 +119,110 @@ const sanitizeMarkdownUrls = () => (tree: unknown) => {
   });
 };
 
+function getYouTubeEmbedUrl(value: string) {
+  try {
+    const url = new URL(value.trim());
+    const hostname = url.hostname.toLocaleLowerCase().replace(/^www\./, "");
+    let videoId: string | null = null;
+
+    if (hostname === "youtu.be") {
+      videoId = url.pathname.split("/").filter(Boolean)[0] ?? null;
+    }
+
+    if (hostname === "youtube.com" || hostname === "m.youtube.com") {
+      if (url.pathname === "/watch") {
+        videoId = url.searchParams.get("v");
+      } else {
+        const [kind, id] = url.pathname.split("/").filter(Boolean);
+
+        if (kind === "shorts" || kind === "embed") {
+          videoId = id ?? null;
+        }
+      }
+    }
+
+    if (!videoId || !/^[A-Za-z0-9_-]{6,}$/.test(videoId)) {
+      return null;
+    }
+
+    return `https://www.youtube-nocookie.com/embed/${videoId}`;
+  } catch {
+    return null;
+  }
+}
+
+function getSingleLinkUrl(node: MarkdownNode) {
+  if (!Array.isArray(node.children)) {
+    return null;
+  }
+
+  const meaningfulChildren = node.children.filter((child) => {
+    const childNode = child as MarkdownNode;
+    return childNode.type !== "text" || String(childNode.value ?? "").trim().length > 0;
+  }) as MarkdownNode[];
+
+  if (meaningfulChildren.length !== 1) {
+    return null;
+  }
+
+  const [child] = meaningfulChildren;
+
+  if (child.type !== "element" || child.tagName !== "a") {
+    return null;
+  }
+
+  const href = child.properties?.href;
+
+  if (typeof href !== "string") {
+    return null;
+  }
+
+  const linkText = Array.isArray(child.children)
+    ? child.children
+        .map((grandchild) => String((grandchild as MarkdownNode).value ?? ""))
+        .join("")
+        .trim()
+    : "";
+
+  return linkText === href ? href : null;
+}
+
+const embedStandaloneYouTubeLinks = () => (tree: unknown) => {
+  visitMarkdownNodes(tree, (node) => {
+    if (node.type !== "element" || node.tagName !== "p") {
+      return;
+    }
+
+    const linkUrl = getSingleLinkUrl(node);
+    const embedUrl = linkUrl ? getYouTubeEmbedUrl(linkUrl) : null;
+
+    if (!embedUrl) {
+      return;
+    }
+
+    node.tagName = "div";
+    node.properties = {
+      className: ["youtube-embed"],
+    };
+    node.children = [
+      {
+        children: [],
+        properties: {
+          allow:
+            "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+          allowFullScreen: true,
+          loading: "lazy",
+          referrerPolicy: "strict-origin-when-cross-origin",
+          src: embedUrl,
+          title: "YouTube video",
+        },
+        tagName: "iframe",
+        type: "element",
+      },
+    ];
+  });
+};
+
 export async function markdownToHtml(
   markdown: string,
   options: MarkdownToHtmlOptions = {},
@@ -123,8 +239,9 @@ export async function markdownToHtml(
 
   const processedContent = await processor
     .use(remarkRehype)
-    .use(rehypeKatex)
     .use(rehypeSanitize, sanitizeSchema)
+    .use(embedStandaloneYouTubeLinks)
+    .use(rehypeKatex)
     .use(rehypeStringify)
     .process(markdown);
 
