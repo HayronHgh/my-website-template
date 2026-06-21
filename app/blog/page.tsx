@@ -3,7 +3,7 @@ import { BlogSearchApp } from "@/components/blog/blog-search-app";
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { Section } from "@/components/ui/section";
-import { getHashtagIndex, getPublishedPosts } from "@/lib/blog";
+import { getBlogListing, getHashtagIndex } from "@/lib/blog";
 import { getPublishedProjects } from "@/lib/projects/meta";
 import { getSiteSettings } from "@/lib/site/settings";
 import type { BlogTagOption } from "@/types/blog";
@@ -36,8 +36,8 @@ const toTagOptions = (hashtagIndex: Awaited<ReturnType<typeof getHashtagIndex>>)
     });
 
 export default async function BlogPage() {
-  const [posts, hashtagIndex, projects, siteSettings] = await Promise.all([
-    getPublishedPosts(),
+  const [initialListing, hashtagIndex, projects, siteSettings] = await Promise.all([
+    getBlogListing(),
     getHashtagIndex(),
     getPublishedProjects(),
     getSiteSettings(),
@@ -58,7 +58,7 @@ export default async function BlogPage() {
       <Container className="mt-5">
         <BlogSearchApp
           copy={siteSettings.pages.blog}
-          posts={posts}
+          initialListing={initialListing}
           projects={projects}
           tags={toTagOptions(hashtagIndex)}
         />

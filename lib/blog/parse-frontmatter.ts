@@ -89,6 +89,16 @@ const createFallbackTitle = (slug: string) =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
+const createSeriesSlug = (title: string) => {
+  const slug = title
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || "series";
+};
+
 export function parseBlogFrontmatter(
   source: string,
   slug: string,
@@ -103,6 +113,8 @@ export function parseBlogFrontmatter(
     ...DEFAULT_BLOG_POST_FRONTMATTER,
     title: createFallbackTitle(pathSegments.at(-1) ?? slug),
   };
+  const frontmatterSeriesTitle = toOptionalString(data.series);
+  const seriesTitle = frontmatterSeriesTitle ?? createFallbackTitle(pathSegments[0] ?? slug);
 
   const meta: BlogPostMeta = {
     slug,
@@ -115,11 +127,15 @@ export function parseBlogFrontmatter(
     coverImage: toOptionalString(data.coverImage),
     featuredRank: toOptionalNumber(data.featuredRank),
     relatedProjects: toStringArray(data.relatedProjects),
-    series:
-      pathSegments.length > 1
+    series: pathSegments.length > 1
+      ? {
+          slug: pathSegments[0],
+          title: seriesTitle,
+        }
+      : frontmatterSeriesTitle
         ? {
-            slug: pathSegments[0],
-            title: toNonEmptyString(data.series, createFallbackTitle(pathSegments[0])),
+            slug: createSeriesSlug(frontmatterSeriesTitle),
+            title: frontmatterSeriesTitle,
           }
         : undefined,
   };

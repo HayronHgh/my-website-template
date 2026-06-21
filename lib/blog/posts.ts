@@ -12,12 +12,25 @@ import {
   getMtimeCachedValue,
   readTextFileWithMtimeCache,
 } from "@/lib/content/cache";
-import type { BlogHashtagIndex, BlogPost, BlogPostMeta } from "@/types/blog";
+import type {
+  BlogHashtagIndex,
+  BlogPost,
+  BlogPostListItem,
+  BlogPostMeta,
+} from "@/types/blog";
 
 const MAX_POST_DEPTH = 2;
 
 const getPostRank = (post: BlogPostMeta) =>
   typeof post.featuredRank === "number" ? post.featuredRank : Number.POSITIVE_INFINITY;
+
+export function estimateReadTimeMinutes(content: string) {
+  const cjkCharacters = content.match(/[\u4e00-\u9fff]/g)?.length ?? 0;
+  const words = content.trim().split(/\s+/).filter(Boolean).length;
+  const estimatedUnits = words + cjkCharacters / 2;
+
+  return Math.max(5, Math.ceil(estimatedUnits / 180));
+}
 
 export const sortPostsByFeaturedRankAndDate = <Post extends BlogPostMeta>(posts: Post[]) =>
   [...posts].sort((left, right) => {
@@ -33,7 +46,7 @@ export const sortPostsByFeaturedRankAndDate = <Post extends BlogPostMeta>(posts:
     return rightDate - leftDate;
   });
 
-const toPostMeta = (post: BlogPost): BlogPostMeta => ({
+const toPostMeta = (post: BlogPostMeta): BlogPostMeta => ({
   slug: post.slug,
   pathSegments: post.pathSegments,
   title: post.title,
@@ -110,6 +123,22 @@ function resolvePostAssetUrls(meta: BlogPostMeta): BlogPostMeta {
   };
 }
 
+async function readPostListItemBySlug(slug: string): Promise<BlogPostListItem> {
+  const filePath = await getPostSourceFilePath(slug);
+
+  return getMtimeCachedValue(`blog-post-list-item:${slug}`, filePath, async () => {
+    const source = await readTextFileWithMtimeCache(filePath);
+    const pathSegments = slug.split("/");
+    const { content, meta } = parseBlogFrontmatter(source, slug, pathSegments);
+    const resolvedMeta = resolvePostAssetUrls(meta);
+
+    return {
+      ...resolvedMeta,
+      readTimeMinutes: estimateReadTimeMinutes(content),
+    };
+  });
+}
+
 async function readPostBySlug(slug: string): Promise<BlogPost> {
   const filePath = await getPostSourceFilePath(slug);
 
@@ -139,6 +168,17 @@ export async function getPublishedPosts() {
   return posts.filter((post) => post.published);
 }
 
+export async function getAllPostListItems() {
+  const postSlugs = await getPostSlugs();
+  const posts = await Promise.all(postSlugs.map(({ slug }) => readPostListItemBySlug(slug)));
+  return sortPostsByFeaturedRankAndDate(posts);
+}
+
+export async function getPublishedPostListItems() {
+  const posts = await getAllPostListItems();
+  return posts.filter((post) => post.published);
+}
+
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   try {
     return await readPostBySlug(slug);
@@ -153,7 +193,7 @@ export async function getLatestPosts(limit: number) {
 }
 
 export async function getHashtagIndex(): Promise<BlogHashtagIndex> {
-  const posts = await getPublishedPosts();
+  const posts = await getPublishedPostListItems();
 
   return posts.reduce<BlogHashtagIndex>((index, post) => {
     const meta = toPostMeta(post);

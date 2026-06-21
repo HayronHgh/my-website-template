@@ -22,6 +22,38 @@ export type BlogPost = BlogPostMeta & {
   html: string;
 };
 
+export type BlogPostListItem = BlogPostMeta & {
+  readTimeMinutes: number;
+};
+
+export type BlogSortOrder = "newest" | "oldest";
+
+export type BlogSeriesOption = {
+  count: number;
+  slug: string;
+  title: string;
+};
+
+export type BlogPostListingPage = {
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  page: number;
+  pageSize: number;
+  posts: BlogPostListItem[];
+  totalItems: number;
+  totalPages: number;
+};
+
+export type BlogPostListing = {
+  featuredPosts: BlogPostListItem[];
+  page: BlogPostListingPage;
+  prefetchedPage?: BlogPostListingPage;
+  query: string;
+  selectedSeriesSlug?: string;
+  seriesOptions: BlogSeriesOption[];
+  sortOrder: BlogSortOrder;
+};
+
 export type BlogTagOption = {
   tag: string;
   count: number;

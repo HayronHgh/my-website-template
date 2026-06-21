@@ -5,24 +5,24 @@ import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { cn, formatDate } from "@/lib/utils";
 import type { SiteSettings } from "@/lib/site/settings";
-import type { BlogPost } from "@/types/blog";
+import type { BlogPostMeta } from "@/types/blog";
 
 type BlogSeriesSidebarProps = {
   copy: SiteSettings["pages"]["blog"]["series"];
   onSelectPost: (slug: string) => void;
-  posts: BlogPost[];
+  posts: BlogPostMeta[];
   selectedSlug?: string;
 };
 
 type SeriesGroup = {
   slug: string;
   title: string;
-  posts: BlogPost[];
+  posts: BlogPostMeta[];
 };
 
 const STANDALONE_SERIES_SLUG = "__standalone";
 
-function createSeriesGroups(posts: BlogPost[], standaloneLabel: string) {
+function createSeriesGroups(posts: BlogPostMeta[], standaloneLabel: string) {
   const groups = new Map<string, SeriesGroup>();
 
   posts.forEach((post) => {
