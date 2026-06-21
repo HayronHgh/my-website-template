@@ -573,7 +573,6 @@
         "latestArticlesDescription": "Recently published notes and writeups",
         "categoryFallback": "Article",
         "readTimeSuffix": "min read",
-        "readButtonLabel": "Open article",
         "emptyMessage": "No matching article.",
         "quickReadButtonLabel": "Quick read"
       },
@@ -587,8 +586,7 @@
         "standaloneLabel": "Standalone"
       },
       "detail": {
-        "standaloneLabel": "Standalone",
-        "relatedProjectsTitle": "Related Projects"
+        "standaloneLabel": "Standalone"
       }
     },
     "resume": {

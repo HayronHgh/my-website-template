@@ -104,7 +104,6 @@ export type SitePages = {
       readLabel: string;
     };
     detail: {
-      relatedProjectsTitle: string;
       standaloneLabel: string;
     };
     hero: SiteHeroCopy;
@@ -125,7 +124,6 @@ export type SitePages = {
       matchingArticlePlural: string;
       matchingArticleSingular: string;
       placeholder: string;
-      readButtonLabel: string;
       quickReadButtonLabel: string;
       readTimeSuffix: string;
       removeTagLabel: string;
@@ -301,7 +299,6 @@ const defaultPages: SitePages = {
       readLabel: "Read signal",
     },
     detail: {
-      relatedProjectsTitle: "Related Projects",
       standaloneLabel: "Standalone",
     },
     hero: {
@@ -328,7 +325,6 @@ const defaultPages: SitePages = {
       matchingArticlePlural: "matching articles",
       matchingArticleSingular: "matching article",
       placeholder: "Search title, summary, #tag",
-      readButtonLabel: "Read Signal",
       quickReadButtonLabel: "Quick read",
       readTimeSuffix: "min read",
       removeTagLabel: "Remove tag",

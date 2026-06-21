@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
@@ -76,59 +77,85 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       ? candidate.series?.slug === post.series.slug
       : !candidate.series,
   );
-  const relatedProjects = getRelatedProjectsForPost(post, projects, 4);
+  const relatedProjects = getRelatedProjectsForPost(post, projects, 3);
   const pageCopy = siteSettings.pages.blog;
 
   return (
     <Section>
       <Container>
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <article className="min-w-0 space-y-5">
-            <header className="space-y-5">
-              <div className="flex flex-wrap gap-3">
-                {post.tags.map((tag) => (
-                  <span
-                    className={ui.tinyTag}
-                    key={tag}
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
+          <div className="min-w-0">
+            <PixelCard accent="purple" as="article" className="space-y-5">
+              <Link
+                className="inline-flex items-center gap-2 rounded-[4px] border border-[#30445f] bg-[#101827] px-3 py-2 font-mono text-sm font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+                href="/blog"
+              >
+                <span aria-hidden className="font-mono">{"<"}</span>
+                {pageCopy.reader.backLabel}
+              </Link>
 
-              <div className="space-y-4">
-                {post.series ? (
-                  <p className="font-mono text-sm font-semibold uppercase text-violet-200">
-                    {post.series.title}
+              <header className="space-y-5">
+                <div className="flex flex-wrap gap-2">
+                  {post.tags.map((tag) => (
+                    <span className={ui.tinyTag} key={tag}>
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="space-y-4">
+                  {post.series ? (
+                    <p className="font-mono text-sm font-semibold uppercase text-violet-200">
+                      {post.series.title}
+                    </p>
+                  ) : null}
+                  <p className="inline-flex items-center gap-2 font-mono text-sm font-semibold uppercase text-cyan-200">
+                    <PixelIcon className="h-4 w-4" name="clock" />
+                    <time dateTime={post.date}>{formatDate(post.date)}</time>
                   </p>
+                  <h1 className="font-mono text-3xl font-black leading-[1.15] text-white sm:text-5xl">
+                    {post.title}
+                  </h1>
+                  <p className="text-base leading-8 text-[#c7d2ee] sm:text-lg">
+                    {post.summary}
+                  </p>
+                </div>
+
+                {post.coverImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    alt=""
+                    className="max-h-[28rem] w-full rounded-[5px] border border-[#26344d] object-cover"
+                    src={post.coverImage}
+                  />
                 ) : null}
-                <p className="inline-flex items-center gap-2 font-mono text-sm font-semibold uppercase text-cyan-200">
-                  <PixelIcon className="h-4 w-4" name="clock" />
-                  <time dateTime={post.date}>{formatDate(post.date)}</time>
-                </p>
-                <h1 className="font-mono text-4xl font-black leading-[1.15] text-white sm:text-5xl">
-                  {post.title}
-                </h1>
-                <p className="text-lg leading-8 text-slate-300">{post.summary}</p>
-              </div>
 
-              {post.coverImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  alt=""
-                  className="max-h-96 w-full rounded-[5px] border border-[#26344d] object-cover"
-                  src={post.coverImage}
-                />
-              ) : null}
-            </header>
+                {relatedProjects.length ? (
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    {relatedProjects.map((project) => (
+                      <Link
+                        className="rounded-[4px] border border-[#26344d] bg-[#101827] p-3 transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
+                        href={project.detailsUrl}
+                        key={project.slug}
+                      >
+                        <p className="font-mono text-[11px] font-bold uppercase text-[#8ed2d8]">
+                          {pageCopy.reader.relatedProjectLabel}
+                        </p>
+                        <p className="clamp-2 mt-1 font-mono text-sm font-bold leading-6 text-white">
+                          {project.title}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
+              </header>
 
-            <PixelCard accent="purple">
               <div
                 className="prose-content"
                 dangerouslySetInnerHTML={{ __html: post.html }}
               />
             </PixelCard>
-          </article>
+          </div>
 
           <aside className="xl:sticky xl:top-28 xl:self-start">
             <PixelCard accent="cyan" className="space-y-3">
@@ -151,31 +178,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 ))}
               </div>
             </PixelCard>
-
-            {relatedProjects.length ? (
-              <PixelCard accent="purple" className="mt-5 space-y-3">
-                <div className="flex items-center gap-2 font-mono text-base font-bold text-white">
-                  <PixelIcon className="h-5 w-5" name="projects" />
-                  {pageCopy.detail.relatedProjectsTitle}
-                </div>
-                <div className="space-y-2">
-                  {relatedProjects.map((project) => (
-                    <a
-                      className="block rounded-[4px] border border-[#26344d] bg-[#101827] p-3 transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
-                      href={project.detailsUrl}
-                      key={project.slug}
-                    >
-                      <p className="clamp-2 font-mono text-sm font-bold leading-6 text-[#eef3ff]">
-                        {project.title}
-                      </p>
-                      <p className="mt-1 font-mono text-[11px] text-[#7f8db3]">
-                        {project.category}
-                      </p>
-                    </a>
-                  ))}
-                </div>
-              </PixelCard>
-            ) : null}
           </aside>
         </div>
       </Container>

@@ -12,6 +12,7 @@ import type { BlogPost } from "@/types/blog";
 
 type BlogReaderProps = {
   copy: SiteSettings["pages"]["blog"]["reader"];
+  isLoading?: boolean;
   onBack: () => void;
   onSelectTag: (tag: string) => void;
   post?: BlogPost;
@@ -20,6 +21,7 @@ type BlogReaderProps = {
 
 export function BlogReader({
   copy,
+  isLoading = false,
   onBack,
   onSelectTag,
   post,
@@ -29,7 +31,7 @@ export function BlogReader({
     return (
       <PixelCard accent="purple" className="min-h-96">
         <div className="flex min-h-72 items-center justify-center text-center text-sm text-[#9fb0d8]">
-          {copy.noSelectionMessage}
+          {isLoading ? "Loading article..." : copy.noSelectionMessage}
         </div>
       </PixelCard>
     );
