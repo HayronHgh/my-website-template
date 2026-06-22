@@ -195,6 +195,9 @@ published: true
           homeHero: {
             src: "../secret.png",
           },
+          blogHero: {
+            src: "/optimized/foo.webp",
+          },
           resumeHero: {
             src: "resume.txt",
           },
@@ -232,6 +235,7 @@ published: true
     const messages = result.issues.map((issue) => issue.message);
 
     expect(messages).toContain("site image path is not allowed: ../secret.png");
+    expect(messages).toContain("site image path is not allowed: /optimized/foo.webp");
     expect(messages).toContain("site image extension is not allowed: resume.txt");
     expect(messages).toContain("contact link URL is not allowed: javascript:alert(1)");
     expect(messages).toContain("siteUrl must be an http(s) URL: javascript:alert(1)");

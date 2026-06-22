@@ -1,5 +1,25 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { markdownToHtml } from "@/lib/blog/markdown";
+
+async function createTemporaryMarkdownAsset() {
+  const slug = `markdown-asset-test-${process.pid}-${Date.now()}`;
+  const postDirectory = path.join(process.cwd(), "content", "blog", slug);
+  const assetFilePath = path.join(postDirectory, "diagram.png");
+
+  await fs.mkdir(postDirectory, { recursive: true });
+  await fs.writeFile(path.join(postDirectory, "main.md"), "# Test post\n", "utf8");
+  await fs.writeFile(assetFilePath, "fake image bytes");
+
+  const stats = await fs.stat(assetFilePath);
+
+  return {
+    cleanup: () => fs.rm(postDirectory, { force: true, recursive: true }),
+    slug,
+    version: `${Math.trunc(stats.mtimeMs)}-${stats.size}`,
+  };
+}
 
 describe("markdown rendering", () => {
   it("renders GFM tables", async () => {
@@ -57,5 +77,32 @@ describe("markdown rendering", () => {
 
     expect(html).not.toContain("<iframe");
     expect(html).toContain("<a href=\"https://example.com/video\"");
+  });
+
+  it("versions relative images without rewriting external or unsafe image URLs", async () => {
+    const temporaryAsset = await createTemporaryMarkdownAsset();
+
+    try {
+      const html = await markdownToHtml(
+        [
+          "![Local](diagram.png)",
+          "![External](https://example.com/image.png)",
+          "![Absolute](/site/assets/bg.png)",
+          "![Data](data:image/png;base64,abc)",
+          "![Anchor](#diagram)",
+        ].join("\n\n"),
+        { slug: temporaryAsset.slug },
+      );
+
+      expect(html).toContain(
+        `src="/blog/assets/${temporaryAsset.slug}/diagram.png?v=${temporaryAsset.version}"`,
+      );
+      expect(html).toContain('src="https://example.com/image.png"');
+      expect(html).toContain('src="/site/assets/bg.png"');
+      expect(html).not.toContain("data:image");
+      expect(html).not.toContain(`/blog/assets/${temporaryAsset.slug}/%23diagram`);
+    } finally {
+      await temporaryAsset.cleanup();
+    }
   });
 });

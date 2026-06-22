@@ -2,10 +2,13 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { GET as getBlogAssetResponse } from "@/app/blog/assets/[...asset]/route";
+import { GET as getSiteAssetResponse } from "@/app/site/assets/[...asset]/route";
 import {
   getBlogAssetUrl,
   getPostAssetFilePath,
   getSlugSegments,
+  getVersionedBlogAssetUrl,
 } from "@/lib/blog/assets";
 import {
   getSafeResumePdfFilePath,
@@ -18,6 +21,39 @@ import {
   getProjectAssetUrl,
   getProjectSlugSegments,
 } from "@/lib/projects/assets";
+
+async function createTemporaryBlogAsset() {
+  const slug = `route-cache-test-${process.pid}-${Date.now()}`;
+  const postDirectory = path.join(process.cwd(), "content", "blog", slug);
+  const assetFileName = "diagram.png";
+  const assetFilePath = path.join(postDirectory, assetFileName);
+
+  await fs.mkdir(postDirectory, { recursive: true });
+  await fs.writeFile(
+    path.join(postDirectory, "main.md"),
+    `---
+title: Route Cache Test
+date: 2026-01-01
+summary: Test post for asset route cache headers.
+tags:
+  - Test
+published: true
+---
+
+Body`,
+    "utf8",
+  );
+  await fs.writeFile(assetFilePath, "fake image bytes");
+
+  const stats = await fs.stat(assetFilePath);
+
+  return {
+    assetFileName,
+    cleanup: () => fs.rm(postDirectory, { force: true, recursive: true }),
+    slug,
+    version: `${Math.trunc(stats.mtimeMs)}-${stats.size}`,
+  };
+}
 
 describe("content path helpers", () => {
   it("validates blog and project slug shapes", () => {
@@ -34,6 +70,32 @@ describe("content path helpers", () => {
     expect(getProjectAssetUrl("project-a", "demo.png")).toBe(
       "/projects/assets/project-a/demo.png",
     );
+  });
+
+  it("adds canonical versions only to safe relative blog asset URLs", async () => {
+    const temporaryAsset = await createTemporaryBlogAsset();
+
+    try {
+      await expect(
+        getVersionedBlogAssetUrl(temporaryAsset.slug, temporaryAsset.assetFileName),
+      ).resolves.toBe(
+        `/blog/assets/${temporaryAsset.slug}/${temporaryAsset.assetFileName}?v=${temporaryAsset.version}`,
+      );
+      await expect(
+        getVersionedBlogAssetUrl(temporaryAsset.slug, "https://example.com/image.png"),
+      ).resolves.toBe("https://example.com/image.png");
+      await expect(
+        getVersionedBlogAssetUrl(temporaryAsset.slug, "/site/assets/bg.png"),
+      ).resolves.toBe("/site/assets/bg.png");
+      await expect(
+        getVersionedBlogAssetUrl(temporaryAsset.slug, "#diagram"),
+      ).resolves.toBe("#diagram");
+      await expect(
+        getVersionedBlogAssetUrl(temporaryAsset.slug, "../secret.png"),
+      ).resolves.toBe("../secret.png");
+    } finally {
+      await temporaryAsset.cleanup();
+    }
   });
 
   it("rejects traversal asset filesystem paths", () => {
@@ -54,6 +116,78 @@ describe("content path helpers", () => {
     await expect(getVersionedSiteAssetUrl("../secret.png")).resolves.toBe("../secret.png");
     await expect(getSafeSiteAssetFilePath(["..", "secret.png"])).resolves.toBeNull();
     await expect(getSafeSiteAssetFilePath(["site.json"])).resolves.toBeNull();
+  });
+
+  it("rejects non-canonical site asset versions", async () => {
+    const response = await getSiteAssetResponse(
+      new Request("https://example.test/site/assets/bg.png?v=wrong"),
+      { params: Promise.resolve({ asset: ["bg.png"] }) },
+    );
+
+    expect(response.status).toBe(404);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+  });
+
+  it("serves canonical site asset versions as immutable", async () => {
+    const assetPath = path.join(process.cwd(), "content", "site", "assets", "bg.png");
+    const stats = await fs.stat(assetPath);
+    const version = `${Math.trunc(stats.mtimeMs)}-${stats.size}`;
+    const response = await getSiteAssetResponse(
+      new Request(`https://example.test/site/assets/bg.png?v=${version}`),
+      { params: Promise.resolve({ asset: ["bg.png"] }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe(
+      "public, max-age=31536000, immutable",
+    );
+    expect(response.headers.get("Content-Length")).toBe(String(stats.size));
+  });
+
+  it("rejects non-canonical blog asset versions", async () => {
+    const temporaryAsset = await createTemporaryBlogAsset();
+
+    try {
+      const response = await getBlogAssetResponse(
+        new Request(
+          `https://example.test/blog/assets/${temporaryAsset.slug}/${temporaryAsset.assetFileName}?v=wrong`,
+        ),
+        {
+          params: Promise.resolve({
+            asset: [temporaryAsset.slug, temporaryAsset.assetFileName],
+          }),
+        },
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.headers.get("Cache-Control")).toBe("no-store");
+    } finally {
+      await temporaryAsset.cleanup();
+    }
+  });
+
+  it("serves canonical blog asset versions as immutable", async () => {
+    const temporaryAsset = await createTemporaryBlogAsset();
+
+    try {
+      const response = await getBlogAssetResponse(
+        new Request(
+          `https://example.test/blog/assets/${temporaryAsset.slug}/${temporaryAsset.assetFileName}?v=${temporaryAsset.version}`,
+        ),
+        {
+          params: Promise.resolve({
+            asset: [temporaryAsset.slug, temporaryAsset.assetFileName],
+          }),
+        },
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("Cache-Control")).toBe(
+        "public, max-age=31536000, immutable",
+      );
+    } finally {
+      await temporaryAsset.cleanup();
+    }
   });
 
   it("limits resume PDF resolution to the fixed PDF file", async () => {
