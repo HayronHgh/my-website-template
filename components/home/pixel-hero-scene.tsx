@@ -11,26 +11,14 @@ export function PixelHeroScene({ imageSrc }: PixelHeroSceneProps) {
       className="pixel-scene"
       role="img"
     >
-      {/* Blurred backdrop disabled so the hero reads as one crisp pixel scene.
-      <Image
-        alt=""
-        aria-hidden
-        className="pixel-scene-backdrop"
-        fill
-        priority
-        quality={80}
-        sizes="100vw"
-        src="/bg.png"
-      />
-      */}
       <div className="pixel-scene-frame">
         <Image
           alt=""
           className="pixel-scene-image"
           fill
-          priority
-          quality={100}
-          sizes="92vw"
+          preload
+          quality={75}
+          sizes="(max-width: 768px) 100vw, (max-width: 1536px) 90vw, 1500px"
           src={imageSrc}
         />
       </div>

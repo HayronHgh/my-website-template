@@ -230,13 +230,18 @@ export function BlogSearchApp({
   }, [queryKey]);
 
   useEffect(() => {
-    const cachedPage = pageCache[queryKey]?.[page];
-    const hasPrefetchedNextPage =
-      !cachedPage?.hasNextPage || Boolean(pageCache[queryKey]?.[page + 1]);
+    const delay = query.trim() ? 250 : 0;
+    const timeoutId = window.setTimeout(() => {
+      const cachedPage = pageCache[queryKey]?.[page];
+      const hasPrefetchedNextPage =
+        !cachedPage?.hasNextPage || Boolean(pageCache[queryKey]?.[page + 1]);
 
-    if (!cachedPage || !hasPrefetchedNextPage) {
-      void fetchListing(query, page, selectedSeriesSlug, sortOrder);
-    }
+      if (!cachedPage || !hasPrefetchedNextPage) {
+        void fetchListing(query, page, selectedSeriesSlug, sortOrder);
+      }
+    }, delay);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchListing, page, pageCache, query, queryKey, selectedSeriesSlug, sortOrder]);
 
   const handleToggleTag = (tag: string) => {

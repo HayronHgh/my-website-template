@@ -1,9 +1,9 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import {
-  getBlogAssetUrl,
   getSafePostMarkdownFilePath,
   getSlugFromSegments,
+  getVersionedBlogAssetUrl,
 } from "@/lib/blog/assets";
 import { BLOG_CONTENT_DIRECTORY, BLOG_POST_FILE_NAME } from "@/lib/blog/constants";
 import { markdownToHtml } from "@/lib/blog/markdown";
@@ -116,45 +116,52 @@ async function getPostSourceFilePath(slug: string) {
   return filePath;
 }
 
-function resolvePostAssetUrls(meta: BlogPostMeta): BlogPostMeta {
+async function resolvePostAssetUrls<Post extends BlogPostMeta>(meta: Post): Promise<Post> {
   return {
     ...meta,
-    coverImage: meta.coverImage ? getBlogAssetUrl(meta.slug, meta.coverImage) : undefined,
+    coverImage: meta.coverImage
+      ? await getVersionedBlogAssetUrl(meta.slug, meta.coverImage)
+      : undefined,
   };
 }
 
 async function readPostListItemBySlug(slug: string): Promise<BlogPostListItem> {
   const filePath = await getPostSourceFilePath(slug);
 
-  return getMtimeCachedValue(`blog-post-list-item:${slug}`, filePath, async () => {
+  const listItem = await getMtimeCachedValue(`blog-post-list-item:${slug}`, filePath, async () => {
     const source = await readTextFileWithMtimeCache(filePath);
     const pathSegments = slug.split("/");
     const { content, meta } = parseBlogFrontmatter(source, slug, pathSegments);
-    const resolvedMeta = resolvePostAssetUrls(meta);
 
     return {
-      ...resolvedMeta,
+      ...meta,
       readTimeMinutes: estimateReadTimeMinutes(content),
     };
   });
+
+  return resolvePostAssetUrls(listItem);
 }
 
 async function readPostBySlug(slug: string): Promise<BlogPost> {
   const filePath = await getPostSourceFilePath(slug);
 
-  return getMtimeCachedValue(`blog-post:${slug}`, filePath, async () => {
+  const postSource = await getMtimeCachedValue(`blog-post:${slug}`, filePath, async () => {
     const source = await readTextFileWithMtimeCache(filePath);
     const pathSegments = slug.split("/");
     const { content, meta } = parseBlogFrontmatter(source, slug, pathSegments);
-    const resolvedMeta = resolvePostAssetUrls(meta);
-    const html = await markdownToHtml(content, { slug });
 
     return {
-      ...resolvedMeta,
+      ...meta,
       content,
-      html,
     };
   });
+  const resolvedMeta = await resolvePostAssetUrls(postSource);
+  const html = await markdownToHtml(postSource.content, { slug });
+
+  return {
+    ...resolvedMeta,
+    html,
+  };
 }
 
 export async function getAllPosts() {

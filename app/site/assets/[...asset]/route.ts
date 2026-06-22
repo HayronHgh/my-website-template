@@ -23,7 +23,7 @@ const contentTypes: Record<string, string> = {
   ".webp": "image/webp",
 };
 
-export async function GET(_request: Request, { params }: SiteAssetRouteContext) {
+export async function GET(request: Request, { params }: SiteAssetRouteContext) {
   const { asset } = await params;
   const filePath = await getSafeSiteAssetFilePath(asset);
 
@@ -32,14 +32,32 @@ export async function GET(_request: Request, { params }: SiteAssetRouteContext) 
   }
 
   try {
+    const stats = await fs.stat(filePath);
+    const currentVersion = `${Math.trunc(stats.mtimeMs)}-${stats.size}`;
+    const requestedVersion = new URL(request.url).searchParams.get("v");
+
+    if (requestedVersion && requestedVersion !== currentVersion) {
+      return new NextResponse("Not found", {
+        status: 404,
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+
     const file = await fs.readFile(filePath);
     const contentType =
       contentTypes[path.extname(filePath).toLocaleLowerCase()] ?? "application/octet-stream";
+    const isCanonicalVersion = requestedVersion === currentVersion;
 
     return new NextResponse(new Uint8Array(file), {
       headers: {
-        "Cache-Control": "no-store",
+        "Cache-Control": isCanonicalVersion
+          ? "public, max-age=31536000, immutable"
+          : "public, max-age=3600, stale-while-revalidate=86400",
+        "Content-Length": String(stats.size),
         "Content-Type": contentType,
+        "Last-Modified": stats.mtime.toUTCString(),
       },
     });
   } catch {

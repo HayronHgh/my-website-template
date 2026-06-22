@@ -387,9 +387,19 @@ async function validateSiteImagePath(
   siteAssetDirectory: string,
   issues: ContentValidationIssue[],
 ) {
+  const displayPath = toDisplayPath(rootDirectory, filePath);
+
   if (!isSafeMarkdownUrl(value, "image")) {
     issues.push({
-      filePath: toDisplayPath(rootDirectory, filePath),
+      filePath: displayPath,
+      message: `site image path is not allowed: ${value}`,
+    });
+    return;
+  }
+
+  if (value.trim().startsWith("/")) {
+    issues.push({
+      filePath: displayPath,
       message: `site image path is not allowed: ${value}`,
     });
     return;
@@ -403,8 +413,6 @@ async function validateSiteImagePath(
     .replace(/^\.\/+/, "")
     .split(/[\\/]+/)
     .filter(Boolean);
-  const displayPath = toDisplayPath(rootDirectory, filePath);
-
   if (
     assetSegments.length === 0 ||
     assetSegments.some((segment) => segment === "." || segment === "..")

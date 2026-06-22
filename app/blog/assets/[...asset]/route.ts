@@ -27,9 +27,10 @@ const contentTypes: Record<string, string> = {
   ".webp": "image/webp",
 };
 
-export async function GET(_request: Request, { params }: BlogAssetRouteContext) {
+export async function GET(request: Request, { params }: BlogAssetRouteContext) {
   const { asset } = await params;
   const maxPostDepth = Math.min(2, asset.length - 1);
+  const requestedVersion = new URL(request.url).searchParams.get("v");
 
   for (let postDepth = maxPostDepth; postDepth >= 1; postDepth -= 1) {
     const slugSegments = asset.slice(0, postDepth);
@@ -47,14 +48,31 @@ export async function GET(_request: Request, { params }: BlogAssetRouteContext) 
     }
 
     try {
+      const stats = await fs.stat(filePath);
+      const currentVersion = `${Math.trunc(stats.mtimeMs)}-${stats.size}`;
+
+      if (requestedVersion && requestedVersion !== currentVersion) {
+        return new NextResponse("Not found", {
+          status: 404,
+          headers: {
+            "Cache-Control": "no-store",
+          },
+        });
+      }
+
       const file = await fs.readFile(filePath);
       const contentType =
         contentTypes[path.extname(filePath).toLocaleLowerCase()] ?? "application/octet-stream";
+      const isCanonicalVersion = requestedVersion === currentVersion;
 
       return new NextResponse(new Uint8Array(file), {
         headers: {
-          "Cache-Control": "no-store",
+          "Cache-Control": isCanonicalVersion
+            ? "public, max-age=31536000, immutable"
+            : "public, max-age=86400, stale-while-revalidate=604800",
+          "Content-Length": String(stats.size),
           "Content-Type": contentType,
+          "Last-Modified": stats.mtime.toUTCString(),
         },
       });
     } catch {

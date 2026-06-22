@@ -50,30 +50,58 @@ export function isRelativeBlogAssetPath(assetPath: string) {
   );
 }
 
-export function getBlogAssetUrl(slug: string, assetPath: string) {
+function getRelativeBlogAssetSegments(assetPath: string) {
   const trimmedPath = assetPath.trim();
 
   if (!isRelativeBlogAssetPath(trimmedPath)) {
-    return trimmedPath;
+    return null;
   }
 
-  const slugSegments = getSlugSegments(slug);
   const assetSegments = trimmedPath
     .replace(/^\.\/+/, "")
     .split(/[\\/]+/)
     .filter(Boolean);
 
-  if (
-    !slugSegments ||
-    assetSegments.length === 0 ||
-    assetSegments.some((segment) => segment === "." || segment === "..")
-  ) {
+  return assetSegments.length > 0 && !assetSegments.some(hasUnsafeSegment)
+    ? assetSegments
+    : null;
+}
+
+export function getBlogAssetUrl(slug: string, assetPath: string) {
+  const trimmedPath = assetPath.trim();
+
+  const slugSegments = getSlugSegments(slug);
+  const assetSegments = getRelativeBlogAssetSegments(trimmedPath);
+
+  if (!slugSegments || !assetSegments) {
     return trimmedPath;
   }
 
   return `/blog/assets/${[...slugSegments, ...assetSegments]
     .map((segment) => encodeURIComponent(segment))
     .join("/")}`;
+}
+
+export async function getVersionedBlogAssetUrl(slug: string, assetPath: string) {
+  const assetUrl = getBlogAssetUrl(slug, assetPath);
+  const assetSegments = getRelativeBlogAssetSegments(assetPath);
+
+  if (!assetSegments) {
+    return assetUrl;
+  }
+
+  const filePath = await getSafePostAssetFilePath(slug, assetSegments);
+
+  if (!filePath) {
+    return assetUrl;
+  }
+
+  try {
+    const stats = await fs.stat(filePath);
+    return `${assetUrl}?v=${Math.trunc(stats.mtimeMs)}-${stats.size}`;
+  } catch {
+    return assetUrl;
+  }
 }
 
 export function getPostDirectoryPath(slug: string | string[]) {

@@ -154,12 +154,8 @@ a {
 }
 
 .page-hero-art-image {
-  position: absolute;
-  inset: 0;
-  background-image: var(--page-hero-image);
-  background-position: var(--page-hero-position);
-  background-repeat: no-repeat;
-  background-size: contain;
+  object-fit: contain;
+  object-position: var(--page-hero-position);
   image-rendering: pixelated;
   mask-image: linear-gradient(180deg, transparent 0%, black 5%, black 95%, transparent 100%);
   opacity: 1;
@@ -182,23 +178,23 @@ a {
 .page-hero-art-blog .page-hero-art-image,
 .page-hero-art-resume .page-hero-art-image,
 .page-hero-art-journey .page-hero-art-image {
-  background-size: cover;
+  object-fit: cover;
 }
 
 .page-hero-art-projects .page-hero-art-image {
-  background-position: center 52%;
+  object-position: center 52%;
 }
 
 .page-hero-art-blog .page-hero-art-image {
-  background-position: center 50%;
+  object-position: center 50%;
 }
 
 .page-hero-art-resume .page-hero-art-image {
-  background-position: center 53%;
+  object-position: center 53%;
 }
 
 .page-hero-art-journey .page-hero-art-image {
-  background-position: center 50%;
+  object-position: center 50%;
 }
 
 .about-panel.pixel-card::after {

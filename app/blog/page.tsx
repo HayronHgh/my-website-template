@@ -3,10 +3,11 @@ import { BlogSearchApp } from "@/components/blog/blog-search-app";
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { Section } from "@/components/ui/section";
-import { getBlogListing, getHashtagIndex } from "@/lib/blog";
+import { createBlogListingFromPosts } from "@/lib/blog";
+import { getPublishedPostListItems } from "@/lib/blog/posts";
 import { getPublishedProjects } from "@/lib/projects/meta";
 import { getSiteSettings } from "@/lib/site/settings";
-import type { BlogTagOption } from "@/types/blog";
+import type { BlogHashtagIndex, BlogPostListItem, BlogTagOption } from "@/types/blog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,7 +22,16 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const toTagOptions = (hashtagIndex: Awaited<ReturnType<typeof getHashtagIndex>>) =>
+const createHashtagIndexFromPosts = (posts: BlogPostListItem[]) =>
+  posts.reduce<BlogHashtagIndex>((index, post) => {
+    post.tags.forEach((tag) => {
+      index[tag] = [...(index[tag] ?? []), post];
+    });
+
+    return index;
+  }, {});
+
+const toTagOptions = (hashtagIndex: BlogHashtagIndex) =>
   Object.entries(hashtagIndex)
     .map<BlogTagOption>(([tag, posts]) => ({
       tag,
@@ -36,12 +46,13 @@ const toTagOptions = (hashtagIndex: Awaited<ReturnType<typeof getHashtagIndex>>)
     });
 
 export default async function BlogPage() {
-  const [initialListing, hashtagIndex, projects, siteSettings] = await Promise.all([
-    getBlogListing(),
-    getHashtagIndex(),
+  const [posts, projects, siteSettings] = await Promise.all([
+    getPublishedPostListItems(),
     getPublishedProjects(),
     getSiteSettings(),
   ]);
+  const initialListing = createBlogListingFromPosts(posts);
+  const hashtagIndex = createHashtagIndexFromPosts(posts);
 
   return (
     <Section className="!pt-0 sm:!pt-0">

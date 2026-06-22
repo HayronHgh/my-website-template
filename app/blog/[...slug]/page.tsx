@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/container";
@@ -122,11 +123,15 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 </div>
 
                 {post.coverImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     alt=""
                     className="max-h-[28rem] w-full rounded-[5px] border border-[#26344d] object-cover"
+                    height={675}
+                    loading="lazy"
+                    quality={75}
+                    sizes="(max-width: 1280px) calc(100vw - 2rem), 860px"
                     src={post.coverImage}
+                    width={1200}
                   />
                 ) : null}
 

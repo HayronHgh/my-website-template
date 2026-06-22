@@ -259,12 +259,12 @@ type SiteSettingsFile = Partial<
 const SITE_SETTINGS_FILE_PATH = path.join(SITE_CONTENT_DIRECTORY, "site.json");
 
 const defaultPageImages: SitePageImages = {
-  aboutAvatar: { src: "/pixel-engineer-avatar.svg" },
-  aboutHero: { position: "center center", src: "/page-bg-journey.png" },
-  blogHero: { position: "center center", src: "/page-bg-blog.png" },
-  homeHero: { position: "center center", src: "/bg.png" },
-  projectsHero: { position: "center center", src: "/page-bg-projects.png" },
-  resumeHero: { position: "center center", src: "/page-bg-resume.png" },
+  aboutAvatar: { src: "pixel-engineer-avatar.svg" },
+  aboutHero: { position: "center center", src: "page-bg-journey.31cc30a63c.webp" },
+  blogHero: { position: "center center", src: "page-bg-blog.fdacc120c5.webp" },
+  homeHero: { position: "center center", src: "bg.68c3fbebe9.webp" },
+  projectsHero: { position: "center center", src: "page-bg-projects.d67a19d334.webp" },
+  resumeHero: { position: "center center", src: "page-bg-resume.6a697ed8b7.webp" },
 };
 
 const defaultPages: SitePages = {

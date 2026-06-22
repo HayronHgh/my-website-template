@@ -6,7 +6,7 @@ import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import remarkRehype from "remark-rehype";
-import { getBlogAssetUrl } from "@/lib/blog/assets";
+import { getVersionedBlogAssetUrl } from "@/lib/blog/assets";
 import { sanitizeMarkdownUrl } from "@/lib/content/url-policy";
 
 type MarkdownNode = {
@@ -19,7 +19,7 @@ type MarkdownNode = {
 };
 
 type MarkdownToHtmlOptions = {
-  resolveAssetUrl?: (assetPath: string) => string;
+  resolveAssetUrl?: (assetPath: string) => Promise<string> | string;
   slug?: string;
 };
 
@@ -94,15 +94,35 @@ function visitMarkdownNodes(node: unknown, visitor: (node: MarkdownNode) => void
   }
 }
 
-const rewriteRelativeImageUrls = (resolveAssetUrl: (assetPath: string) => string) => () => (tree: unknown) => {
-  visitMarkdownNodes(tree, (node) => {
+async function visitMarkdownNodesAsync(
+  node: unknown,
+  visitor: (node: MarkdownNode) => Promise<void> | void,
+) {
+  if (!node || typeof node !== "object") {
+    return;
+  }
+
+  const markdownNode = node as MarkdownNode;
+  await visitor(markdownNode);
+
+  if (Array.isArray(markdownNode.children)) {
+    for (const child of markdownNode.children) {
+      await visitMarkdownNodesAsync(child, visitor);
+    }
+  }
+}
+
+const rewriteRelativeImageUrls = (
+  resolveAssetUrl: (assetPath: string) => Promise<string> | string,
+) => () => async (tree: unknown) => {
+  await visitMarkdownNodesAsync(tree, async (node) => {
     if (node.type === "link" && typeof node.url === "string") {
       node.url = sanitizeMarkdownUrl(node.url, "link");
     }
 
     if (node.type === "image" && typeof node.url === "string") {
       const safeUrl = sanitizeMarkdownUrl(node.url, "image");
-      node.url = safeUrl === "#" ? safeUrl : resolveAssetUrl(safeUrl);
+      node.url = safeUrl === "#" ? safeUrl : await resolveAssetUrl(safeUrl);
     }
   });
 };
@@ -232,7 +252,9 @@ export async function markdownToHtml(
   if (options.resolveAssetUrl) {
     processor.use(rewriteRelativeImageUrls(options.resolveAssetUrl));
   } else if (options.slug) {
-    processor.use(rewriteRelativeImageUrls((assetPath) => getBlogAssetUrl(options.slug!, assetPath)));
+    processor.use(rewriteRelativeImageUrls((assetPath) =>
+      getVersionedBlogAssetUrl(options.slug!, assetPath),
+    ));
   } else {
     processor.use(sanitizeMarkdownUrls);
   }

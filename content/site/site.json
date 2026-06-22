@@ -357,23 +357,23 @@
   },
   "pageImages": {
     "homeHero": {
-      "src": "bg.png",
+      "src": "bg.68c3fbebe9.webp",
       "position": "center center"
     },
     "projectsHero": {
-      "src": "page-bg-projects.png",
+      "src": "page-bg-projects.d67a19d334.webp",
       "position": "center center"
     },
     "blogHero": {
-      "src": "page-bg-blog.png",
+      "src": "page-bg-blog.fdacc120c5.webp",
       "position": "center center"
     },
     "aboutHero": {
-      "src": "page-bg-journey.png",
+      "src": "page-bg-journey.31cc30a63c.webp",
       "position": "center center"
     },
     "resumeHero": {
-      "src": "page-bg-resume.png",
+      "src": "page-bg-resume.6a697ed8b7.webp",
       "position": "center center"
     },
     "aboutAvatar": {
