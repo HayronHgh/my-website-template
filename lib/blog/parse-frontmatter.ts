@@ -121,6 +121,7 @@ export function parseBlogFrontmatter(
     pathSegments,
     title: toNonEmptyString(data.title, defaults.title),
     date: toDateString(data.date, defaults.date),
+    order: toOptionalNumber(data.order),
     summary: toNonEmptyString(data.summary, defaults.summary),
     tags: toStringArray(data.tags),
     published: toBoolean(data.published, defaults.published),

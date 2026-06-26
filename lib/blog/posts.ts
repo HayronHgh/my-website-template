@@ -12,6 +12,7 @@ import {
   getMtimeCachedValue,
   readTextFileWithMtimeCache,
 } from "@/lib/content/cache";
+import { sortPostsByFeaturedRankAndPublishedOrder } from "@/lib/blog/sorting";
 import type {
   BlogHashtagIndex,
   BlogPost,
@@ -20,9 +21,6 @@ import type {
 } from "@/types/blog";
 
 const MAX_POST_DEPTH = 2;
-
-const getPostRank = (post: BlogPostMeta) =>
-  typeof post.featuredRank === "number" ? post.featuredRank : Number.POSITIVE_INFINITY;
 
 export function estimateReadTimeMinutes(content: string) {
   const cjkCharacters = content.match(/[\u4e00-\u9fff]/g)?.length ?? 0;
@@ -33,24 +31,14 @@ export function estimateReadTimeMinutes(content: string) {
 }
 
 export const sortPostsByFeaturedRankAndDate = <Post extends BlogPostMeta>(posts: Post[]) =>
-  [...posts].sort((left, right) => {
-    const leftRank = getPostRank(left);
-    const rightRank = getPostRank(right);
-
-    if (leftRank !== rightRank) {
-      return leftRank - rightRank;
-    }
-
-    const leftDate = new Date(left.date).getTime();
-    const rightDate = new Date(right.date).getTime();
-    return rightDate - leftDate;
-  });
+  sortPostsByFeaturedRankAndPublishedOrder(posts);
 
 const toPostMeta = (post: BlogPostMeta): BlogPostMeta => ({
   slug: post.slug,
   pathSegments: post.pathSegments,
   title: post.title,
   date: post.date,
+  order: post.order,
   summary: post.summary,
   tags: post.tags,
   published: post.published,

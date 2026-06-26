@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createBlogListingFromPosts, getPostBySlug, getPublishedPosts } from "@/lib/blog";
 import { parseBlogFrontmatter } from "@/lib/blog/parse-frontmatter";
 import { sortPostsByFeaturedRankAndDate } from "@/lib/blog/posts";
+import { sortPostsByPublishedOrder } from "@/lib/blog/sorting";
 import type { BlogPostListItem, BlogPostMeta } from "@/types/blog";
 
 const createListItem = (
@@ -32,6 +33,7 @@ relatedProjects:
   - project-a
 published: true
 featuredRank: 1
+order: 2
 ---
 
 Body`;
@@ -42,7 +44,30 @@ Body`;
     expect(meta.tags).toEqual(["Architecture"]);
     expect(meta.relatedProjects).toEqual(["project-a"]);
     expect(meta.featuredRank).toBe(1);
+    expect(meta.order).toBe(2);
     expect(content.trim()).toBe("Body");
+  });
+
+  it("sorts same-day posts by frontmatter order with stable slug fallback", () => {
+    const posts = [
+      createListItem("same-day-a", { date: "2026-01-05", order: 1 }),
+      createListItem("same-day-c", { date: "2026-01-05", order: 3 }),
+      createListItem("same-day-b", { date: "2026-01-05", order: 1 }),
+      createListItem("next-day", { date: "2026-01-06" }),
+    ];
+
+    expect(sortPostsByPublishedOrder(posts, "newest").map((post) => post.slug)).toEqual([
+      "next-day",
+      "same-day-c",
+      "same-day-a",
+      "same-day-b",
+    ]);
+    expect(sortPostsByPublishedOrder(posts, "oldest").map((post) => post.slug)).toEqual([
+      "same-day-a",
+      "same-day-b",
+      "same-day-c",
+      "next-day",
+    ]);
   });
 
   it("sorts featured posts before date-only posts", () => {
@@ -173,6 +198,19 @@ Body`;
 
     expect(listing.sortOrder).toBe("oldest");
     expect(listing.page.posts.map((post) => post.slug)).toEqual(["old", "new"]);
+  });
+
+  it("applies same-day post order in listings", () => {
+    const posts = [
+      createListItem("first", { date: "2026-01-01", order: 1 }),
+      createListItem("third", { date: "2026-01-01", order: 3 }),
+      createListItem("second", { date: "2026-01-01", order: 2 }),
+    ];
+    const newest = createBlogListingFromPosts(posts, { sortOrder: "newest" });
+    const oldest = createBlogListingFromPosts(posts, { sortOrder: "oldest" });
+
+    expect(newest.page.posts.map((post) => post.slug)).toEqual(["third", "second", "first"]);
+    expect(oldest.page.posts.map((post) => post.slug)).toEqual(["first", "second", "third"]);
   });
 
   it("keeps published posts usable for routed pages and component readers", async () => {

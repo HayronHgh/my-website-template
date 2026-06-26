@@ -1,4 +1,5 @@
 import type { ProjectItem } from "@/data/site";
+import { comparePostsByPublishedOrder } from "@/lib/blog/sorting";
 import type { BlogPostMeta } from "@/types/blog";
 
 const normalizeRelationKey = (value: string) => value.trim().toLowerCase();
@@ -33,11 +34,6 @@ function createPostRelationKeys(post: BlogPostMeta) {
   );
 }
 
-function getDateRank(post: BlogPostMeta) {
-  const time = new Date(post.date).getTime();
-  return Number.isNaN(time) ? 0 : time;
-}
-
 export function getRelatedPostsForProject(
   project: ProjectItem,
   posts: BlogPostMeta[],
@@ -69,7 +65,7 @@ export function getRelatedPostsForProject(
         return right.score - left.score;
       }
 
-      return getDateRank(right.post) - getDateRank(left.post);
+      return comparePostsByPublishedOrder(left.post, right.post, "newest");
     })
     .slice(0, limit)
     .map((entry) => entry.post);

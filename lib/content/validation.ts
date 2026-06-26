@@ -89,6 +89,7 @@ const blogFrontmatterSchema = z.object({
   published: z.boolean().optional(),
   coverImage: z.string().trim().min(1).optional(),
   featuredRank: z.coerce.number().finite().optional(),
+  order: z.coerce.number().finite().optional(),
   relatedProjects: stringArraySchema.optional(),
   series: z.string().trim().min(1).optional(),
 }).passthrough();

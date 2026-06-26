@@ -1,4 +1,5 @@
 import { getPublishedPostListItems, sortPostsByFeaturedRankAndDate } from "@/lib/blog/posts";
+import { comparePostsByPublishedOrder, sortPostsByPublishedOrder } from "@/lib/blog/sorting";
 import { parseBlogSearchQuery, scoreBlogPost } from "@/lib/blog/search";
 import type {
   BlogPostListItem,
@@ -29,22 +30,6 @@ const normalizePage = (value: number | undefined) => {
 
 const normalizeSortOrder = (value: BlogSortOrder | undefined): BlogSortOrder =>
   value === "oldest" ? "oldest" : "newest";
-
-const sortPostsByDate = <Post extends BlogPostListItem>(
-  posts: Post[],
-  sortOrder: BlogSortOrder,
-) =>
-  [...posts].sort((left, right) => {
-    const dateDelta = sortOrder === "oldest"
-      ? new Date(left.date).getTime() - new Date(right.date).getTime()
-      : new Date(right.date).getTime() - new Date(left.date).getTime();
-
-    if (dateDelta !== 0) {
-      return dateDelta;
-    }
-
-    return left.title.localeCompare(right.title);
-  });
 
 const createPage = (
   posts: BlogPostListItem[],
@@ -80,7 +65,7 @@ function filterSearchResults(posts: BlogPostListItem[], query: string) {
         return right.score - left.score;
       }
 
-      return new Date(right.post.date).getTime() - new Date(left.post.date).getTime();
+      return comparePostsByPublishedOrder(left.post, right.post, "newest");
     })
     .map((entry) => entry.post);
 }
@@ -150,7 +135,7 @@ export function createBlogListingFromPosts(
   const searchSource = isSearching
     ? filterSearchResults(filteredBySeries, query)
     : filteredBySeries;
-  const pageSource = sortPostsByDate(
+  const pageSource = sortPostsByPublishedOrder(
     isSeriesMode || isSearching
       ? searchSource
       : searchSource.filter((post) => !featuredSlugs.has(post.slug)),

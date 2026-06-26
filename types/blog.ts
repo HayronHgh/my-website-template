@@ -8,6 +8,7 @@ export type BlogPostMeta = {
   pathSegments: string[];
   title: string;
   date: string;
+  order?: number;
   summary: string;
   tags: string[];
   published: boolean;
