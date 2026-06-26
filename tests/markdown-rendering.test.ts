@@ -49,6 +49,9 @@ describe("markdown rendering", () => {
 
     expect(html).toContain("katex-display");
     expect(html).toContain("<math");
+    expect(html).not.toContain("code-block");
+    expect(html).not.toContain(">1</span><span class=\"mord\"><span class=\"mord mathnormal\">a</span>");
+    expect(html).toContain('encoding="application/x-tex">a^2+b^2=c^2</annotation>');
   });
 
   it("renders fenced code metadata with title, line numbers, highlights, and copy button", async () => {
@@ -72,6 +75,7 @@ describe("markdown rendering", () => {
     expect(html).toContain("data-line=\"1\"");
     expect(html).toContain("data-line=\"3\"");
     expect(html.match(/code-line-highlight/g)).toHaveLength(2);
+    expect(html).toMatch(/style="color:\s*#[0-9A-Fa-f]{6};?"/);
   });
 
   it("adds diff classes to diff-style fenced code blocks", async () => {

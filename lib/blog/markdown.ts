@@ -6,6 +6,7 @@ import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import remarkRehype from "remark-rehype";
+import { codeToTokens, type BundledLanguage, type SpecialLanguage } from "shiki";
 import { getVersionedBlogAssetUrl } from "@/lib/blog/assets";
 import { sanitizeMarkdownUrl } from "@/lib/content/url-policy";
 
@@ -66,6 +67,7 @@ const sanitizeSchema = {
       ...(defaultSchema.attributes?.span ?? []),
       "ariaHidden",
       "dataLine",
+      ["style", /^color:\s*#[0-9a-fA-F]{6};?$/],
     ],
   },
   protocols: {
@@ -104,6 +106,11 @@ type CodeBlockMeta = {
   highlightLines: Set<number>;
   isDiff: boolean;
   title?: string;
+};
+
+type CodeToken = {
+  color?: string;
+  content: string;
 };
 
 function visitMarkdownNodes(node: unknown, visitor: (node: MarkdownNode) => void) {
@@ -198,11 +205,66 @@ function getCodeElement(preNode: MarkdownNode) {
   return codeNode.type === "element" && codeNode.tagName === "code" ? codeNode : null;
 }
 
-function createCodeLineNodes(code: string, meta: CodeBlockMeta) {
+function getSafeHighlightLanguage(language: string) {
+  const normalizedLanguage = language.trim().toLocaleLowerCase();
+
+  if (normalizedLanguage === "text" || normalizedLanguage === "plain") {
+    return "text";
+  }
+
+  return normalizedLanguage;
+}
+
+async function highlightCode(code: string, language: string): Promise<CodeToken[][]> {
   const lines = code.replace(/\n$/, "").split("\n");
 
-  return lines.map((line, index) => {
+  try {
+    const highlighted = await codeToTokens(code.replace(/\n$/, ""), {
+      lang: getSafeHighlightLanguage(language) as BundledLanguage | SpecialLanguage,
+      theme: "github-dark",
+    });
+
+    return highlighted.tokens.map((line) =>
+      line.map((token) => ({
+        color: token.color,
+        content: token.content,
+      })),
+    );
+  } catch {
+    return lines.map((line) => [{ content: line }]);
+  }
+}
+
+function createTokenNodes(tokens: CodeToken[]) {
+  if (tokens.length === 0) {
+    return [{ type: "text", value: "" }];
+  }
+
+  return tokens.map((token) => {
+    if (!token.color) {
+      return {
+        type: "text",
+        value: token.content,
+      };
+    }
+
+    return {
+      children: [{ type: "text", value: token.content }],
+      properties: {
+        style: `color: ${token.color};`,
+      },
+      tagName: "span",
+      type: "element",
+    };
+  });
+}
+
+async function createCodeLineNodes(code: string, meta: CodeBlockMeta, language: string) {
+  const highlightedLines = await highlightCode(code, language);
+
+  return highlightedLines.map((tokens, index) => {
     const lineNumber = index + 1;
+    const line = tokens.map((token) => token.content).join("");
     const className = ["code-line"];
 
     if (meta.highlightLines.has(lineNumber)) {
@@ -229,7 +291,7 @@ function createCodeLineNodes(code: string, meta: CodeBlockMeta) {
           type: "element",
         },
         {
-          children: [{ type: "text", value: line }],
+          children: createTokenNodes(tokens),
           properties: {
             className: ["code-line-content"],
           },
@@ -247,8 +309,8 @@ function createCodeLineNodes(code: string, meta: CodeBlockMeta) {
   });
 }
 
-const enhanceCodeBlocks = () => (tree: unknown) => {
-  visitMarkdownNodes(tree, (node) => {
+const enhanceCodeBlocks = () => async (tree: unknown) => {
+  await visitMarkdownNodesAsync(tree, async (node) => {
     if (node.type !== "element" || node.tagName !== "pre") {
       return;
     }
@@ -264,6 +326,11 @@ const enhanceCodeBlocks = () => (tree: unknown) => {
     }
 
     const language = getCodeLanguage(codeNode);
+
+    if (language === "math") {
+      return;
+    }
+
     const meta = parseCodeBlockMeta(codeNode.data?.meta, language);
     const code = getTextContent(codeNode);
     const headerChildren = [
@@ -313,7 +380,7 @@ const enhanceCodeBlocks = () => (tree: unknown) => {
       {
         children: [
           {
-            children: createCodeLineNodes(code, meta),
+            children: await createCodeLineNodes(code, meta, language),
             properties: codeNode.properties,
             tagName: "code",
             type: "element",
