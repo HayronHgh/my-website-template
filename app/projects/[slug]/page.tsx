@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
 import { Container } from "@/components/ui/container";
 import { NeonButton } from "@/components/ui/neon-button";
 import { PixelCard } from "@/components/ui/pixel-card";
@@ -140,6 +141,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 className="prose-content"
                 dangerouslySetInnerHTML={{ __html: detail.html }}
               />
+              <MarkdownCopyButtons />
             </PixelCard>
           </article>
 

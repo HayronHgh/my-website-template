@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
 import { BlogSeriesSidebar } from "@/components/blog/blog-series-sidebar";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
@@ -169,6 +170,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 className="prose-content"
                 dangerouslySetInnerHTML={{ __html: post.html }}
               />
+              <MarkdownCopyButtons />
             </PixelCard>
           </div>
 

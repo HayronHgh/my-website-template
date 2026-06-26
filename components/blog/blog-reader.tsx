@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { ui } from "@/components/ui/pixel-theme";
@@ -116,6 +117,7 @@ export function BlogReader({
       </header>
 
       <div className="prose-content" dangerouslySetInnerHTML={{ __html: post.html }} />
+      <MarkdownCopyButtons />
     </PixelCard>
   );
 }

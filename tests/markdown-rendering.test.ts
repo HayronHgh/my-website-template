@@ -51,6 +51,44 @@ describe("markdown rendering", () => {
     expect(html).toContain("<math");
   });
 
+  it("renders fenced code metadata with title, line numbers, highlights, and copy button", async () => {
+    const html = await markdownToHtml(
+      [
+        "```ts title=\"app/page.tsx\" {1,3}",
+        "const first = 1;",
+        "const second = 2;",
+        "const third = 3;",
+        "```",
+      ].join("\n"),
+      { slug: "example" },
+    );
+
+    expect(html).toContain("code-block");
+    expect(html).toContain("app/page.tsx");
+    expect(html).toContain("code-block-language");
+    expect(html).toContain(">ts</span>");
+    expect(html).toContain("data-code-copy=\"true\"");
+    expect(html).toContain("code-line-number");
+    expect(html).toContain("data-line=\"1\"");
+    expect(html).toContain("data-line=\"3\"");
+    expect(html.match(/code-line-highlight/g)).toHaveLength(2);
+  });
+
+  it("adds diff classes to diff-style fenced code blocks", async () => {
+    const html = await markdownToHtml(
+      [
+        "```diff",
+        "- old line",
+        "+ new line",
+        "```",
+      ].join("\n"),
+      { slug: "example" },
+    );
+
+    expect(html).toContain("code-line-remove");
+    expect(html).toContain("code-line-add");
+  });
+
   it("embeds standalone YouTube links with the privacy-enhanced host", async () => {
     const html = await markdownToHtml("https://www.youtube.com/watch?v=dQw4w9WgXcQ", {
       slug: "example",
