@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { createBlogListingFromPosts, getPostBySlug, getPublishedPosts } from "@/lib/blog";
 import { parseBlogFrontmatter } from "@/lib/blog/parse-frontmatter";
 import { sortPostsByFeaturedRankAndDate } from "@/lib/blog/posts";
+import {
+  createBlogSearchIndex,
+  searchIndexedBlogPosts,
+} from "@/lib/blog/search-index";
 import { sortPostsByPublishedOrder } from "@/lib/blog/sorting";
 import type { BlogPostListItem, BlogPostMeta } from "@/types/blog";
 
@@ -136,6 +140,35 @@ Body`;
     expect(listing.featuredPosts).toEqual([]);
     expect(listing.page.posts).toHaveLength(5);
     expect(listing.prefetchedPage?.posts).toHaveLength(2);
+  });
+
+  it("uses the blog search index for normalized hashtag and series filtering", () => {
+    const posts = [
+      createListItem("react-architecture", {
+        series: { slug: "frontend", title: "Frontend" },
+        tags: ["React", "System Design"],
+        title: "React Architecture",
+      }),
+      createListItem("react-note", {
+        series: { slug: "notes", title: "Notes" },
+        tags: ["React"],
+        title: "React Note",
+      }),
+      createListItem("systems-note", {
+        series: { slug: "frontend", title: "Frontend" },
+        tags: ["System Design"],
+        title: "Systems Note",
+      }),
+    ];
+    const index = createBlogSearchIndex(posts);
+
+    expect(searchIndexedBlogPosts(index, { query: "#system-design" }).map((post) => post.slug))
+      .toEqual(["react-architecture", "systems-note"]);
+    expect(searchIndexedBlogPosts(index, {
+      query: "#react",
+      seriesSlug: "frontend",
+    }).map((post) => post.slug)).toEqual(["react-architecture"]);
+    expect(searchIndexedBlogPosts(index, { query: "#missing" })).toEqual([]);
   });
 
   it("builds series options with article counts", () => {

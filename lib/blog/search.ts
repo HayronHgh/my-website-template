@@ -5,7 +5,7 @@ export type ParsedBlogSearchQuery = {
   textTerms: string[];
 };
 
-type BlogSearchTarget = Pick<BlogPostMeta, "summary" | "tags" | "title">;
+export type BlogSearchTarget = Pick<BlogPostMeta, "summary" | "tags" | "title">;
 
 export function normalizeSearchValue(value: string) {
   return value.trim().toLocaleLowerCase();
@@ -103,8 +103,8 @@ const getFuzzyScore = (value: string, term: string) => {
 export function scoreBlogPost(
   post: BlogSearchTarget,
   parsedQuery: ParsedBlogSearchQuery,
+  postTagKeys = post.tags.map(getTagSearchKey),
 ) {
-  const postTagKeys = post.tags.map(getTagSearchKey);
   const matchesTags = parsedQuery.tagFilters.every((tagFilter) =>
     postTagKeys.includes(tagFilter),
   );

@@ -1,17 +1,19 @@
 import { getPublishedPostListItems, sortPostsByFeaturedRankAndDate } from "@/lib/blog/posts";
-import { comparePostsByPublishedOrder, sortPostsByPublishedOrder } from "@/lib/blog/sorting";
-import { parseBlogSearchQuery, scoreBlogPost } from "@/lib/blog/search";
+import {
+  createBlogSearchIndex,
+  getIndexedSeriesPosts,
+  searchIndexedBlogPosts,
+} from "@/lib/blog/search-index";
+import { sortPostsByPublishedOrder } from "@/lib/blog/sorting";
 import type {
   BlogPostListItem,
   BlogPostListing,
   BlogPostListingPage,
-  BlogSeriesOption,
   BlogSortOrder,
 } from "@/types/blog";
 
 export const BLOG_FEATURED_LIMIT = 3;
 export const BLOG_POSTS_PER_PAGE = 5;
-export const BLOG_STANDALONE_SERIES_SLUG = "__standalone";
 
 type BlogListingOptions = {
   page?: number;
@@ -51,65 +53,6 @@ const createPage = (
   };
 };
 
-function filterSearchResults(posts: BlogPostListItem[], query: string) {
-  const parsedQuery = parseBlogSearchQuery(query);
-
-  return posts
-    .map((post) => ({
-      post,
-      score: scoreBlogPost(post, parsedQuery),
-    }))
-    .filter((entry): entry is { post: BlogPostListItem; score: number } => entry.score !== null)
-    .sort((left, right) => {
-      if (right.score !== left.score) {
-        return right.score - left.score;
-      }
-
-      return comparePostsByPublishedOrder(left.post, right.post, "newest");
-    })
-    .map((entry) => entry.post);
-}
-
-function getPostSeriesSlug(post: BlogPostListItem) {
-  return post.series?.slug ?? BLOG_STANDALONE_SERIES_SLUG;
-}
-
-function getPostSeriesTitle(post: BlogPostListItem) {
-  return post.series?.title ?? "Standalone";
-}
-
-function createSeriesOptions(posts: BlogPostListItem[]): BlogSeriesOption[] {
-  const seriesMap = new Map<string, BlogSeriesOption>();
-
-  posts.forEach((post) => {
-    const slug = getPostSeriesSlug(post);
-    const currentOption = seriesMap.get(slug) ?? {
-      count: 0,
-      slug,
-      title: getPostSeriesTitle(post),
-    };
-
-    currentOption.count += 1;
-    seriesMap.set(slug, currentOption);
-  });
-
-  return [...seriesMap.values()].sort((left, right) => {
-    if (left.slug === BLOG_STANDALONE_SERIES_SLUG) {
-      return 1;
-    }
-
-    if (right.slug === BLOG_STANDALONE_SERIES_SLUG) {
-      return -1;
-    }
-
-    if (right.count !== left.count) {
-      return right.count - left.count;
-    }
-
-    return left.title.localeCompare(right.title);
-  });
-}
-
 export function createBlogListingFromPosts(
   posts: BlogPostListItem[],
   options: BlogListingOptions = {},
@@ -117,14 +60,15 @@ export function createBlogListingFromPosts(
   const page = normalizePage(options.page);
   const query = options.query?.trim() ?? "";
   const sortOrder = normalizeSortOrder(options.sortOrder);
-  const seriesOptions = createSeriesOptions(posts);
+  const searchIndex = createBlogSearchIndex(posts);
+  const seriesOptions = searchIndex.seriesOptions;
   const selectedSeriesSlug = seriesOptions.some((series) => series.slug === options.seriesSlug)
     ? options.seriesSlug
     : undefined;
   const isSearching = query.length > 0;
   const isSeriesMode = Boolean(selectedSeriesSlug);
   const filteredBySeries = selectedSeriesSlug
-    ? posts.filter((post) => getPostSeriesSlug(post) === selectedSeriesSlug)
+    ? getIndexedSeriesPosts(searchIndex, selectedSeriesSlug)
     : posts;
   const featuredPosts = isSearching || isSeriesMode
     ? []
@@ -133,7 +77,10 @@ export function createBlogListingFromPosts(
       ).slice(0, BLOG_FEATURED_LIMIT);
   const featuredSlugs = new Set(featuredPosts.map((post) => post.slug));
   const searchSource = isSearching
-    ? filterSearchResults(filteredBySeries, query)
+    ? searchIndexedBlogPosts(searchIndex, {
+        query,
+        seriesSlug: selectedSeriesSlug,
+      })
     : filteredBySeries;
   const pageSource = sortPostsByPublishedOrder(
     isSeriesMode || isSearching
