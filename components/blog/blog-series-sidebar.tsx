@@ -111,11 +111,11 @@ export function BlogSeriesSidebar({
   const activeSeriesTitle = activePost
     ? getSeriesTitle(activePost, copy.standaloneLabel)
     : copy.standaloneLabel;
-  const [page, setPage] = useState(1);
+  const [pageState, setPageState] = useState({ key: "", page: 1 });
   const [sortOrder, setSortOrder] = useState<BlogSortOrder>("newest");
   const [pageCache, setPageCache] = useState<PageCache>({});
-  const [loadingKey, setLoadingKey] = useState<string | undefined>();
   const seriesKey = activeSeriesSlug ? getSeriesKey(activeSeriesSlug, sortOrder) : undefined;
+  const page = pageState.key === seriesKey ? pageState.page : 1;
   const cachedPage = seriesKey ? pageCache[seriesKey]?.[page] : undefined;
   const initialPage = useMemo(
     () =>
@@ -126,26 +126,25 @@ export function BlogSeriesSidebar({
   );
   const currentPage = cachedPage ?? initialPage;
   const displayTotalPages = Math.max(currentPage.totalPages, 1);
-  const isLoading = Boolean(seriesKey && loadingKey === `${seriesKey}:${page}`);
 
-  useEffect(() => {
-    setPage(1);
-  }, [activeSeriesSlug, sortOrder]);
+  const setScopedPage = (nextPage: number) => {
+    setPageState({
+      key: seriesKey ?? "",
+      page: Math.max(1, nextPage),
+    });
+  };
 
   useEffect(() => {
     if (!activeSeriesSlug || !seriesKey || cachedPage || initialPostsComplete) {
       return;
     }
 
-    const requestKey = `${seriesKey}:${page}`;
     const searchParams = new URLSearchParams({
       page: String(page),
       series: activeSeriesSlug,
       sort: sortOrder,
     });
     let isCancelled = false;
-
-    setLoadingKey(requestKey);
 
     void fetch(`/api/blog/posts?${searchParams.toString()}`, {
       cache: "no-store",
@@ -162,11 +161,7 @@ export function BlogSeriesSidebar({
           setPageCache((currentCache) => mergeListingPage(currentCache, listing));
         }
       })
-      .finally(() => {
-        if (!isCancelled) {
-          setLoadingKey((currentKey) => currentKey === requestKey ? undefined : currentKey);
-        }
-      });
+      .catch(() => undefined);
 
     return () => {
       isCancelled = true;
@@ -246,8 +241,8 @@ export function BlogSeriesSidebar({
         <div className="flex items-center justify-between gap-2 border-t border-[#26344d] p-2 font-mono text-xs text-[#8ea0c8]">
           <button
             className="inline-flex h-8 items-center rounded-[4px] border border-[#26344d] bg-[#0b1220] px-2 font-bold text-[#b9dfe3] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={!currentPage.hasPreviousPage || isLoading}
-            onClick={() => setPage((currentPageNumber) => Math.max(1, currentPageNumber - 1))}
+            disabled={!currentPage.hasPreviousPage}
+            onClick={() => setScopedPage(page - 1)}
             type="button"
           >
             Prev
@@ -257,8 +252,8 @@ export function BlogSeriesSidebar({
           </span>
           <button
             className="inline-flex h-8 items-center rounded-[4px] border border-[#26344d] bg-[#0b1220] px-2 font-bold text-[#b9dfe3] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={!currentPage.hasNextPage || isLoading}
-            onClick={() => setPage((currentPageNumber) => currentPageNumber + 1)}
+            disabled={!currentPage.hasNextPage}
+            onClick={() => setScopedPage(page + 1)}
             type="button"
           >
             Next
