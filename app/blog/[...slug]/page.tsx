@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BlogSeriesSidebar } from "@/components/blog/blog-series-sidebar";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { ui } from "@/components/ui/pixel-theme";
-import { getPostBySlug, getPublishedPosts } from "@/lib/blog";
+import { getPostBySlug, getPublishedPostListItems } from "@/lib/blog";
 import { getPublishedProjects } from "@/lib/projects/meta";
 import { getRelatedProjectsForPost } from "@/lib/projects/relations";
 import { getSiteSettings } from "@/lib/site/settings";
@@ -64,7 +65,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const slug = getSlug(slugSegments);
   const [post, posts, projects, siteSettings] = await Promise.all([
     getPostBySlug(slug),
-    getPublishedPosts(),
+    getPublishedPostListItems(),
     getPublishedProjects(),
     getSiteSettings(),
   ]);
@@ -73,13 +74,22 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  const seriesPosts = posts.filter((candidate) =>
-    post.series
-      ? candidate.series?.slug === post.series.slug
-      : !candidate.series,
-  );
   const relatedProjects = getRelatedProjectsForPost(post, projects, 3);
   const pageCopy = siteSettings.pages.blog;
+  const selectedPostMeta = posts.find((candidate) => candidate.slug === post.slug) ?? {
+    coverImage: post.coverImage,
+    date: post.date,
+    featuredRank: post.featuredRank,
+    order: post.order,
+    pathSegments: post.pathSegments,
+    published: post.published,
+    relatedProjects: post.relatedProjects,
+    series: post.series,
+    slug: post.slug,
+    summary: post.summary,
+    tags: post.tags,
+    title: post.title,
+  };
 
   return (
     <Section>
@@ -163,26 +173,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
 
           <aside className="xl:sticky xl:top-28 xl:self-start">
-            <PixelCard accent="cyan" className="space-y-3">
-              <h2 className="font-mono text-base font-bold text-white">
-                {post.series?.title ?? pageCopy.detail.standaloneLabel}
-              </h2>
-              <div className="space-y-2">
-                {seriesPosts.map((seriesPost) => (
-                  <a
-                    className={
-                      seriesPost.slug === post.slug
-                        ? "block rounded-[4px] border border-[#6ea8b0] bg-[#151e2f] p-3 font-mono text-sm text-[#b9dfe3] shadow-[inset_0_0_0_1px_#1c2b43]"
-                        : "block rounded-[4px] border border-[#26344d] bg-[#101827] p-3 font-mono text-sm text-slate-300 transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] hover:text-white"
-                    }
-                    href={`/blog/${seriesPost.slug}`}
-                    key={seriesPost.slug}
-                  >
-                    {seriesPost.title}
-                  </a>
-                ))}
-              </div>
-            </PixelCard>
+            <BlogSeriesSidebar
+              copy={pageCopy.series}
+              initialPostsComplete
+              posts={posts}
+              selectedPost={selectedPostMeta}
+              selectedSlug={post.slug}
+            />
           </aside>
         </div>
       </Container>

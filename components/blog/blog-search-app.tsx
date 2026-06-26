@@ -161,6 +161,10 @@ export function BlogSearchApp({
     () => getUniqueKnownPosts(featuredPosts, pageCache, queryKey),
     [featuredPosts, pageCache, queryKey],
   );
+  const selectedKnownPost = useMemo(
+    () => knownPosts.find((post) => post.slug === selectedSlug),
+    [knownPosts, selectedSlug],
+  );
 
   const tagLookup = useMemo(
     () => new Map(tags.map((tagOption) => [getTagSearchKey(tagOption.tag), tagOption.tag])),
@@ -380,6 +384,7 @@ export function BlogSearchApp({
             copy={copy.series}
             onSelectPost={handleSelectPost}
             posts={knownPosts}
+            selectedPost={selectedPost ?? selectedKnownPost}
             selectedSlug={selectedSlug}
           />
         </aside>
