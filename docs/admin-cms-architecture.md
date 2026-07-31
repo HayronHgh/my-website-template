@@ -114,6 +114,8 @@ Blog schema 另接受 `coverImage`、`featuredRank`、`order`、`relatedProjects
 
 新文章與既有文章共用同一套 safe path policy，可原樣使用 1–2 層的大小寫、點號、括號、內部空格、底線與 Unicode 路徑。這讓作者能在 `CaseStudy`、`LeetCodeEssential150` 等既有大駝峰目錄中建立新文章，而不改寫已發布 URL。Policy 拒絕空白邊界、空 segment、`.`／`..`、結尾點號、percent ambiguity、slash／backslash、控制字元、Windows reserved names、超長與超過兩層的路徑。API client 對每個 segment 分別編碼，server 驗證 raw route 不含 encoded separator，再以 decoded segments 配合 portable case／Unicode collision、realpath boundary、一般檔案／目錄與 symlink checks。新的一層文章仍不能同時成為兩層 series 的父節點。
 
+Admin client 將同一份 flat article API response 依 `pathSegments[0]` 投影成可摺疊文章樹；這只是 view model，不新增 category database 或空目錄 API。從類別標題建立文章時，client 預填該類別的 exact-case prefix；「新增類別」會開啟第一篇文章草稿，等 create 成功後才由既有 atomic writer 建立 `<category>/<article>/main.md`。整個側欄也能從 layout 移除，讓 editor／preview 使用完整 workspace 寬度。
+
 ## 寫入完整性
 
 ### Create／update、autosave 與版本輪替

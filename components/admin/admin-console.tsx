@@ -3,13 +3,19 @@
 import {
   Activity,
   Archive,
+  ChevronDown,
+  ChevronRight,
   Copy,
   Eye,
   FilePlus2,
   Flame,
+  Folder,
+  FolderPlus,
   ListFilter,
   LoaderCircle,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
   PencilLine,
   Redo2,
   RotateCcw,
@@ -32,6 +38,12 @@ import { NeonButton } from "@/components/ui/neon-button";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { adminRequest, AdminClientError } from "@/components/admin/admin-api";
 import { getAdminArticleApiPath } from "@/lib/admin/article-url";
+import {
+  getAdminArticleGroupKey,
+  getAdminArticleLeafSlug,
+  groupAdminArticles,
+  ROOT_ARTICLE_GROUP_KEY,
+} from "@/lib/admin/article-tree";
 import {
   MAXIMUM_EXISTING_BLOG_SLUG_LENGTH,
   parseSafeExistingBlogSlug,
@@ -194,6 +206,12 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
   );
   const [previewHtml, setPreviewHtml] = useState("");
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>("editor");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [collapsedArticleGroups, setCollapsedArticleGroups] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [isListLoading, setIsListLoading] = useState(true);
   const [isArticleLoading, setIsArticleLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -256,6 +274,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
   const hasSelection = selectedSlug !== null;
   const isMutationInFlight = isSaving || isAutoSaving;
   const slugIsSafe = parseSafeExistingBlogSlug(form.slug) !== null;
+  const articleGroups = useMemo(() => groupAdminArticles(posts), [posts]);
 
   useEffect(() => {
     latestFormRef.current = form;
@@ -541,6 +560,13 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
       setLastSavedAt(result.article.updatedAt);
       setHeartbeatStatus("live");
       setMessage(`已載入「${result.article.title}」。`);
+      expandArticleGroup(
+        getAdminArticleGroupKey(
+          result.article.pathSegments.length === 2
+            ? (result.article.pathSegments[0] ?? null)
+            : null,
+        ),
+      );
     } catch (requestError) {
       if (requestSequence === articleRequestSequence.current) {
         setMessage("");
@@ -553,13 +579,37 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
     }
   }
 
-  function startNewArticle() {
+  function expandArticleGroup(groupKey: string) {
+    setCollapsedArticleGroups((current) => {
+      if (!current.has(groupKey)) {
+        return current;
+      }
+
+      const next = new Set(current);
+      next.delete(groupKey);
+      return next;
+    });
+  }
+
+  function toggleArticleGroup(groupKey: string) {
+    setCollapsedArticleGroups((current) => {
+      const next = new Set(current);
+      if (next.has(groupKey)) {
+        next.delete(groupKey);
+      } else {
+        next.add(groupKey);
+      }
+      return next;
+    });
+  }
+
+  function startNewArticle(category: string | null = null) {
     if (isMutationInFlight || isArticleLoading) {
-      return;
+      return false;
     }
 
     if (isDirty && !window.confirm("目前有尚未儲存的變更，確定要建立新文章嗎？")) {
-      return;
+      return false;
     }
 
     articleRequestSequence.current += 1;
@@ -567,7 +617,10 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
     syncGenerationRef.current += 1;
     previewRequestSequence.current += 1;
     setIsPreviewLoading(false);
-    const nextForm = createNewArticleForm();
+    const nextForm = {
+      ...createNewArticleForm(),
+      slug: category ? `${category}/` : "",
+    };
     const nextBaseline = serializeForm(nextForm);
     selectedSlugRef.current = null;
     revisionRef.current = null;
@@ -591,8 +644,59 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
     setLastSavedAt(null);
     setLastHeartbeatAt(null);
     setHeartbeatStatus("idle");
-    setMessage("已開啟新的繁體中文草稿。");
+    setMessage(
+      category
+        ? `已在「${category}」開啟新草稿；請接著輸入文章名稱。`
+        : "已在根目錄開啟新的繁體中文草稿。",
+    );
+    if (category) {
+      expandArticleGroup(getAdminArticleGroupKey(category));
+    } else {
+      expandArticleGroup(ROOT_ARTICLE_GROUP_KEY);
+    }
     window.setTimeout(() => formRef.current?.querySelector<HTMLElement>("#post-slug")?.focus());
+    return true;
+  }
+
+  function createCategory(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const categoryName = newCategoryName.trim();
+    const parsedCategory = parseSafeExistingBlogSlug(categoryName);
+
+    if (!parsedCategory || parsedCategory.pathSegments.length !== 1) {
+      setError("類別名稱必須是單層安全路徑，可使用 PascalCase、空格或 Unicode。");
+      return;
+    }
+
+    const portableCategoryName = parsedCategory.slug.normalize("NFC").toLocaleLowerCase("en-US");
+    const hasExistingCategory = articleGroups.some(
+      (group) =>
+        group.category?.normalize("NFC").toLocaleLowerCase("en-US") === portableCategoryName,
+    );
+    const conflictsWithRootArticle = posts.some(
+      (post) =>
+        post.pathSegments.length === 1 &&
+        post.slug.normalize("NFC").toLocaleLowerCase("en-US") === portableCategoryName,
+    );
+
+    if (hasExistingCategory) {
+      setError("這個類別已存在，請使用該類別標題旁的新增文章按鈕。");
+      return;
+    }
+
+    if (conflictsWithRootArticle) {
+      setError("同名路徑目前是一篇根目錄文章，不能同時作為文章類別。");
+      return;
+    }
+
+    if (startNewArticle(parsedCategory.slug)) {
+      setIsCreatingCategory(false);
+      setNewCategoryName("");
+      setError("");
+      setMessage(
+        `已建立「${parsedCategory.slug}」類別草稿；完成並儲存第一篇文章後會建立資料夾。`,
+      );
+    }
   }
 
   function updateField<Key extends keyof ArticleForm>(key: Key, value: ArticleForm[Key]) {
@@ -874,6 +978,13 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
       setSelectedSlug(result.article.slug);
       setRevision(result.article.revision);
       setBaseline(nextBaseline);
+      expandArticleGroup(
+        getAdminArticleGroupKey(
+          result.article.pathSegments.length === 2
+            ? (result.article.pathSegments[0] ?? null)
+            : null,
+        ),
+      );
 
       if (!hasNewerLocalChanges) {
         latestFormRef.current = committedForm;
@@ -1502,32 +1613,103 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
           </div>
         ) : null}
 
-        <div className="grid gap-5 xl:grid-cols-[330px_minmax(0,1fr)]">
-          <PixelCard
-            aria-busy={isListLoading}
-            as="section"
-            className="h-fit p-0 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)]"
-          >
+        <div
+          className={`grid gap-5 ${
+            isSidebarCollapsed ? "" : "xl:grid-cols-[330px_minmax(0,1fr)]"
+          }`}
+        >
+          {!isSidebarCollapsed ? (
+            <PixelCard
+              aria-busy={isListLoading}
+              as="section"
+              className="h-fit p-0 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)]"
+            >
             <div className="border-b border-[#26344d] p-4">
-              <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="mb-4">
+                <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-[#8ed2d8]">
-                    Editorial log
+                    Article tree
                   </p>
                   <p className="mt-1 text-xs text-slate-400">{posts.length} records in view</p>
                 </div>
-                <NeonButton
-                  aria-label="建立新文章"
-                  className={disabledButtonClass}
-                  disabled={isMutationInFlight || isArticleLoading || isPreviewLoading}
-                  onClick={startNewArticle}
-                  size="md"
-                  variant="secondary"
+                <button
+                  aria-label="收合文章側欄"
+                  className="rounded border border-[#30445f] p-2 text-slate-300 transition hover:border-[#6ea8b0] hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+                  onClick={() => setIsSidebarCollapsed(true)}
+                  title="收合側欄，擴大編輯與預覽區"
+                  type="button"
                 >
-                  <FilePlus2 aria-hidden="true" className="h-4 w-4" />
-                  新增
-                </NeonButton>
+                  <PanelLeftClose aria-hidden="true" className="h-4 w-4" />
+                </button>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <NeonButton
+                    aria-label="在根目錄建立新文章"
+                    className={disabledButtonClass}
+                    disabled={isMutationInFlight || isArticleLoading || isPreviewLoading}
+                    onClick={() => startNewArticle()}
+                    size="md"
+                    variant="secondary"
+                  >
+                    <FilePlus2 aria-hidden="true" className="h-4 w-4" />
+                    新增文章
+                  </NeonButton>
+                  <NeonButton
+                    aria-expanded={isCreatingCategory}
+                    aria-label="建立新文章類別"
+                    className={disabledButtonClass}
+                    disabled={isMutationInFlight || isArticleLoading || isPreviewLoading}
+                    onClick={() => {
+                      setIsCreatingCategory((current) => !current);
+                      setError("");
+                    }}
+                    size="md"
+                    variant="secondary"
+                  >
+                    <FolderPlus aria-hidden="true" className="h-4 w-4" />
+                    新增類別
+                  </NeonButton>
+                </div>
               </div>
+              {isCreatingCategory ? (
+                <form className="mb-4 rounded border border-[#30445f] bg-[#070c18] p-3" onSubmit={createCategory}>
+                  <label className="block text-xs font-semibold text-slate-300" htmlFor="new-category-name">
+                    類別名稱
+                  </label>
+                  <input
+                    autoFocus
+                    className="mt-2 h-10 w-full rounded border border-[#30445f] bg-[#050914] px-3 font-mono text-sm text-cyan-100 outline-none focus:border-[#6ea8b0] focus:ring-2 focus:ring-cyan-300/20"
+                    id="new-category-name"
+                    maxLength={255}
+                    onChange={(event) => setNewCategoryName(event.target.value)}
+                    placeholder="WebsiteDesign"
+                    required
+                    value={newCategoryName}
+                  />
+                  <p className="mt-2 text-xs leading-5 text-slate-400">
+                    儲存第一篇文章時才會建立實體資料夾。
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      className="rounded border border-cyan-300/35 px-3 py-1.5 font-mono text-xs font-bold text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+                      type="submit"
+                    >
+                      建立並新增文章
+                    </button>
+                    <button
+                      className="rounded px-3 py-1.5 font-mono text-xs text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                      onClick={() => {
+                        setIsCreatingCategory(false);
+                        setNewCategoryName("");
+                      }}
+                      type="button"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </form>
+              ) : null}
               <label className="sr-only" htmlFor="admin-post-search">
                 搜尋文章標題、slug 或標籤
               </label>
@@ -1590,51 +1772,105 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
                     : "尚未建立文章。按「新增」開啟第一篇草稿。"}
                 </div>
               ) : (
-                <ul className="space-y-1">
-                  {posts.map((post) => (
-                    <li key={post.slug}>
-                      <button
-                        aria-current={selectedSlug === post.slug ? "true" : undefined}
-                        className={`w-full rounded border px-3 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50 ${
-                          selectedSlug === post.slug
-                            ? "border-[#6ea8b0] bg-[#132337]"
-                            : "border-transparent bg-[#070c18] hover:border-[#30445f] hover:bg-[#0b1220]"
-                        }`}
-                        disabled={isMutationInFlight || isArticleLoading}
-                        onClick={() => void loadArticle(post.slug)}
-                        type="button"
-                      >
-                        <span className="flex items-start justify-between gap-3">
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-bold text-slate-100">
-                              {post.title}
-                            </span>
-                            <span className="mt-1 block break-all font-mono text-[0.68rem] text-slate-400">
-                              /{post.slug}
-                            </span>
-                          </span>
-                          <span
-                            className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[0.62rem] font-black uppercase tracking-wide ${
-                              post.published
-                                ? "border-amber-300/35 bg-amber-950/25 text-amber-200"
-                                : "border-cyan-300/25 bg-cyan-950/20 text-cyan-200"
-                            }`}
+                <div className="space-y-2">
+                  {articleGroups.map((group) => {
+                    const isGroupCollapsed = collapsedArticleGroups.has(group.key);
+
+                    return (
+                      <section className="rounded border border-[#1d2a40] bg-[#060b15]" key={group.key}>
+                        <div className="flex items-center gap-1 p-1.5">
+                          <button
+                            aria-expanded={!isGroupCollapsed}
+                            className="flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-2 text-left text-slate-200 transition hover:bg-[#0b1220] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+                            onClick={() => toggleArticleGroup(group.key)}
+                            type="button"
                           >
-                            {post.published ? "published" : "draft"}
-                          </span>
-                        </span>
-                        <span className="mt-2 block font-mono text-[0.65rem] text-slate-400">
-                          UPDATED {formatAdminUpdatedAt(post.updatedAt)}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                            {isGroupCollapsed ? (
+                              <ChevronRight aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-400" />
+                            ) : (
+                              <ChevronDown aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-400" />
+                            )}
+                            <Folder aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-200" />
+                            <span className="truncate font-mono text-xs font-bold">{group.label}</span>
+                            <span className="ml-auto shrink-0 font-mono text-[0.65rem] text-slate-500">
+                              {group.articles.length}
+                            </span>
+                          </button>
+                          <button
+                            aria-label={`在「${group.label}」建立新文章`}
+                            className="rounded p-2 text-cyan-200 transition hover:bg-[#132337] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50 disabled:opacity-45"
+                            disabled={isMutationInFlight || isArticleLoading || isPreviewLoading}
+                            onClick={() => startNewArticle(group.category)}
+                            title={`在「${group.label}」建立新文章`}
+                            type="button"
+                          >
+                            <FilePlus2 aria-hidden="true" className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        {!isGroupCollapsed ? (
+                          <ul className="mb-2 ml-5 space-y-1 border-l border-[#26344d] pl-2 pr-2">
+                            {group.articles.map((post) => (
+                              <li key={post.slug}>
+                                <button
+                                  aria-current={selectedSlug === post.slug ? "true" : undefined}
+                                  className={`w-full rounded border px-3 py-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50 ${
+                                    selectedSlug === post.slug
+                                      ? "border-[#6ea8b0] bg-[#132337]"
+                                      : "border-transparent bg-[#070c18] hover:border-[#30445f] hover:bg-[#0b1220]"
+                                  }`}
+                                  disabled={isMutationInFlight || isArticleLoading}
+                                  onClick={() => void loadArticle(post.slug)}
+                                  type="button"
+                                >
+                                  <span className="flex items-start justify-between gap-3">
+                                    <span className="min-w-0">
+                                      <span className="block truncate text-sm font-bold text-slate-100">
+                                        {post.title}
+                                      </span>
+                                      <span className="mt-1 block break-all font-mono text-[0.68rem] text-slate-400">
+                                        /{getAdminArticleLeafSlug(post)}
+                                      </span>
+                                    </span>
+                                    <span
+                                      className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[0.62rem] font-black uppercase tracking-wide ${
+                                        post.published
+                                          ? "border-amber-300/35 bg-amber-950/25 text-amber-200"
+                                          : "border-cyan-300/25 bg-cyan-950/20 text-cyan-200"
+                                      }`}
+                                    >
+                                      {post.published ? "published" : "draft"}
+                                    </span>
+                                  </span>
+                                  <span className="mt-2 block font-mono text-[0.65rem] text-slate-400">
+                                    UPDATED {formatAdminUpdatedAt(post.updatedAt)}
+                                  </span>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </section>
+                    );
+                  })}
+                </div>
               )}
             </div>
-          </PixelCard>
+            </PixelCard>
+          ) : null}
 
           <section aria-busy={isArticleLoading || isMutationInFlight}>
+            {isSidebarCollapsed ? (
+              <button
+                aria-label="展開文章側欄"
+                className="mb-3 inline-flex items-center gap-2 rounded border border-[#30445f] bg-[#0b1220] px-3 py-2 font-mono text-xs font-bold text-cyan-100 transition hover:border-[#6ea8b0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+                onClick={() => setIsSidebarCollapsed(false)}
+                type="button"
+              >
+                <PanelLeftOpen aria-hidden="true" className="h-4 w-4" />
+                展開文章樹
+              </button>
+            ) : null}
             <PixelCard className="mb-4 flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -1859,7 +2095,9 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
                       <p className="mt-1 text-xs text-slate-400" id="post-slug-help">
                         {hasSelection
                           ? "沿用既有安全路徑；建立後不可更名。"
-                          : "新文章使用 1–2 層安全路徑，可沿用 PascalCase、點號、括號、空格或 Unicode；建立後不可更名。"}
+                          : form.slug.endsWith("/")
+                            ? "已選好類別；請在斜線後輸入文章名稱。可沿用 PascalCase、點號、括號、空格或 Unicode。"
+                            : "新文章使用 1–2 層安全路徑，可沿用 PascalCase、點號、括號、空格或 Unicode；建立後不可更名。"}
                       </p>
                     </div>
                     <div>

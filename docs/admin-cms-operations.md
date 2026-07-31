@@ -149,6 +149,7 @@ Cookie 名稱為 `admin_session`，具有 `HttpOnly`、`SameSite=Strict`、`Path
 
 - 新文章與既有文章共用安全 `slug` 規則：可原樣使用 1–2 層的大小寫、點號、括號、內部空格、底線與 Unicode 路徑，例如 `CaseStudy/NewPost`、`LeetCodeEssential150/2.AddTwoNumbers`、`8.StringToInteger(atoi)`、`LeetCode/模板`、`155.Min Stack`。因此可以直接在原有大駝峰資料夾下新增文章，不會自動重新命名路徑。
 - 路徑安全限制：每層最多 255 字元、總長最多 511；拒絕空 segment、前後空白、`.`／`..`、結尾點號、slash／backslash、percent ambiguity、控制字元、Windows reserved names、超長與超過兩層的路徑。建立時仍會檢查大小寫／Unicode 正規化碰撞、父文章衝突、symlink 與 content root 邊界。
+- 左側文章樹依第一層 slug 顯示「類別 → 文章」。類別標題旁的新增按鈕會預填 `<category>/`，外層「新增類別」則先取得安全的單層名稱，再開啟該類別的第一篇草稿。空資料夾不是 CMS model，也無法由 Git 保存；因此新類別要到第一篇文章手動儲存為 `main.md` 後才會實際建立。類別與整個文章側欄都可摺疊；收合側欄只影響 browser layout，不影響文章狀態或儲存。
 - `title`：1–160 字元；`description`：1–500 字元。
 - `content`：trim 後 1–500,000 字元；整份 JSON 另受 512 KiB byte limit 限制，因此大量非 ASCII 內容可能先碰到 byte limit。
 - `date`：真實的 `YYYY-MM-DD` 日曆日期。
