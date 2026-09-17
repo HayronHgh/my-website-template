@@ -83,7 +83,7 @@ function BlogPostCard({
   };
 
   return (
-    <article
+    <article data-mobile-layout="article-list"
       className="pixel-card group relative grid min-h-[172px] overflow-hidden rounded-[6px] border border-[#26344d] bg-[#0b1220] p-4 shadow-[inset_0_0_0_1px_#111b2d,0_8px_22px_rgba(0,0,0,0.24)] transition-colors duration-200 hover:border-[#5f7c94] hover:bg-[#101827] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.055),0_10px_28px_rgba(0,0,0,0.28),0_0_14px_rgba(34,211,238,0.06)] sm:grid-cols-[minmax(0,1fr)_150px] sm:gap-5"
     >
       <div className="flex min-w-0 flex-col">
@@ -189,9 +189,9 @@ export function BlogPostShowcase({
       : copy.latestArticlesDescription;
 
   return (
-    <div className="space-y-5">
+    <div className="article-showcase space-y-5">
       {!isSearching && featuredPosts.length > 0 ? (
-        <PixelCard accent="purple" className="space-y-4 p-3!">
+        <PixelCard accent="purple" className="article-featured space-y-4 p-3!">
           <div>
             <h2 className="font-mono text-xl font-black text-white">
               Recommended articles

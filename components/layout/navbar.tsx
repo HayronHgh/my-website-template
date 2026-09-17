@@ -41,7 +41,7 @@ export function Navbar({ brandName, navigationItems, role, routeImageMap }: Navb
   }
 
   return (
-    <header className="fixed top-0 z-50 w-full bg-linear-to-b from-[#050714]/72 via-[#050714]/38 to-transparent">
+    <header className="site-header fixed top-0 z-50 w-full bg-linear-to-b from-[#050714]/72 via-[#050714]/38 to-transparent">
       <Container className="flex h-[72px] items-center justify-between gap-4 py-2">
         <Link
           className="group flex min-w-0 max-w-52 flex-col rounded-[4px] px-2 py-1 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-cyan-200"

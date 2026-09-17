@@ -7,6 +7,8 @@ import { getSiteSettings } from "@/lib/site/settings";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 import "./workspaces.css";
+import "./admin-workspace.css";
+import "./mobile-public.css";
 
 const manrope = Manrope({
   variable: "--font-manrope",

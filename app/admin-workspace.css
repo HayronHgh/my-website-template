@@ -1,0 +1,86 @@
+/* Editorial canvas: shared public palette, isolated from public hero/layout rules. */
+.admin-shell {
+  --studio-gap: clamp(1rem, 1.5vw, 2rem);
+  --studio-gutter: clamp(1rem, 2.5vw, 4rem);
+  background: radial-gradient(ellipse at 90% 0%, #39215230, transparent 45%), #0c1020;
+}
+.admin-shell .workspace-nav {
+  gap: 1.5rem;
+  padding: 1rem var(--studio-gutter);
+  background: #101426f5;
+  border-bottom: 1px solid #383952;
+  box-shadow: 0 4px 24px #0003;
+}
+.admin-shell .workspace-nav > div { gap: .65rem; min-width: 0; padding: .25rem; }
+.admin-shell .workspace-nav a:not(.workspace-brand) { min-height: 44px; display: inline-flex; align-items: center; padding: .65rem 1rem; border: 1px solid transparent; }
+.admin-shell .workspace-nav a[aria-current="page"] {
+  color: var(--section-accent);
+  border-color: color-mix(in srgb, var(--section-accent) 60%, #30364e);
+  background: color-mix(in srgb, var(--section-accent) 8%, #101426);
+  box-shadow: inset 0 0 0 2px #101426, 0 0 12px color-mix(in srgb, var(--section-accent) 12%, transparent);
+}
+.admin-shell a:focus-visible, .admin-shell button:focus-visible { outline: 2px solid var(--section-accent); outline-offset: 3px; }
+.admin-shell .workspace-nav a:hover { color: var(--section-accent); }
+.admin-shell .workspace-main, .workspace-canvas { width: 100%; max-width: 2560px; margin-inline: auto; padding: clamp(1.5rem, 2.5vw, 3rem) var(--studio-gutter) 4rem; }
+.admin-shell .workspace-columns { gap: var(--studio-gap); }
+.admin-shell .content-panel, .admin-editor .pixel-card {
+  background: linear-gradient(135deg, #15192d, #101426);
+  border-color: #363b56;
+  box-shadow: inset 0 0 0 3px #0c102080, 0 8px 24px #0002;
+}
+.admin-shell .content-panel { padding: clamp(1.25rem, 1.6vw, 2rem); }
+.admin-shell .workspace-main > h1, .admin-editor h1 { font-size: clamp(1.65rem, 2vw, 2.25rem); }
+.admin-shell .workspace-record { padding-block: 1.25rem; align-items: start; }
+.admin-shell .workspace-record strong { overflow-wrap: anywhere; }
+.admin-shell .workspace-record span { flex-shrink: 0; }
+.admin-shell .workspace-record:hover { background: #858bff0a; }
+.admin-editor { padding-top: 0; background: transparent; }
+.studio-layout { display: grid; gap: var(--studio-gap); align-items: start; }
+.studio-workbench { min-width: 0; container-type: inline-size; }
+.studio-panes { display: grid; gap: var(--studio-gap); align-items: start; }
+.studio-pane { display: none; min-width: 0; padding: clamp(1.25rem, 1.5vw, 2rem); }
+.studio-pane--active { display: block; }
+.studio-pane > div:first-child { flex-wrap: wrap; gap: 1rem; }
+.studio-source fieldset > * + * { margin-top: 1.5rem; }
+.studio-source :is(input, textarea) { line-height: 1.8; }
+.studio-source textarea { min-height: 7rem; }
+.studio-source textarea#post-content { min-height: 65vh; }
+.studio-toolbar { border-top: 2px solid var(--section-accent); }
+.studio-view-tabs button { min-height: 44px; }
+.admin-shell .document-toolbar { padding-bottom: 1.25rem; margin-bottom: 1.75rem; flex-wrap: wrap; }
+.admin-shell .document-fields { gap: 1.75rem; align-items: start; }
+.admin-shell .document-fields label { gap: .65rem; font-size: .875rem; min-width: 0; }
+.admin-shell .document-entry { gap: 1.25rem; padding: 1.5rem; border: 1px solid #363b56; background: #0c102050; }
+.admin-shell .document-fields > button { justify-self: start; }
+.admin-shell .document-editor :is(input, select, textarea) { padding: .85rem 1rem; min-height: 46px; background: #0c1020; }
+.admin-shell .document-editor textarea { min-height: 7rem; }
+.admin-shell .document-editor .document-markdown { min-height: 65vh; }
+@media (min-width: 1100px) {
+  .studio-layout { grid-template-columns: clamp(17rem, 19vw, 21rem) minmax(0, 1fr); }
+  .studio-layout--focused { grid-template-columns: minmax(0, 1fr); }
+  .studio-library { position: sticky; top: 6.5rem; max-height: calc(100dvh - 8rem); overflow-y: auto; }
+  .admin-shell .project-workspace-columns { grid-template-columns: clamp(17rem, 22vw, 24rem) minmax(0, 1fr); }
+  .admin-shell .document-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-shell .document-fields > :is(section, button, p) { grid-column: 1 / -1; }
+  .admin-shell .document-entry { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-shell .document-entry > :is(h2, button), .admin-shell .document-entry > label:last-of-type { grid-column: 1 / -1; }
+  .admin-shell .document-entry > button { justify-self: start; }
+}
+/* Measure available editor space, not viewport: collapsing the library can enable split view. */
+@container (min-width: 1180px) {
+  .studio-panes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .studio-pane { display: block; }
+  .studio-view-tabs { display: none; }
+  .studio-toolbar { flex-direction: row; align-items: center; justify-content: space-between; }
+}
+@media (max-width: 1099px) {
+  .studio-library { max-height: 28rem; overflow-y: auto; }
+}
+@media (max-width: 600px) {
+  .admin-shell .workspace-nav { gap: .5rem; }
+  .admin-shell .workspace-nav a:not(.workspace-brand) { padding-inline: .75rem; }
+  .admin-shell .workspace-visit { font-size: .75rem; }
+  .admin-shell .content-filters { grid-template-columns: minmax(0, 1fr); }
+  .studio-pane { padding: 1rem; }
+  .studio-pane > div:first-child > div { justify-content: start; }
+}

@@ -49,8 +49,6 @@
 .workspace-record { padding:1rem 0; display:flex; justify-content:space-between; gap:1rem; border-top:1px solid #29364a; font-size:.85rem; }
 .workspace-record strong { color:#d6e6ef; } .workspace-record p, .workspace-record span { color:#94a4bf; font-size:.75rem; margin-top:.4rem; }
 .domain-definitions dt { color:#91d6df; margin-top:1rem; font-size:.9rem; } .domain-definitions dd { color:#a1afc4; font-size:.8rem; margin-top:.3rem; line-height:1.7; }
-.admin-editor { background:#0b1019 !important; padding-top:1.5rem !important; }
-.admin-editor .pixel-card { background:#111a27; box-shadow:none !important; border-color:#2b3b50; }
 .admin-editor > div > header { margin-bottom:1rem; }
 .admin-editor h1 { font-size:1.5rem; }
 .admin-editor .xl\:sticky { top:6rem; }

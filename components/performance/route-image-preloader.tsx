@@ -20,7 +20,7 @@ function shouldSkipImageWarmup() {
   const connection = (navigator as NavigatorWithConnection).connection;
 
   return Boolean(
-    connection?.saveData ||
+    window.matchMedia("(max-width: 767px)").matches || connection?.saveData ||
       connection?.effectiveType === "slow-2g" ||
       connection?.effectiveType === "2g",
   );

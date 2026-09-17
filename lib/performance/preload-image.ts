@@ -20,6 +20,7 @@ export function preloadImage(src: string) {
 }
 
 export function preloadRouteImageForHref(href: string, routes?: RouteImageEntry[]) {
+  if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) return;
   const imageSrc = getRouteImageForHref(href, routes);
 
   if (imageSrc) {

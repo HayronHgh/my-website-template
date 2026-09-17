@@ -39,10 +39,9 @@ export function MobileMenu({ navigationItems, pathname, routeImageMap }: MobileM
         onClick={() => setIsOpen((currentValue) => !currentValue)}
         variant="secondary"
       >
-        <span
-          aria-hidden
-          className="relative block h-4 w-4 before:absolute before:left-0 before:top-0 before:h-0.5 before:w-4 before:bg-current before:shadow-[0_6px_0_current,0_12px_0_current]"
-        />
+        <svg aria-hidden="true" focusable="false" className="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
+          {isOpen ? <path d="M6 6 18 18M18 6 6 18" /> : <path d="M4 6H20M4 12H20M4 18H20" />}
+        </svg>
       </NeonButton>
 
       {isOpen ? (

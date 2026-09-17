@@ -27,7 +27,7 @@ export function HeroSection({
     : titleTop;
 
   return (
-    <section className="relative min-h-[420px] overflow-hidden border-b border-cyan-200/10 sm:min-h-[430px] lg:min-h-[430px] 2xl:min-h-[450px]">
+    <section className="public-home-hero relative min-h-[420px] overflow-hidden border-b border-cyan-200/10 sm:min-h-[430px] lg:min-h-[430px] 2xl:min-h-[450px]">
       <PixelHeroScene imageSrc={pageImages.homeHero.src} />
       <Container className="relative z-10 flex min-h-[inherit] items-end pb-12 pt-20 sm:pb-14 lg:pb-16 lg:pt-24">
         <div className="max-w-[560px] space-y-4 lg:max-w-[590px]">

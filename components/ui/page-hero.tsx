@@ -52,7 +52,7 @@ export function PageHero({
   return (
     <section
       className={cn(
-        "relative isolate w-full overflow-hidden border-y border-[#26344d] bg-[#050714]",
+        "public-page-hero relative isolate w-full overflow-hidden border-y border-[#26344d] bg-[#050714]",
         className,
       )}
       style={imageStyle}

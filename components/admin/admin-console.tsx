@@ -1468,9 +1468,9 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     : null;
 
   return (
-    <div className="admin-editor min-h-screen bg-[radial-gradient(circle_at_88%_5%,rgba(199,150,88,0.1),transparent_20%),linear-gradient(180deg,rgba(5,7,20,0.96),rgba(7,17,31,0.98))] pb-16 pt-8 sm:pt-10">
+    <div className="admin-editor pb-16">
       <MarkdownCopyButtons />
-      <div className="mx-auto w-[94%] max-w-[1540px]">
+      <div className="workspace-canvas">
         <header className="mb-6 flex flex-col gap-4 border-b border-[#26344d] pb-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="mb-2 flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#8ed2d8]">
@@ -1635,15 +1635,13 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
         ) : null}
 
         <div
-          className={`grid gap-5 ${
-            isSidebarCollapsed ? "" : "xl:grid-cols-[330px_minmax(0,1fr)]"
-          }`}
+          className={`studio-layout ${isSidebarCollapsed ? "studio-layout--focused" : ""}`}
         >
           {!isSidebarCollapsed ? (
             <PixelCard
               aria-busy={isListLoading}
               as="section"
-              className="h-fit p-0 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)]"
+              className="studio-library h-fit p-0"
             >
             <div className="border-b border-[#26344d] p-4">
               <div className="mb-4">
@@ -1880,7 +1878,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
             </PixelCard>
           ) : null}
 
-          <section aria-busy={isArticleLoading || isMutationInFlight}>
+          <section className="studio-workbench" aria-busy={isArticleLoading || isMutationInFlight}>
             {isSidebarCollapsed ? (
               <button
                 aria-label="展開文章側欄"
@@ -1892,7 +1890,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                 展開文章樹
               </button>
             ) : null}
-            <PixelCard className="mb-4 flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
+            <PixelCard className="studio-toolbar mb-4 flex flex-col gap-4 p-4">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span
@@ -2033,7 +2031,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
               </div>
             ) : null}
 
-            <div className="mb-3 flex rounded border border-[#26344d] bg-[#050914] p-1 xl:hidden">
+            <div className="studio-view-tabs mb-3 flex rounded border border-[#26344d] bg-[#050914] p-1" role="group" aria-label="編輯區檢視">
               <button
                 aria-pressed={workspaceTab === "editor"}
                 className={`flex-1 rounded px-3 py-2 font-mono text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50 ${
@@ -2058,14 +2056,14 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
               </button>
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-2">
+            <div className="studio-panes">
               <PixelCard
                 as="section"
-                className={`${workspaceTab === "editor" ? "block" : "hidden"} p-4 xl:block`}
+                className={`studio-pane studio-source ${workspaceTab === "editor" ? "studio-pane--active" : ""}`}
               >
                 <div className="mb-4 flex items-center justify-between border-b border-[#26344d] pb-3">
                   <h2 className="font-mono text-sm font-black uppercase tracking-[0.12em] text-slate-100">
-                    Markdown source
+                    Markdown 編輯
                   </h2>
                   <div className="flex flex-wrap items-center justify-end gap-2">
                     <button
@@ -2235,11 +2233,11 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
 
               <PixelCard
                 as="section"
-                className={`${workspaceTab === "preview" ? "block" : "hidden"} min-w-0 p-4 xl:block`}
+                className={`studio-pane studio-preview ${workspaceTab === "preview" ? "studio-pane--active" : ""}`}
               >
                 <div className="mb-4 flex items-center justify-between border-b border-[#26344d] pb-3">
                   <h2 className="font-mono text-sm font-black uppercase tracking-[0.12em] text-slate-100">
-                    Sanitized preview
+                    即時預覽
                   </h2>
                   <div className="flex items-center gap-2">
                     {isPreviewLoading ? (

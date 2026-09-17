@@ -390,7 +390,7 @@ export function BlogSearchApp({
   }
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px]">
+    <div className="article-browser grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px]">
       <div className="min-w-0 xl:order-1">
         <BlogPostShowcase
           copy={copy.search}
@@ -406,7 +406,7 @@ export function BlogSearchApp({
         />
       </div>
 
-      <div className="space-y-5 xl:sticky xl:top-28 xl:order-2 xl:self-start">
+      <div className="article-discovery space-y-5 xl:sticky xl:top-28 xl:order-2 xl:self-start">
         <div>
           <BlogSearchInput
             activeTags={activeTags}
@@ -417,15 +417,15 @@ export function BlogSearchApp({
             query={query}
           />
         </div>
-        <div>
+        <details className="article-filter-disclosure">
+          <summary>標籤與系列篩選</summary>
+          <div className="space-y-5">
           <BlogTagFilter
             activeTagKeys={activeTagKeys}
             copy={copy.search}
             onSelectTag={handleToggleTag}
             tags={tags}
           />
-        </div>
-        <div>
           <BlogSeriesFilter
             activeSeriesSlug={selectedSeriesSlug}
             onClearSeries={handleClearSeries}
@@ -434,7 +434,8 @@ export function BlogSearchApp({
             series={seriesOptions}
             sortOrder={sortOrder}
           />
-        </div>
+          </div>
+        </details>
       </div>
     </div>
   );

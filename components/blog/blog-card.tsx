@@ -15,7 +15,7 @@ export function BlogCard({ compact, post, readLabel = "Read signal" }: BlogCardP
     <PixelCard
       accent="purple"
       as="article"
-      className={cn("group h-full", compact ? "min-h-[20.2rem] p-3!" : "p-7!")}
+      className={cn("article-preview-card group h-full", compact ? "min-h-[20.2rem] p-3!" : "p-7!")}
       id={post.slug}
       interactive
     >
