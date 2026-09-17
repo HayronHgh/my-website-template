@@ -13,6 +13,7 @@ import shutil
 import tarfile
 import tempfile
 import urllib.request
+import urllib.parse
 
 GROUPS = {"LeetCode", "LeetCodeEssential50", "LeetCodeAdvanced50"}
 NOTES = {"DailyLeetcodePlan": ("note", "notes/daily-practice"),
@@ -154,9 +155,12 @@ def apply(root, run):
     old_redirects = redirects_file.read_bytes() if redirects_file.exists() else None
     redirects = json.loads(old_redirects) if old_redirects else {}
     for entry in entries:
-        if entry["source"] in redirects:
-            raise ValueError("Redirect collision")
-        redirects[entry["source"]] = entry["target"]
+        encoded = "/".join(urllib.parse.quote(part, safe="-_.!~*'()") for part in entry["source"].split("/"))
+        # Next may retain escaped spaces in catch-all route params.
+        for alias in {entry["source"], encoded}:
+            if alias in redirects:
+                raise ValueError("Redirect collision")
+            redirects[alias] = entry["target"]
     target_root = checked(root, "content/leetcode")
     target_root.mkdir(exist_ok=True)
     temporary = run / "redirects-next.json"

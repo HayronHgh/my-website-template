@@ -54,5 +54,14 @@ class MigrationTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.prepare()
 
+    def test_encoded_legacy_slug(self):
+        directory = self.source.parent.with_name("1.Two Sum")
+        self.source.parent.rename(directory)
+        self.source = directory / "main.md"
+        run = self.prepare()
+        migration.apply(self.root, str(run))
+        redirects = json.loads((self.root / "content/leetcode/redirects.json").read_text())
+        self.assertEqual(redirects["LeetCodeEssential50/1.Two%20Sum"], "1-two-sum")
+
 if __name__ == "__main__":
     unittest.main()
