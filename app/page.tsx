@@ -5,7 +5,6 @@ import { getPublishedProjects } from "@/lib/projects/meta";
 import { getSiteSettings } from "@/lib/site/settings";
 import { getPublishedPostListItems } from "@/lib/blog/posts";
 import { getBlogArticlePath } from "@/lib/blog/slug";
-import { ContentGateways } from "@/components/home/content-gateways";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +34,6 @@ export default async function Home() {
         pageImages={siteSettings.pageImages}
         siteProfile={siteSettings.siteProfile}
       />
-      <ContentGateways />
       <DashboardSection
         blogCardReadLabel={siteSettings.pages.blog.card.readLabel}
         contactLinks={siteSettings.contactLinks}

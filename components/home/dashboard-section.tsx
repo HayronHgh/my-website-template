@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ContentGateways } from "@/components/home/content-gateways";
 import { BlogCard } from "@/components/blog/blog-card";
 import { ProjectCard } from "@/components/projects/project-card";
 import { PixelCard } from "@/components/ui/pixel-card";
@@ -56,6 +57,7 @@ export function DashboardSection({
   return (
     <section className="relative overflow-hidden bg-[#050714] pb-14 pt-5 after:pointer-events-none after:absolute after:inset-0 after:bg-[radial-gradient(circle_at_top,#11182b,transparent_42%)] sm:pb-16">
       <Container className="relative z-10 space-y-5">
+        <ContentGateways />
         <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.62fr)_minmax(340px,0.72fr)]">
           <div className="space-y-5">
             <PixelCard
