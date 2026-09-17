@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { resumeSchema } from "@/lib/resume/schema";
-import { problemSchema, validateProblemContent } from "@/lib/leetcode/schema";
+import { readProblemMetadata, validateEntryContent } from "@/lib/leetcode/schema";
 import { blogFrontmatterSchema } from "@/lib/blog/schema";
 import { parseFrontmatter } from "@/lib/content/frontmatter";
 import type { ContentValidationIssue } from "@/lib/content/validation";
@@ -27,10 +27,11 @@ export async function validateAdditionalDomains(root: string, projectSlugs: Set<
       } else if (entry.isFile() && entry.name === "main.md") {
         try {
           const parsed = parseFrontmatter(await fs.readFile(file, "utf8"));
-          const common = blogFrontmatterSchema.parse(parsed.data);
-          const { id, difficulty, status, language } = parsed.data;
-          problemSchema.parse({ id, difficulty, status, language });
-          validateProblemContent(parsed.content, common.published !== false);
+          const metadata = readProblemMetadata(parsed.data);
+          const common = metadata.entryType === "template" && parsed.data.published === false
+            ? blogFrontmatterSchema.omit({ date: true }).parse(parsed.data)
+            : blogFrontmatterSchema.parse(parsed.data);
+          validateEntryContent(parsed.content, common.published !== false, metadata);
         } catch (error) { report(file, error); }
       }
     }

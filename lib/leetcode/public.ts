@@ -3,7 +3,7 @@ import { markdownToHtml } from "@/lib/blog/markdown";
 import { AdminApiError } from "@/lib/admin/http";
 
 export async function getPublishedProblems() {
-  return (await problemStore.list({ status: "published" })).sort((a, b) => a.problem!.id - b.problem!.id);
+  return (await problemStore.list({ status: "published" })).sort((a, b) => (a.problem!.id ?? Infinity) - (b.problem!.id ?? Infinity));
 }
 
 export async function getPublishedProblem(slug: string) {

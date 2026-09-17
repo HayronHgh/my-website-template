@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import { getMigratedProblemPath } from "@/lib/leetcode/redirects";
 import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
 import { BlogSeriesSidebar } from "@/components/blog/blog-series-sidebar";
 import { Container } from "@/components/ui/container";
@@ -33,6 +34,8 @@ export async function generateMetadata({
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug: slugSegments } = await params;
   const slug = getSlug(slugSegments);
+  const migratedPath = await getMigratedProblemPath(slug);
+  if (migratedPath) permanentRedirect(migratedPath);
   const [post, siteSettings] = await Promise.all([
     getPostBySlug(slug),
     getSiteSettings(),
@@ -67,6 +70,8 @@ export async function generateMetadata({
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug: slugSegments } = await params;
   const slug = getSlug(slugSegments);
+  const migratedPath = await getMigratedProblemPath(slug);
+  if (migratedPath) permanentRedirect(migratedPath);
   const [post, posts, projects, siteSettings] = await Promise.all([
     getPostBySlug(slug),
     getPublishedPostListItems(),

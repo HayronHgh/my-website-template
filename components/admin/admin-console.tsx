@@ -2009,13 +2009,17 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
               </div>
             </PixelCard>
 
-            {form.problem ? (
+            {form.problem && (form.problem.entryType === "note" || form.problem.entryType === "template") ? (
+              <p className="content-caption">LeetCode / {form.problem.entryType === "note" ? "學習筆記" : "模板草稿"} · 不使用題號、難度與解題進度。</p>
+            ) : null}
+            {form.problem?.format === "legacy" ? <p className="content-caption">舊版筆記：保留原段落，可直接編輯，不要求改套新版模板。</p> : null}
+            {form.problem && (!form.problem.entryType || form.problem.entryType === "problem") ? (
               <fieldset className="content-filters mb-4" disabled={isMutationInFlight || isArticleLoading || isPublishedEditor}>
                 <legend className="sr-only">題目資料</legend>
-                <label>題號<input type="number" min="1" value={form.problem.id} onChange={(e) => updateField("problem", { ...form.problem!, id: Number(e.target.value) })} /></label>
-                <label>難度<select value={form.problem.difficulty} onChange={(e) => updateField("problem", { ...form.problem!, difficulty: e.target.value as ProblemMetadata["difficulty"] })}>{["Easy","Medium","Hard"].map((v) => <option key={v}>{v}</option>)}</select></label>
-                <label>進度<select value={form.problem.status} onChange={(e) => updateField("problem", { ...form.problem!, status: e.target.value as ProblemMetadata["status"] })}>{["Todo","Attempted","Solved","Review"].map((v) => <option key={v}>{v}</option>)}</select></label>
-                <label>語言<input maxLength={40} value={form.problem.language} onChange={(e) => updateField("problem", { ...form.problem!, language: e.target.value })} /></label>
+                <label>題號<input type="number" min="1" value={form.problem.id ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, id: Number(e.target.value) })} /></label>
+                <label>難度<select value={form.problem.difficulty ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, difficulty: e.target.value as ProblemMetadata["difficulty"] })}>{["Easy","Medium","Hard"].map((v) => <option key={v}>{v}</option>)}</select></label>
+                <label>進度<select value={form.problem.status ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, status: e.target.value as ProblemMetadata["status"] })}>{["Todo","Attempted","Solved","Review"].map((v) => <option key={v}>{v}</option>)}</select></label>
+                <label>語言<input maxLength={40} value={form.problem.language ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, language: e.target.value })} /></label>
               </fieldset>
             ) : null}
             {isPublishedEditor ? (

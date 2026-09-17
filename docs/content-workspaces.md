@@ -21,6 +21,30 @@ The workspace inserts nine sections: 題目與限制、我的直覺、解法與�
 Drafts may be incomplete; publication requires all nine populated sections. Same problem ID may have multiple solution slugs.
 Use absolute image URLs for LeetCode; this iteration does not add problem-local asset upload or serving.
 
+## Legacy LeetCode migration
+
+Legacy records use `format: legacy` to keep their existing Markdown structure editable.
+`entryType` separates problem solutions, study notes (`note`), and unpublished reusable examples (`template`).
+Notes/templates use null for id, difficulty, status and language; they are not counted as solved problems.
+New problem records still require the v1 template unless explicitly designated legacy.
+
+The migration script runs only against an explicitly supplied deployment root:
+
+```sh
+python3 scripts/migrate-legacy-leetcode.py --root /absolute/deployment
+# Review .cd/migrations/leetcode-*/manifest.json and deploy compatible app code first.
+python3 scripts/migrate-legacy-leetcode.py --root /absolute/deployment --apply /absolute/deployment/.cd/migrations/leetcode-EXACT-RUN
+```
+
+Preparation fetches the public LeetCode catalog for verified IDs/difficulties, detects code-fence languages,
+backs up the complete content tree, and stages body-preserving copies. Status is conservatively
+Attempted, not Solved: publishing a write-up does not prove an accepted submission.
+Application refuses changed sources or destination collisions, retains exact originals outside the public
+content tree, and records old-to-new slugs in `content/leetcode/redirects.json`.
+Old /articles links redirect only when the target is published; /blog links first use the existing redirect.
+Original dates, titles, visibility and Markdown bodies are preserved. A missing summary colon can be
+repaired without changing its wording; each such repair is recorded in the manifest.
+
 ## Editing and deployment
 
 - Articles and LeetCode retain autosave, preview, revision conflicts, and recoverable archive behavior.

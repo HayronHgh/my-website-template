@@ -80,6 +80,9 @@ jobs:
       - name: Run unit tests
         run: pnpm test:run
 
+      - name: Test legacy content migration
+        run: python3 -B -m unittest discover -s tests -p test_leetcode_migration.py
+
       - name: Run lint
         run: pnpm lint
 
