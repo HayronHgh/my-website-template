@@ -103,7 +103,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <PixelCard accent="purple" as="article" className="space-y-5">
               <Link
                 className="inline-flex items-center gap-2 rounded-[4px] border border-[#30445f] bg-[#101827] px-3 py-2 font-mono text-sm font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
-                href="/blog"
+                href="/articles"
               >
                 <span aria-hidden className="font-mono">{"<"}</span>
                 {pageCopy.reader.backLabel}

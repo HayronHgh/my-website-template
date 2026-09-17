@@ -48,7 +48,9 @@ describe("admin JWT", () => {
 
     expect(verifySessionToken(token, config, 4_600)).toBeNull();
     expect(verifySessionToken(`${tamperedHeader}.${payload}.${signature}`, config, 1_001)).toBeNull();
-    expect(verifySessionToken(`${header}.${payload}.${signature.slice(0, -1)}A`, config, 1_001)).toBeNull();
+    // Change a full signature character, including when it already starts with A.
+    const tamperedSignature = (signature[0] === "A" ? "B" : "A") + signature.slice(1);
+    expect(verifySessionToken(`${header}.${payload}.${tamperedSignature}`, config, 1_001)).toBeNull();
   });
 
   it("pins issuer and audience", () => {

@@ -14,7 +14,7 @@ const project = {
   coverPosition: "center center",
   accent: "cyan",
   detailsUrl: "/projects/project-a",
-  caseStudyUrl: "/blog/project-a-case-study",
+  caseStudyUrl: "/articles/project-a-case-study",
   relatedTags: ["Architecture"],
 } satisfies ProjectItem;
 
@@ -39,7 +39,7 @@ const posts = [
   },
 ] satisfies BlogPostMeta[];
 
-describe("project/blog relations", () => {
+describe("project/article relations", () => {
   it("prioritizes explicit case study relation", () => {
     const relatedPosts = getRelatedPostsForProject(project, posts);
 
@@ -59,5 +59,14 @@ describe("project/blog relations", () => {
     );
 
     expect(relatedProjects[0]?.slug).toBe("project-a");
+  });
+
+  it("keeps legacy Blog case-study URLs related during the redirect transition", () => {
+    const relatedPosts = getRelatedPostsForProject(
+      { ...project, caseStudyUrl: "/blog/project-a-case-study" },
+      posts,
+    );
+
+    expect(relatedPosts[0]?.slug).toBe("project-a-case-study");
   });
 });

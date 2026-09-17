@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/.pnpm-store/
 /.pnp
 .pnp.*
 .yarn/*
@@ -27,6 +28,8 @@
 # local CMS article history is runtime data
 /content/blog/**/main.[1-4].md
 /content/blog/**/.main*.tmp
+/content/leetcode/**/main.[1-4].md
+/content/leetcode/**/.main*.tmp
 
 # misc
 .DS_Store

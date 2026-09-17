@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { readResume } from "@/lib/resume/data";
 import { ProjectCard } from "@/components/projects/project-card";
 import { NeonButton } from "@/components/ui/neon-button";
 import { PageHero } from "@/components/ui/page-hero";
@@ -37,20 +38,19 @@ function resolveProfileToken(value: string, siteProfile: SiteSettings["siteProfi
 }
 
 export default async function ResumePage() {
+  const resume = await readResume();
   const [projects, siteSettings] = await Promise.all([
     getPublishedProjects(),
     getSiteSettings(),
   ]);
   const {
     pageImages,
-    resumeExperience,
-    resumeSections,
-    resumeSummary,
     siteProfile,
     skillItems,
   } = siteSettings;
+  const { resumeExperience, resumeSections, resumeSummary } = resume ?? siteSettings;
   const pageCopy = siteSettings.pages.resume;
-  const resumeProjectHighlights = projects.filter((project) => project.group === "featured");
+  const resumeProjectHighlights = projects.filter((project) => resume ? resume.projectSlugs.includes(project.slug) : project.group === "featured");
 
   return (
     <Section className="!pt-0 sm:!pt-0">
@@ -142,7 +142,7 @@ export default async function ResumePage() {
                     ))}
                   </ul>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {(item.tech ?? resumeSections[0].items).map((tag) => (
+                    {(item.tech ?? []).map((tag) => (
                       <span
                         className={ui.tinyTag}
                         key={tag}

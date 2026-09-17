@@ -6,6 +6,7 @@ import { parseBlogFrontmatter } from "@/lib/blog/parse-frontmatter";
 import type { BlogFrontmatterData } from "@/lib/blog/schema";
 import { clearContentCache } from "@/lib/content/cache";
 import {
+  parseFrontmatter,
   patchFrontmatter,
   serializeFrontmatter,
 } from "@/lib/content/frontmatter";
@@ -29,6 +30,8 @@ import type {
 import type { BlogPostMeta } from "@/types/blog";
 
 type ArticleStoreOptions = {
+  readMetadata?: (data: Record<string, unknown>) => Partial<AdminArticleInput>;
+  writeMetadata?: (input: AdminArticleInput) => Record<string, unknown>;
   blogDirectory?: string;
   now?: () => Date;
   trashDirectory?: string;
@@ -82,6 +85,7 @@ function toArticle(
 
 function toArticleListItem(article: AdminArticle): AdminArticleListItem {
   return {
+    ...(article.problem ? { problem: article.problem } : {}),
     date: article.date,
     description: article.description,
     pathSegments: article.pathSegments,
@@ -329,7 +333,10 @@ export function createArticleStore(options: ArticleStoreOptions = {}) {
     );
 
     return {
-      article: toArticle(source, parsed.content, parsed.meta, stats.mtime.toISOString()),
+      article: {
+        ...toArticle(source, parsed.content, parsed.meta, stats.mtime.toISOString()),
+        ...options.readMetadata?.(parseFrontmatter(source).data),
+      },
       directoryPath: location.directoryPath,
       filePath: location.filePath,
       source,
@@ -434,6 +441,7 @@ export function createArticleStore(options: ArticleStoreOptions = {}) {
   }
 
   async function create(slugValue: string, input: AdminArticleInput, role: AdminRole) {
+    const metadata = options.writeMetadata?.(input) ?? {};
     return runMutation(async () => {
       if (!canMutateArticle(role, input.published ? "create-published" : "create-draft")) {
         throw new AdminApiError(403, "forbidden", "Editor 只能建立草稿。");
@@ -476,6 +484,7 @@ export function createArticleStore(options: ArticleStoreOptions = {}) {
 
       try {
         const data: BlogFrontmatterData = {
+          ...metadata,
           date: input.date,
           published: input.published,
           summary: input.description,
@@ -501,6 +510,7 @@ export function createArticleStore(options: ArticleStoreOptions = {}) {
     role: AdminRole,
     saveMode: AdminSaveMode = "manual",
   ) {
+    const metadata = options.writeMetadata?.(input) ?? {};
     return runMutation(async () => {
       const current = await readSource(slugValue);
       const mutation = getUpdateMutation(current.article.published, input.published);
@@ -529,6 +539,7 @@ export function createArticleStore(options: ArticleStoreOptions = {}) {
       }
 
       const nextData: BlogFrontmatterData = {
+        ...metadata,
         date: input.date,
         published: input.published,
         summary: input.description,

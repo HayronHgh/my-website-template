@@ -148,14 +148,14 @@ export const siteProfile: SiteProfile = {
   role: "Software Engineer",
   headline: "Hi, I'm Your Name",
   positioning:
-    "A file-driven portfolio template for publishing project cards, case studies, and technical notes without rebuilding the app.",
+    "A file-driven portfolio template for publishing project cards, case studies, and technical articles without rebuilding the app.",
   intro:
-    "This template is designed for developers who want a portfolio that behaves like a lightweight content system. Projects and blog posts live in local files, can be mounted into Docker at runtime, and stay connected through tags and related project metadata.",
+    "This template is designed for developers who want a portfolio that behaves like a lightweight content system. Projects and articles live in local files, can be mounted into Docker at runtime, and stay connected through tags and related project metadata.",
   resumeDownloadUrl: "/resume.pdf",
   heroSkills: [
     "Runtime Content",
     "Project Case Studies",
-    "Markdown Blog",
+    "Markdown Articles",
     "Docker Friendly",
     "Tag Relations",
   ],
@@ -183,7 +183,7 @@ export const siteProfile: SiteProfile = {
 export const navigationItems: NavigationItem[] = [
   { key: "home", href: "/", label: "Home", icon: "home", glow: "cyan" },
   { key: "projects", href: "/projects", label: "Projects", icon: "projects", glow: "blue" },
-  { key: "blog", href: "/blog", label: "Blog", icon: "file", glow: "purple" },
+  { key: "blog", href: "/articles", label: "Articles", icon: "file", glow: "purple" },
   { key: "journey", href: "/about", label: "Journey", icon: "journey", glow: "pink" },
   { key: "resume", href: "/resume", label: "Resume", icon: "resume", glow: "amber" },
   { key: "contact", href: "/contact", label: "Contact", icon: "contact", glow: "cyan" },
@@ -213,7 +213,7 @@ export const timelineItems: TimelineItem[] = [
   {
     year: "2026",
     title: "Public Portfolio",
-    summary: "Publish project pages, blog notes, screenshots, and benchmarks as reusable proof.",
+    summary: "Publish project pages, articles, screenshots, and benchmarks as reusable proof.",
   },
 ];
 
@@ -269,7 +269,7 @@ export const skillItems: SkillItem[] = [
     tone: "cyan",
     level: "Practical",
     subtitle: "Readable project evidence, tradeoffs, screenshots, and notes.",
-    note: "README, project detail pages, and blog posts explain design decisions.",
+    note: "README, project detail pages, and articles explain design decisions.",
     evidence: ["Architecture", "Tradeoffs", "Screenshots"],
   },
 ];
@@ -283,7 +283,7 @@ export const blogPreviewPosts: BlogPreviewPost[] = [
     date: "2026-01-05",
     title: "Template Architecture",
     excerpt: "A starter article describing the file-driven portfolio architecture.",
-    href: "/blog/template-architecture",
+    href: "/articles/template-architecture",
   },
   {
     slug: "runtime-content-workflow",
@@ -291,7 +291,7 @@ export const blogPreviewPosts: BlogPreviewPost[] = [
     date: "2026-01-04",
     title: "Runtime Content Workflow",
     excerpt: "How project metadata and markdown content can update without rebuilding.",
-    href: "/blog/runtime-content-workflow",
+    href: "/articles/runtime-content-workflow",
   },
   {
     slug: "benchmark-notes",
@@ -299,7 +299,7 @@ export const blogPreviewPosts: BlogPreviewPost[] = [
     date: "2026-01-03",
     title: "Benchmark Notes",
     excerpt: "A placeholder for build, audit, route, and runtime content checks.",
-    href: "/blog/benchmark-notes",
+    href: "/articles/benchmark-notes",
   },
 ];
 
@@ -361,7 +361,7 @@ export const resumeSections: ResumeSection[] = [
   },
   {
     title: "Evidence",
-    items: ["Runtime content", "Project metadata", "Blog relations", "Docker volume"],
+    items: ["Runtime content", "Project metadata", "Article relations", "Docker volume"],
   },
 ];
 
@@ -388,9 +388,9 @@ export const contactLinks: ContactLink[] = [
     accent: "pink",
   },
   {
-    label: "Blog RSS",
+    label: "Articles RSS",
     href: "/rss.xml",
-    value: "Latest notes feed",
+    value: "Latest articles feed",
     icon: "rss",
     accent: "amber",
   },
@@ -399,7 +399,7 @@ export const contactLinks: ContactLink[] = [
 export const adjustmentNotes: AdjustmentNote[] = [
   {
     id: "content",
-    text: "Projects and blog posts are loaded from files at runtime.",
+    text: "Projects and articles are loaded from files at runtime.",
     accent: "cyan",
   },
   {

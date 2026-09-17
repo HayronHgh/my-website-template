@@ -15,13 +15,13 @@
     "brandName": "PortfolioKit",
     "role": "Software Engineer",
     "headline": "Hi, I'm Your Name",
-    "positioning": "A file-driven portfolio template for publishing project cards, case studies, and technical notes without rebuilding the app.",
-    "intro": "This template is designed for developers who want a portfolio that behaves like a lightweight content system. Projects and blog posts live in local files, can be mounted into Docker at runtime, and stay connected through tags and related project metadata.",
+    "positioning": "A file-driven portfolio template for publishing project cards, case studies, and technical articles without rebuilding the app.",
+    "intro": "This template is designed for developers who want a portfolio that behaves like a lightweight content system. Projects and articles live in local files, can be mounted into Docker at runtime, and stay connected through tags and related project metadata.",
     "resumeDownloadUrl": "/resume.pdf",
     "heroSkills": [
       "Runtime Content",
       "Project Case Studies",
-      "Markdown Blog",
+      "Markdown Articles",
       "Docker Friendly",
       "Security-aware Assets"
     ],
@@ -74,8 +74,8 @@
     },
     {
       "key": "blog",
-      "href": "/blog",
-      "label": "Blog",
+      "href": "/articles",
+      "label": "Articles",
       "icon": "file",
       "glow": "purple"
     },
@@ -125,7 +125,7 @@
     {
       "year": "2026",
       "title": "Public Portfolio",
-      "summary": "Publish project pages, blog notes, screenshots, and benchmarks as reusable proof."
+      "summary": "Publish project pages, articles, screenshots, and benchmarks as reusable proof."
     }
   ],
   "skillItems": [
@@ -193,7 +193,7 @@
       "name": "Documentation",
       "tone": "cyan",
       "level": "Practical",
-      "note": "README, project detail pages, and blog posts explain design decisions.",
+      "note": "README, project detail pages, and articles explain design decisions.",
       "evidence": [
         "Architecture",
         "Tradeoffs",
@@ -209,7 +209,7 @@
       "date": "2026-01-05",
       "title": "Template Architecture",
       "excerpt": "A starter article describing the file-driven portfolio architecture.",
-      "href": "/blog/template-architecture"
+      "href": "/articles/template-architecture"
     },
     {
       "slug": "runtime-content-workflow",
@@ -217,7 +217,7 @@
       "date": "2026-01-04",
       "title": "Runtime Content Workflow",
       "excerpt": "How project metadata and markdown content can update without rebuilding.",
-      "href": "/blog/runtime-content-workflow"
+      "href": "/articles/runtime-content-workflow"
     },
     {
       "slug": "benchmark-notes",
@@ -225,7 +225,7 @@
       "date": "2026-01-03",
       "title": "Benchmark Notes",
       "excerpt": "A placeholder for build, audit, route, and runtime content checks.",
-      "href": "/blog/benchmark-notes"
+      "href": "/articles/benchmark-notes"
     }
   ],
   "resumeSummary": "A sanitized resume template for presenting experience, skills, project highlights, and contact information.",
@@ -288,7 +288,7 @@
       "items": [
         "Runtime content",
         "Project metadata",
-        "Blog relations",
+        "Article relations",
         "Docker volume"
       ]
     }
@@ -316,9 +316,9 @@
       "accent": "pink"
     },
     {
-      "label": "Blog RSS",
+      "label": "Articles RSS",
       "href": "/rss.xml",
-      "value": "Latest notes feed",
+      "value": "Latest articles feed",
       "icon": "rss",
       "accent": "amber"
     }
@@ -326,7 +326,7 @@
   "adjustmentNotes": [
     {
       "id": "content",
-      "text": "Projects and blog posts are loaded from files at runtime.",
+      "text": "Projects and articles are loaded from files at runtime.",
       "accent": "cyan"
     },
     {
@@ -345,11 +345,11 @@
       "eyebrow": "Portfolio Template",
       "titleTop": "Hi, I'm Your Name",
       "titleBottom": "Software Engineer",
-      "description": "A file-driven portfolio template for publishing project cards, case studies, and technical notes without rebuilding the app.",
+      "description": "A file-driven portfolio template for publishing project cards, case studies, and technical articles without rebuilding the app.",
       "techStack": [
         "Runtime Content",
         "Project Case Studies",
-        "Markdown Blog",
+        "Markdown Articles",
         "Docker Friendly",
         "Security-aware Assets"
       ]
@@ -385,7 +385,7 @@
     "home": {
       "metadata": {
         "title": "Home",
-        "description": "A file-driven portfolio template for publishing project cards, case studies, and technical notes without rebuilding the app."
+        "description": "A file-driven portfolio template for publishing project cards, case studies, and technical articles without rebuilding the app."
       },
       "heroActions": {
         "projects": {
@@ -408,10 +408,10 @@
           "label": "View all ->",
           "href": "/projects"
         },
-        "blogTitle": "Blog Signals",
+        "blogTitle": "Articles",
         "blogLink": {
-          "label": "View blog ->",
-          "href": "/blog"
+          "label": "View articles ->",
+          "href": "/articles"
         },
         "skillsTitle": "Skills",
         "skillsLink": {
@@ -479,7 +479,7 @@
       "principlesTitle": "Publishing Principles",
       "principles": [
         "Keep public portfolio content separate from private client or personal material.",
-        "Use runtime files for copy, images, project metadata, and blog posts whenever rebuilds are unnecessary.",
+        "Use runtime files for copy, images, project metadata, and articles whenever rebuilds are unnecessary.",
         "Make project evidence easy to update while keeping path validation and content boundaries strict."
       ],
       "toolsTitle": "Tools Along the Route"
@@ -550,12 +550,12 @@
     },
     "blog": {
       "metadata": {
-        "title": "Blog",
-        "description": "Searchable engineering notes with local markdown posts, hashtags, and a same-page reader."
+        "title": "Articles",
+        "description": "Searchable research and engineering articles with local Markdown, tags, and a same-page reader."
       },
       "hero": {
-        "title": "Blog Signals",
-        "description": "A local markdown workspace for notes, case studies, and implementation writeups."
+        "title": "Articles",
+        "description": "A local markdown workspace for research, case studies, and implementation writeups."
       },
       "latestLimit": 6,
       "card": {
@@ -570,7 +570,7 @@
         "latestArticlesTitle": "Latest articles",
         "matchingArticleSingular": "matching article",
         "matchingArticlePlural": "matching articles",
-        "latestArticlesDescription": "Recently published notes and writeups",
+        "latestArticlesDescription": "Recently published research notes and writeups",
         "categoryFallback": "Article",
         "readTimeSuffix": "min read",
         "emptyMessage": "No matching article.",

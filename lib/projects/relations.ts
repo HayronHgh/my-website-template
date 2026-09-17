@@ -5,11 +5,11 @@ import type { BlogPostMeta } from "@/types/blog";
 const normalizeRelationKey = (value: string) => value.trim().toLowerCase();
 
 const getBlogSlugFromUrl = (url?: string) => {
-  if (!url?.startsWith("/blog/")) {
+  if (!url?.startsWith("/articles/") && !url?.startsWith("/blog/")) {
     return undefined;
   }
 
-  return url.replace(/^\/blog\/+/, "").replace(/\/+$/, "");
+  return url.replace(/^\/(?:articles|blog)\/+/, "").replace(/\/+$/, "");
 };
 
 function createProjectRelationKeys(project: ProjectItem) {

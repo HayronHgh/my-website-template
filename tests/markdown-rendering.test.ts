@@ -137,12 +137,12 @@ describe("markdown rendering", () => {
       );
 
       expect(html).toContain(
-        `src="/blog/assets/${temporaryAsset.slug}/diagram.png?v=${temporaryAsset.version}"`,
+        `src="/articles/assets/${temporaryAsset.slug}/diagram.png?v=${temporaryAsset.version}"`,
       );
       expect(html).toContain('src="https://example.com/image.png"');
       expect(html).toContain('src="/site/assets/bg.png"');
       expect(html).not.toContain("data:image");
-      expect(html).not.toContain(`/blog/assets/${temporaryAsset.slug}/%23diagram`);
+      expect(html).not.toContain(`/articles/assets/${temporaryAsset.slug}/%23diagram`);
     } finally {
       await temporaryAsset.cleanup();
     }

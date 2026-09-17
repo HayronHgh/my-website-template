@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { GET as getBlogAssetResponse } from "@/app/blog/assets/[...asset]/route";
+import { GET as getBlogAssetResponse } from "@/app/articles/assets/[...asset]/route";
 import { GET as getSiteAssetResponse } from "@/app/site/assets/[...asset]/route";
 import {
   getBlogAssetUrl,
@@ -110,27 +110,27 @@ describe("content path helpers", () => {
 
   it("rewrites safe relative asset URLs", () => {
     expect(getBlogAssetUrl("series/post", "diagram.png")).toBe(
-      "/blog/assets/series/post/diagram.png",
+      "/articles/assets/series/post/diagram.png",
     );
     expect(getProjectAssetUrl("project-a", "demo.png")).toBe(
       "/projects/assets/project-a/demo.png",
     );
     expect(getBlogAssetUrl("LeetCode/模板", "diagram.png")).toBe(
-      "/blog/assets/LeetCode/%E6%A8%A1%E6%9D%BF/diagram.png",
+      "/articles/assets/LeetCode/%E6%A8%A1%E6%9D%BF/diagram.png",
     );
   });
 
   it.each([
-    ["CaseStudy", "/blog/CaseStudy", "/api/blog/posts/CaseStudy"],
+    ["CaseStudy", "/articles/CaseStudy", "/api/blog/posts/CaseStudy"],
     [
       "LeetCode/模板",
-      "/blog/LeetCode/%E6%A8%A1%E6%9D%BF",
+      "/articles/LeetCode/%E6%A8%A1%E6%9D%BF",
       "/api/blog/posts/LeetCode/%E6%A8%A1%E6%9D%BF",
     ],
-    ["155.Min Stack", "/blog/155.Min%20Stack", "/api/blog/posts/155.Min%20Stack"],
+    ["155.Min Stack", "/articles/155.Min%20Stack", "/api/blog/posts/155.Min%20Stack"],
     [
       "legacy/question#1",
-      "/blog/legacy/question%231",
+      "/articles/legacy/question%231",
       "/api/blog/posts/legacy/question%231",
     ],
   ])("encodes public article slug %s segment by segment", (slug, pathUrl, apiUrl) => {
@@ -180,7 +180,7 @@ describe("content path helpers", () => {
       await expect(
         getVersionedBlogAssetUrl(temporaryAsset.slug, temporaryAsset.assetFileName),
       ).resolves.toBe(
-        `/blog/assets/${temporaryAsset.slug}/${temporaryAsset.assetFileName}?v=${temporaryAsset.version}`,
+        `/articles/assets/${temporaryAsset.slug}/${temporaryAsset.assetFileName}?v=${temporaryAsset.version}`,
       );
       await expect(
         getVersionedBlogAssetUrl(temporaryAsset.slug, "https://example.com/image.png"),
@@ -213,7 +213,7 @@ describe("content path helpers", () => {
     expect(getPostAssetFilePath("post", [".env"])).toBeNull();
   });
 
-  it("never serves retained Markdown versions through the public blog asset route", async () => {
+  it("never serves retained Markdown versions through the public article asset route", async () => {
     const temporaryAsset = await createTemporaryBlogAsset();
 
     try {
@@ -223,7 +223,7 @@ describe("content path helpers", () => {
         "utf8",
       );
       const response = await getBlogAssetResponse(
-        new Request(`https://example.test/blog/assets/${temporaryAsset.slug}/main.1.md`),
+        new Request(`https://example.test/articles/assets/${temporaryAsset.slug}/main.1.md`),
         {
           params: Promise.resolve({ asset: [temporaryAsset.slug, "main.1.md"] }),
         },
@@ -269,13 +269,13 @@ describe("content path helpers", () => {
     expect(response.headers.get("Content-Length")).toBe(String(stats.size));
   });
 
-  it("rejects non-canonical blog asset versions", async () => {
+  it("rejects non-canonical article asset versions", async () => {
     const temporaryAsset = await createTemporaryBlogAsset();
 
     try {
       const response = await getBlogAssetResponse(
         new Request(
-          `https://example.test/blog/assets/${temporaryAsset.slug}/${temporaryAsset.assetFileName}?v=wrong`,
+          `https://example.test/articles/assets/${temporaryAsset.slug}/${temporaryAsset.assetFileName}?v=wrong`,
         ),
         {
           params: Promise.resolve({
@@ -291,13 +291,13 @@ describe("content path helpers", () => {
     }
   });
 
-  it("serves canonical blog asset versions as immutable", async () => {
+  it("serves canonical article asset versions as immutable", async () => {
     const temporaryAsset = await createTemporaryBlogAsset();
 
     try {
       const response = await getBlogAssetResponse(
         new Request(
-          `https://example.test/blog/assets/${temporaryAsset.slug}/${temporaryAsset.assetFileName}?v=${temporaryAsset.version}`,
+          `https://example.test/articles/assets/${temporaryAsset.slug}/${temporaryAsset.assetFileName}?v=${temporaryAsset.version}`,
         ),
         {
           params: Promise.resolve({

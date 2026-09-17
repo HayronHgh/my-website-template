@@ -32,7 +32,7 @@ export function HeroSection({
       <Container className="relative z-10 flex min-h-[inherit] items-end pb-12 pt-20 sm:pb-14 lg:pb-16 lg:pt-24">
         <div className="max-w-[560px] space-y-4 lg:max-w-[590px]">
           <div>
-            <h1 className="font-mono text-4xl font-black leading-[0.95] tracking-tight text-white drop-shadow-[3px_3px_0_rgba(76,29,149,0.72)] md:text-5xl xl:text-6xl">
+            <h1 className="font-mono text-3xl font-black leading-tight tracking-tight text-white drop-shadow-[3px_3px_0_rgba(76,29,149,0.72)] md:text-4xl xl:text-5xl">
               <span>{titlePrefix}</span>
               {highlightedName ? (
                 <>
@@ -43,7 +43,7 @@ export function HeroSection({
                 </>
               ) : null}
               {titleBottom ? (
-                <span className="block text-[#f6c445] drop-shadow-[0_0_14px_rgba(251,191,36,0.58)]">
+                <span className="mt-3 block text-lg font-medium text-[#f6c445] sm:text-xl">
                   {titleBottom}
                 </span>
               ) : null}
@@ -52,6 +52,7 @@ export function HeroSection({
               {hero.description}
             </p>
           </div>
+          <div className="hero-skills">{hero.techStack.map((skill) => <span key={skill}>{skill}</span>)}</div>
 
           <div className="flex flex-wrap gap-3 lg:hidden">
             <NeonButton accent="cyan" href={actions.projects.href}>

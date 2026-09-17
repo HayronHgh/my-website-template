@@ -21,7 +21,7 @@ export function encodeBlogSlugPath(slug: string) {
 }
 
 export function getBlogArticlePath(slug: string) {
-  return `/blog/${encodeBlogSlugPath(slug)}`;
+  return `/articles/${encodeBlogSlugPath(slug)}`;
 }
 
 export function getBlogArticleApiPath(slug: string) {

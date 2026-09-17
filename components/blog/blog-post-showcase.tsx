@@ -197,7 +197,7 @@ export function BlogPostShowcase({
               Recommended articles
             </h2>
             <p className="mt-1 text-sm leading-6 text-[#9fb0d8]">
-              Curated notes to start with
+              Curated articles to start with
             </p>
           </div>
           <div className="grid gap-3">

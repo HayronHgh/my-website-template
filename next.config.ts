@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   images: {
     localPatterns: [
       { pathname: "/site/assets/**" },
+      { pathname: "/articles/assets/**" },
       { pathname: "/blog/assets/**" },
     ],
     formats: ["image/avif", "image/webp"],
@@ -11,6 +12,20 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1500, 1920],
     imageSizes: [32, 48, 64, 96, 128, 256, 384, 640],
     minimumCacheTTL: 31536000,
+  },
+  async redirects() {
+    return [
+      {
+        source: "/blog",
+        destination: "/articles",
+        permanent: true,
+      },
+      {
+        source: "/blog/:path*",
+        destination: "/articles/:path*",
+        permanent: true,
+      },
+    ];
   },
   output: "standalone",
   poweredByHeader: false,

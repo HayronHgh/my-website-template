@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { AdminConsole } from "@/components/admin/admin-console";
+import { AdminOverview } from "@/components/admin/overview";
 import { getServerAdminSession } from "@/lib/admin/server-session";
 
 export const metadata: Metadata = {
@@ -20,12 +20,5 @@ export default async function AdminPage() {
     redirect("/admin/login");
   }
 
-  return (
-    <AdminConsole
-      initialSession={{
-        expiresAt: session.expiresAt.toISOString(),
-        user: session.user,
-      }}
-    />
-  );
+  return <AdminOverview name={session.user.displayName} />;
 }

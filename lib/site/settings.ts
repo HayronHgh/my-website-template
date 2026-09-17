@@ -302,13 +302,13 @@ const defaultPages: SitePages = {
       standaloneLabel: "Standalone",
     },
     hero: {
-      description: "A local markdown workspace for notes, case studies, and implementation writeups.",
-      title: "Blog Signals",
+      description: "A local markdown workspace for research, case studies, and implementation writeups.",
+      title: "Articles",
     },
     latestLimit: 6,
     metadata: {
-      description: "Searchable engineering notes with local markdown posts, hashtags, and a same-page reader.",
-      title: "Blog",
+      description: "Searchable research and engineering articles with local Markdown, tags, and a same-page reader.",
+      title: "Articles",
     },
     reader: {
       backLabel: "Back to articles",
@@ -320,7 +320,7 @@ const defaultPages: SitePages = {
       clearSearchLabel: "Clear search",
       emptyMessage: "No matching article.",
       hashtagsTitle: "Hashtags",
-      latestArticlesDescription: "Recently published notes and writeups",
+      latestArticlesDescription: "Recently published research notes and writeups",
       latestArticlesTitle: "Latest articles",
       matchingArticlePlural: "matching articles",
       matchingArticleSingular: "matching article",
@@ -367,8 +367,8 @@ const defaultPages: SitePages = {
   home: {
     dashboard: {
       aboutTitle: "About Me",
-      blogLink: { href: "/blog", label: "View blog ->" },
-      blogTitle: "Blog Signals",
+      blogLink: { href: "/articles", label: "View articles ->" },
+      blogTitle: "Articles",
       contactEyebrow: "Signal Links",
       contactTitle: "Connect",
       featuredProjectsLink: { href: "/projects", label: "View all ->" },
@@ -665,7 +665,7 @@ async function resolveRouteImageMap(
   const fallback = [
     { href: "/", src: pageImages.homeHero.src },
     { href: "/projects", src: pageImages.projectsHero.src },
-    { href: "/blog", src: pageImages.blogHero.src },
+    { href: "/articles", src: pageImages.blogHero.src },
     { href: "/about", src: pageImages.aboutHero.src },
     { href: "/resume", src: pageImages.resumeHero.src },
   ];
@@ -696,7 +696,13 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     workingStyle: arrayOrFallback(settings.siteProfile?.workingStyle, fallbackSiteProfile.workingStyle),
     specialties: arrayOrFallback(settings.siteProfile?.specialties, fallbackSiteProfile.specialties),
   };
-  const navigationItems = arrayOrFallback(settings.navigationItems, fallbackNavigationItems);
+  const navigationItems = arrayOrFallback(settings.navigationItems, fallbackNavigationItems).map((item) =>
+    item.href === "/blog" ? { ...item, href: "/articles", label: "Articles" } : item,
+  );
+  if (!navigationItems.some((item) => item.href === "/leetcode")) {
+    const afterArticles = navigationItems.findIndex((item) => item.href === "/articles") + 1;
+    navigationItems.splice(afterArticles, 0, { key: "leetcode", href: "/leetcode", label: "LeetCode", icon: "file", glow: "amber" });
+  }
   const timelineItems = arrayOrFallback(settings.timelineItems, fallbackTimelineItems);
   const skillItems = arrayOrFallback(settings.skillItems, fallbackSkillItems);
   const blogPreviewPosts = arrayOrFallback(settings.blogPreviewPosts, fallbackBlogPreviewPosts);

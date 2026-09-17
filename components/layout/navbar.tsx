@@ -53,7 +53,7 @@ export function Navbar({ brandName, navigationItems, role, routeImageMap }: Navb
           <span className="truncate font-mono text-xs text-[#b7c2e0]">{role}</span>
         </Link>
 
-        <nav className="ml-auto hidden items-center gap-2 px-1.5 py-1.5 lg:flex">
+        <nav className="public-nav ml-auto hidden items-center gap-2 px-1.5 py-1.5 xl:flex">
           {navigationItems.map((item) => {
             const active = isActivePath(pathname, item);
 
@@ -65,6 +65,7 @@ export function Navbar({ brandName, navigationItems, role, routeImageMap }: Navb
                   active ? navItemActive : navItemInactive,
                 )}
                 href={item.href}
+                data-glow={item.glow}
                 key={item.href}
                 onFocus={() => preloadRouteImageForHref(item.href, routeImageMap)}
                 onMouseEnter={() => preloadRouteImageForHref(item.href, routeImageMap)}
@@ -76,7 +77,7 @@ export function Navbar({ brandName, navigationItems, role, routeImageMap }: Navb
           })}
         </nav>
 
-        <div className="lg:hidden">
+        <div className="xl:hidden">
           <MobileMenu
             navigationItems={navigationItems}
             pathname={pathname}

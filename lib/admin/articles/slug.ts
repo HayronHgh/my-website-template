@@ -35,9 +35,8 @@ export function parseExistingArticleSlug(
   return parseArticleSlug(value);
 }
 
-export function assertSafeArticleRoutePath(request: Request) {
+export function assertSafeArticleRoutePath(request: Request, routePrefix = "/api/admin/posts/") {
   const pathname = new URL(request.url).pathname;
-  const routePrefix = "/api/admin/posts/";
   if (!pathname.startsWith(routePrefix)) {
     return invalidSlug("文章 API 路徑不符合預期格式。");
   }

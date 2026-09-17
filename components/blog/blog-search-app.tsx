@@ -98,7 +98,7 @@ const createEmptyPage = (page: number): BlogPostListingPage => ({
 });
 
 const getSlugFromBlogPath = (pathname: string) => {
-  const match = /^\/blog\/(.+)$/.exec(pathname);
+  const match = /^\/articles\/(.+)$/.exec(pathname);
 
   if (!match) {
     return null;
@@ -338,7 +338,7 @@ export function BlogSearchApp({
         return;
       }
 
-      if (window.location.pathname === "/blog") {
+      if (window.location.pathname === "/articles") {
         setSelectedSlug(undefined);
         setViewMode("browse");
       }
@@ -350,7 +350,7 @@ export function BlogSearchApp({
 
   const handleBackToBrowse = () => {
     if (typeof window !== "undefined") {
-      window.history.pushState({ blogReader: "browse" }, "", "/blog");
+      window.history.pushState({ blogReader: "browse" }, "", "/articles");
     }
 
     setSelectedSlug(undefined);

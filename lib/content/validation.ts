@@ -53,7 +53,7 @@ const stringArraySchema = z
   .array(z.string().trim().min(1))
   .default([]);
 
-const projectMetaSchema = z.object({
+export const projectMetaSchema = z.object({
   slug: z.string().regex(SINGLE_SLUG_PATTERN),
   title: z.string().trim().min(1),
   category: z.string().trim().min(1),
@@ -95,7 +95,7 @@ const contactLinkSchema = z.object({
   value: z.string().trim().min(1),
 }).passthrough();
 
-const siteSettingsSchema = z.object({
+export const siteSettingsSchema = z.object({
   adjustmentNotes: z.array(z.object({
     accent: z.enum(ACCENTS),
     id: z.string().trim().min(1),
@@ -779,6 +779,8 @@ export async function validateContent(rootDirectory = process.cwd()): Promise<Co
     issues,
   );
 
+  const { validateAdditionalDomains } = await import("./domain-validation");
+  await validateAdditionalDomains(rootDirectory, projectSlugs, issues);
   return {
     blogPosts: blogPostCount,
     issues,

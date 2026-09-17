@@ -6,6 +6,7 @@ import { RouteImagePreloader } from "@/components/performance/route-image-preloa
 import { getSiteSettings } from "@/lib/site/settings";
 import "katex/dist/katex.min.css";
 import "./globals.css";
+import "./workspaces.css";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -37,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
       "Next.js",
       "TypeScript",
       "React",
-      "Technical Blog",
+      "Technical Articles",
       "Portfolio",
     ],
     openGraph: {

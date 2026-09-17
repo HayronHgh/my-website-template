@@ -1,0 +1,68 @@
+{
+  "resumeSummary": "A sanitized resume template for presenting experience, skills, project highlights, and contact information.",
+  "resumeExperience": [
+    {
+      "period": "2025 - Present",
+      "title": "Software Engineer / Portfolio Owner",
+      "organization": "Your Company or Independent Work",
+      "description": "Replace this with your real experience summary. Focus on ownership, scope, systems delivered, and measurable results.",
+      "highlights": [
+        "Built and maintained project pages through file-based metadata and markdown content.",
+        "Connected project case studies with blog articles through tags and related project fields.",
+        "Validated the template with typecheck, lint, build, and dependency audit checks."
+      ],
+      "tech": [
+        "Next.js",
+        "TypeScript",
+        "Markdown",
+        "Docker"
+      ]
+    },
+    {
+      "period": "2024 - 2025",
+      "title": "Project Contributor",
+      "organization": "Team, School, Client, or Open Source",
+      "description": "Use this entry for a second experience block. Keep it outcome-oriented and specific.",
+      "highlights": [
+        "Implemented a feature from requirements to release.",
+        "Improved documentation, testing, or deployment workflow.",
+        "Captured tradeoffs and future work in a project detail page."
+      ],
+      "tech": [
+        "React",
+        "API",
+        "Testing",
+        "Documentation"
+      ]
+    }
+  ],
+  "resumeSections": [
+    {
+      "title": "Education",
+      "items": [
+        "Your School / Program",
+        "Certification or training"
+      ]
+    },
+    {
+      "title": "Core Stack",
+      "items": [
+        "Next.js",
+        "TypeScript",
+        "React",
+        "Tailwind CSS",
+        "Markdown"
+      ]
+    },
+    {
+      "title": "Evidence",
+      "items": [
+        "Runtime content",
+        "Project metadata",
+        "Article relations",
+        "Docker volume"
+      ]
+    }
+  ],
+  "projectSlugs": []
+}

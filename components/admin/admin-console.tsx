@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import {
   useDeferredValue,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -37,7 +38,8 @@ import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
 import { NeonButton } from "@/components/ui/neon-button";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { adminRequest, AdminClientError } from "@/components/admin/admin-api";
-import { getAdminArticleApiPath } from "@/lib/admin/article-url";
+import { getAdminArticleApiPath as articleApiPath } from "@/lib/admin/article-url";
+import { problemTemplate, type ProblemMetadata } from "@/lib/leetcode/schema";
 import {
   getAdminArticleGroupKey,
   getAdminArticleLeafSlug,
@@ -80,10 +82,13 @@ import type {
 } from "@/types/admin";
 
 type AdminConsoleProps = {
+  initialSlug?: string;
+  domain?: "articles" | "leetcode";
   initialSession: AdminSession;
 };
 
 type ArticleForm = {
+  problem?: ProblemMetadata;
   content: string;
   date: string;
   description: string;
@@ -126,9 +131,10 @@ function getToday() {
   }).format(new Date());
 }
 
-function createNewArticleForm(): ArticleForm {
+function createNewArticleForm(domain: "articles" | "leetcode" = "articles"): ArticleForm {
   return {
-    content: [
+    ...(domain === "leetcode" ? { problem: { id: 1, difficulty: "Easy" as const, status: "Todo" as const, language: "TypeScript" } } : {}),
+    content: domain === "leetcode" ? problemTemplate : [
       "## 背景",
       "",
       "說明這篇文章要解決的問題與讀者會得到什麼。",
@@ -148,6 +154,7 @@ function createNewArticleForm(): ArticleForm {
 
 function articleToForm(article: AdminArticle): ArticleForm {
   return {
+    ...(article.problem ? { problem: article.problem } : {}),
     content: article.content.replace(/^\n/, "").replace(/\n$/, ""),
     date: article.date,
     description: article.description,
@@ -192,15 +199,27 @@ function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof AdminClientError ? error.message : fallback;
 }
 
-export function AdminConsole({ initialSession }: AdminConsoleProps) {
+export function AdminConsole({ initialSession, domain = "articles", initialSlug }: AdminConsoleProps) {
+  const apiRoot = domain === "leetcode" ? "/api/admin/leetcode" : "/api/admin/posts";
+  const getAdminArticleApiPath = useCallback((slug: string) => articleApiPath(slug).replace("/api/admin/posts", apiRoot), [apiRoot]);
+  const publicLabel = domain === "leetcode" ? "LeetCode" : "Articles";
   const [posts, setPosts] = useState<AdminArticleListItem[]>([]);
+  const openedInitialSlug = useRef(false);
+  useEffect(() => {
+    if (initialSlug && !openedInitialSlug.current) {
+      openedInitialSlug.current = true;
+      void loadArticle(initialSlug);
+    }
+    // The initial URL selection is consumed once; subsequent selection is local.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialSlug]);
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const [status, setStatus] = useState<AdminArticleStatus>("all");
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [revision, setRevision] = useState<string | null>(null);
-  const [form, setForm] = useState<ArticleForm>(() => createNewArticleForm());
-  const [baseline, setBaseline] = useState(() => serializeForm(createNewArticleForm()));
+  const [form, setForm] = useState<ArticleForm>(() => createNewArticleForm(domain));
+  const [baseline, setBaseline] = useState(() => serializeForm(createNewArticleForm(domain)));
   const [markdownHistory, setMarkdownHistory] = useState(() =>
     createMarkdownHistory(form.content),
   );
@@ -344,7 +363,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
         status: currentFilter.status,
       });
       const result = await adminRequest<{ posts: AdminArticleListItem[] }>(
-        `/api/admin/posts?${params}`,
+        `${apiRoot}?${params}`,
       );
       if (requestSequence === listRequestSequence.current) {
         setPosts(result.posts);
@@ -483,7 +502,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
     }
 
     try {
-      const result = await adminRequest<{ html: string }>("/api/admin/preview", {
+      const result = await adminRequest<{ html: string }>(domain === "leetcode" ? "/api/admin/leetcode-preview" : "/api/admin/preview", {
         body: JSON.stringify({ content: nextForm.content, slug: nextForm.slug }),
         method: "POST",
       });
@@ -618,7 +637,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
     previewRequestSequence.current += 1;
     setIsPreviewLoading(false);
     const nextForm = {
-      ...createNewArticleForm(),
+      ...createNewArticleForm(domain),
       slug: category ? `${category}/` : "",
     };
     const nextBaseline = serializeForm(nextForm);
@@ -938,6 +957,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
     conflictRef.current = null;
 
     const payload = {
+      ...(submittedForm.problem ? { problem: submittedForm.problem } : {}),
       content: submittedForm.content,
       date: submittedForm.date,
       description: submittedForm.description,
@@ -959,7 +979,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
               method: "PUT",
             },
           )
-        : await adminRequest<{ article: AdminArticle }>("/api/admin/posts", {
+        : await adminRequest<{ article: AdminArticle }>(apiRoot, {
             body: JSON.stringify({ ...payload, slug: submittedForm.slug }),
             method: "POST",
           });
@@ -1322,7 +1342,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
         window.clearTimeout(timeout);
       }
     };
-  }, []);
+  }, [getAdminArticleApiPath]);
 
   async function archiveArticle() {
     if (
@@ -1347,7 +1367,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
         { method: "DELETE" },
       );
       const archivedSlug = selectedSlug;
-      const nextForm = createNewArticleForm();
+      const nextForm = createNewArticleForm(domain);
       const nextBaseline = serializeForm(nextForm);
       editorEpochRef.current += 1;
       selectedSlugRef.current = null;
@@ -1390,6 +1410,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
             summary: form.description,
             tags: parsedTags,
             title: form.title,
+            ...(form.problem ? { kind: "leetcode", ...form.problem } : {}),
           },
           form.content,
         ),
@@ -1436,32 +1457,32 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
           title: "確認封存文章",
         },
         publish: {
-          body: `「${form.title || form.slug}」儲存後會立即出現在公開 Blog。`,
+          body: `「${form.title || form.slug}」儲存後會立即出現在公開 ${publicLabel}。`,
           title: "確認發布文章",
         },
         unpublish: {
-          body: `「${form.title || form.slug}」會立即從公開 Blog 隱藏，但仍保留在後台。`,
+          body: `「${form.title || form.slug}」會立即從公開 ${publicLabel} 隱藏，但仍保留在後台。`,
           title: "確認取消發布",
         },
       }[pendingAction]
     : null;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_88%_5%,rgba(199,150,88,0.1),transparent_20%),linear-gradient(180deg,rgba(5,7,20,0.96),rgba(7,17,31,0.98))] pb-16 pt-8 sm:pt-10">
+    <div className="admin-editor min-h-screen bg-[radial-gradient(circle_at_88%_5%,rgba(199,150,88,0.1),transparent_20%),linear-gradient(180deg,rgba(5,7,20,0.96),rgba(7,17,31,0.98))] pb-16 pt-8 sm:pt-10">
       <MarkdownCopyButtons />
       <div className="mx-auto w-[94%] max-w-[1540px]">
         <header className="mb-6 flex flex-col gap-4 border-b border-[#26344d] pb-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="mb-2 flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#8ed2d8]">
               <ShieldCheck aria-hidden="true" className="h-4 w-4" />
-              Authenticated editorial channel
+              Content workspace
             </div>
             <h1
               className="font-mono text-2xl font-black tracking-tight text-slate-50 outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
               ref={consoleHeadingRef}
               tabIndex={-1}
             >
-              Editorial Operations Console
+              {publicLabel} 工作區
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
               管理 Markdown 文章的草稿、預覽與發布狀態。每次寫入都會驗證版本，避免覆蓋他人的更新。
@@ -1629,7 +1650,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
                 <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-[#8ed2d8]">
-                    Article tree
+                    {publicLabel}
                   </p>
                   <p className="mt-1 text-xs text-slate-400">{posts.length} records in view</p>
                 </div>
@@ -1723,7 +1744,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
                   disabled={isSaving}
                   id="admin-post-search"
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="搜尋 editorial log…"
+                  placeholder="搜尋標題、slug 或標籤…"
                   type="search"
                   value={query}
                 />
@@ -1902,7 +1923,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
                   </span>
                 </div>
                 <p className="mt-2 truncate font-mono text-sm text-slate-300">
-                  {form.slug ? `content/blog/${form.slug}/main.md` : "等待指定新的 slug"}
+                  {form.slug ? `${domain === "leetcode" ? "content/leetcode" : "content/blog"}/${form.slug}/main.md` : "等待指定新的 slug"}
                 </p>
                 {lastSavedAt ? (
                   <p className="mt-1 font-mono text-[0.68rem] text-slate-400">
@@ -1988,6 +2009,15 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
               </div>
             </PixelCard>
 
+            {form.problem ? (
+              <fieldset className="content-filters mb-4" disabled={isMutationInFlight || isArticleLoading || isPublishedEditor}>
+                <legend className="sr-only">題目資料</legend>
+                <label>題號<input type="number" min="1" value={form.problem.id} onChange={(e) => updateField("problem", { ...form.problem!, id: Number(e.target.value) })} /></label>
+                <label>難度<select value={form.problem.difficulty} onChange={(e) => updateField("problem", { ...form.problem!, difficulty: e.target.value as ProblemMetadata["difficulty"] })}>{["Easy","Medium","Hard"].map((v) => <option key={v}>{v}</option>)}</select></label>
+                <label>進度<select value={form.problem.status} onChange={(e) => updateField("problem", { ...form.problem!, status: e.target.value as ProblemMetadata["status"] })}>{["Todo","Attempted","Solved","Review"].map((v) => <option key={v}>{v}</option>)}</select></label>
+                <label>語言<input maxLength={40} value={form.problem.language} onChange={(e) => updateField("problem", { ...form.problem!, language: e.target.value })} /></label>
+              </fieldset>
+            ) : null}
             {isPublishedEditor ? (
               <div className="mb-4 rounded border border-[#405434] bg-[#10180c] px-4 py-3 text-sm text-[#d4e8b5]">
                 此文章已發布。Editor 可檢視與預覽，但只有 admin 能修改、取消發布或封存。
@@ -2234,7 +2264,7 @@ export function AdminConsole({ initialSession }: AdminConsoleProps) {
                     <Eye aria-hidden="true" className="mb-3 h-7 w-7 text-slate-400" />
                     <p className="font-mono text-sm font-bold text-slate-400">尚未產生安全預覽</p>
                     <p className="mt-2 max-w-sm text-xs leading-5 text-slate-400">
-                      輸入 slug 與 Markdown 並停止 1 秒後，伺服器會使用公開 Blog 相同的 sanitizer
+                      輸入 slug 與 Markdown 並停止 1 秒後，預覽會依公開頁面的格式
                       自動更新預覽。
                     </p>
                   </div>

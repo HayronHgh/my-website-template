@@ -12,13 +12,13 @@ export function LatestPostsSection() {
         <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <SectionTitle
             accent="purple"
-            description="Markdown notes and implementation writeups styled as console signals."
-            eyebrow="Blog Preview"
+            description="Research articles and implementation writeups styled as console signals."
+            eyebrow="Article Preview"
             icon={<PixelIcon className="h-5 w-5" name="file" />}
-            title="Field notes for maintainable software."
+            title="Articles on maintainable software."
           />
-          <NeonButton accent="purple" href="/blog" variant="secondary">
-            View blog
+          <NeonButton accent="purple" href="/articles" variant="secondary">
+            View articles
           </NeonButton>
         </div>
 

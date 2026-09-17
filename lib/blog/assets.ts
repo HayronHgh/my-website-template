@@ -71,7 +71,7 @@ export function getBlogAssetUrl(slug: string, assetPath: string) {
     return trimmedPath;
   }
 
-  return `/blog/assets/${[...slugSegments, ...assetSegments]
+  return `/articles/assets/${[...slugSegments, ...assetSegments]
     .map((segment) => encodeURIComponent(segment))
     .join("/")}`;
 }

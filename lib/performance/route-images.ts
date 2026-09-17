@@ -6,7 +6,7 @@ export type RouteImageEntry = {
 const routeImageMap: RouteImageEntry[] = [
   { href: "/", src: "/bg.png" },
   { href: "/projects", src: "/page-bg-projects.png" },
-  { href: "/blog", src: "/page-bg-blog.png" },
+  { href: "/articles", src: "/page-bg-blog.png" },
   { href: "/about", src: "/page-bg-journey.png" },
   { href: "/resume", src: "/page-bg-resume.png" },
 ];

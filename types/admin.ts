@@ -11,6 +11,7 @@ export type AdminArticleStatus = "all" | "draft" | "published";
 export type AdminSaveMode = "manual" | "autosave";
 
 export type AdminArticleInput = {
+  problem?: import("@/lib/leetcode/schema").ProblemMetadata;
   content: string;
   date: string;
   description: string;

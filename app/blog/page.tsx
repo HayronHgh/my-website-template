@@ -19,6 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: pages.blog.metadata.title,
     description: pages.blog.metadata.description,
+    alternates: { canonical: "/articles" },
   };
 }
 
