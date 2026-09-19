@@ -6,6 +6,7 @@ import {
   getSafePostAssetFilePath,
   getSlugFromSegments,
 } from "@/lib/blog/assets";
+import { createAssetFileResponse } from "@/lib/content/asset-response";
 
 type BlogAssetRouteContext = {
   params: Promise<{
@@ -25,6 +26,7 @@ const contentTypes: Record<string, string> = {
   ".png": "image/png",
   ".svg": "image/svg+xml",
   ".webp": "image/webp",
+  ".mp4": "video/mp4",
 };
 
 export async function GET(request: Request, { params }: BlogAssetRouteContext) {
@@ -60,20 +62,18 @@ export async function GET(request: Request, { params }: BlogAssetRouteContext) {
         });
       }
 
-      const file = await fs.readFile(filePath);
       const contentType =
         contentTypes[path.extname(filePath).toLocaleLowerCase()] ?? "application/octet-stream";
       const isCanonicalVersion = requestedVersion === currentVersion;
 
-      return new NextResponse(new Uint8Array(file), {
-        headers: {
-          "Cache-Control": isCanonicalVersion
-            ? "public, max-age=31536000, immutable"
-            : "public, max-age=86400, stale-while-revalidate=604800",
-          "Content-Length": String(stats.size),
-          "Content-Type": contentType,
-          "Last-Modified": stats.mtime.toUTCString(),
-        },
+      return createAssetFileResponse({
+        cacheControl: isCanonicalVersion
+          ? "public, max-age=31536000, immutable"
+          : "public, max-age=86400, stale-while-revalidate=604800",
+        contentType,
+        filePath,
+        request,
+        stats,
       });
     } catch {
       continue;

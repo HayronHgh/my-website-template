@@ -24,7 +24,8 @@ async function resolveDocument(key: string) {
 }
 export async function readDocument(key: string) {
   const source = await fs.readFile(await resolveDocument(key), "utf8");
-  return { key, data: key.endsWith(".json") ? JSON.parse(source) : source, revision: revisionOf(source) };
+  const jsonSource = source.startsWith("\uFEFF") ? source.slice(1) : source;
+  return { key, data: key.endsWith(".json") ? JSON.parse(jsonSource) : source, revision: revisionOf(source) };
 }
 export async function updateDocument(key: string, data: unknown, revision: string) {
   const previous = queues.get(key) ?? Promise.resolve();

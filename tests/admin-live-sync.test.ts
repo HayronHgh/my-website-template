@@ -20,6 +20,7 @@ const eligibleAutosave: AutosaveEligibility = {
   isDirty: true,
   isFormValid: true,
   isOnline: true,
+  isPublished: true,
   isPublishedEditor: false,
   isVisible: true,
 };
@@ -54,7 +55,7 @@ describe("admin live sync timing", () => {
 });
 
 describe("shouldAutosave", () => {
-  it("allows an eligible existing article to autosave", () => {
+  it("allows an eligible published article to autosave", () => {
     expect(shouldAutosave(eligibleAutosave)).toBe(true);
   });
 
@@ -67,6 +68,7 @@ describe("shouldAutosave", () => {
     { name: "the form is invalid", override: { isFormValid: false } },
     { name: "the browser is offline", override: { isOnline: false } },
     { name: "the page is hidden", override: { isVisible: false } },
+    { name: "the article is unpublished", override: { isPublished: false } },
     { name: "another operation is busy", override: { isBusy: true } },
     { name: "an editor opened a published article", override: { isPublishedEditor: true } },
     { name: "there is a revision conflict", override: { hasConflict: true } },

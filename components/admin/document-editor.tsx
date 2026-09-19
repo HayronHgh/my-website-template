@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { adminRequest, AdminClientError } from "@/components/admin/admin-api";
+import { InlineMarkdownEditor } from "@/components/admin/inline-markdown-editor";
 import type { ProjectItem } from "@/data/site";
 import type { ResumeData } from "@/lib/resume/schema";
 type RecordData = { key: string; revision: string; data: ProjectItem | ResumeData | string };
@@ -39,9 +40,19 @@ export function DocumentEditor({ initial, canEdit }: { initial: RecordData; canE
     } finally { setBusy(false); }
   }
   const project = !record.key.startsWith("resume/") && typeof data !== "string" ? data as ProjectItem : null;
+  const projectSlug = record.key.startsWith("projects/") ? record.key.split("/")[1] : "";
   const resume = record.key.startsWith("resume/") ? data as ResumeData : null;
   const patchProject = (key: string, value: unknown) => setData({ ...project!, [key]: value });
   const patchResume = (key: string, value: unknown) => setData({ ...resume!, [key]: value });
+  async function uploadCover(file: File | undefined) {
+    if (!file || !project || !projectSlug) return;
+    setBusy(true); setError(""); setMessage("封面上傳中…");
+    try {
+      const body = new FormData(); body.set("file", file); body.set("purpose", "cover");
+      const result = await adminRequest<{ assetPath: string }>(`/api/admin/projects/${encodeURIComponent(projectSlug)}/assets`, { method: "POST", body });
+      patchProject("cover", result.assetPath); setMessage("封面已上傳，請儲存變更以套用。");
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "封面上傳失敗。"); setMessage(""); } finally { setBusy(false); }
+  }
   return <div className="content-panel document-editor">
     <div className="document-toolbar"><span role="status">{busy ? "儲存中…" : dirty ? "尚未儲存" : message || "已同步"}</span><button onClick={() => void save()} disabled={busy || !dirty || !canEdit || conflict}>儲存變更</button></div>
     {!canEdit && <p>目前帳號可檢視；專案與履歷由管理員編輯。</p>}
@@ -52,12 +63,13 @@ export function DocumentEditor({ initial, canEdit }: { initial: RecordData; canE
       catch (e) { setError((e as Error).message); } finally { setBusy(false); }
     }}>重新載入</button></>}</div>}
     <fieldset disabled={busy || !canEdit}>
-    {typeof data === "string" && <label>專案說明 · Markdown<textarea className="document-markdown" value={data} onChange={(e) => setData(e.target.value)} /></label>}
+    {typeof data === "string" && <InlineMarkdownEditor disabled={busy || !canEdit} onChange={setData} onError={setError} onStatus={setMessage} previewUrl={`/api/admin/projects/${encodeURIComponent(projectSlug)}/preview`} slug={projectSlug} value={data} />}
     {project && <div className="document-fields">
       {([["title","專案名稱"],["category","分類"],["summary","摘要"],["description","說明"],["scope","負責範圍"],["year","年份"],["publicBoundary","公開範圍"]] as const).map(([key,label]) =>
         <label key={key}>{label}<textarea rows={key === "description" ? 4 : 2} value={project[key] ?? ""} onChange={(e) => patchProject(key, e.target.value || undefined)} /></label>)}
       <label>發布狀態<select value={String(project.published !== false)} onChange={(e) => patchProject("published", e.target.value === "true")}><option value="false">草稿</option><option value="true">公開</option></select></label>
       <label>展示分組<select value={project.group ?? "featured"} onChange={(e) => patchProject("group", e.target.value)}>{["featured","systems","experiments"].map((v) => <option key={v}>{v}</option>)}</select></label>
+      <section className="project-cover-field"><div><h2>專案封面</h2><p>建議 16:9、至少 1280 × 720。支援 JPG、PNG、WebP、GIF、AVIF，最大 12MB。</p></div><input accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={(event) => void uploadCover(event.target.files?.[0])} type="file" /><label>封面路徑<input value={project.cover} onChange={(event) => patchProject("cover", event.target.value)} /></label><label>圖片焦點<input value={project.coverPosition} onChange={(event) => patchProject("coverPosition", event.target.value)} /><small>CSS object-position，例如 center center 或 50% 30%。</small></label></section>
       {(["tech","outcomes","relatedTags"] as const).map((key) => <label key={key}>{{tech:"技術",outcomes:"成果",relatedTags:"相關文章標籤"}[key]} · 每行一項<textarea value={(project[key] ?? []).join("\n")} onChange={(e) => patchProject(key, lines(e.target.value))} /></label>)}
       {(["repoUrl","demoUrl","caseStudyUrl"] as const).map((key) => <label key={key}>{{repoUrl:"原始碼連結",demoUrl:"展示連結",caseStudyUrl:"案例文章連結"}[key]}<input value={project[key] ?? ""} onChange={(e) => patchProject(key, e.target.value || undefined)} /></label>)}
     </div>}

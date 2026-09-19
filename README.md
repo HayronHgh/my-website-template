@@ -1,6 +1,6 @@
 # PortfolioKit
 
-A sanitized, file-driven developer portfolio template built with Next.js, TypeScript, Tailwind CSS, runtime Markdown, a protected Blog Admin CMS, and a pixel-night terminal interface.
+A sanitized, file-driven developer portfolio template built with Next.js, TypeScript, Tailwind CSS, runtime Markdown, a protected multi-workspace Admin CMS, and a pixel-night terminal interface.
 
 The goal is to let personal site settings, page images, project cards, project detail pages, and blog posts update from files without rebuilding the app. The built-in authenticated Admin console can create, edit, preview, publish, and recoverably archive Blog posts; site settings and projects remain file-managed. This is useful when the same Docker image keeps running while `content/` is mounted from a persistent volume or updated by a Git sync job.
 
@@ -68,7 +68,7 @@ Project-to-blog relations work in two ways:
 - Explicit: blog `relatedProjects` points to a project slug.
 - Tag-based: project `relatedTags` overlaps with blog `tags`.
 
-The Admin CMS deliberately manages Blog posts only. Its API/RBAC contract, environment variables, persistent-volume requirements, backups, archive recovery, and security boundaries are documented in:
+The protected Admin workspace manages Articles, LeetCode records, Projects, and Resume data while keeping each domain in its own file-backed content model. Its API/RBAC contract, environment variables, persistent-volume requirements, backups, archive recovery, and security boundaries are documented in:
 
 - [Admin CMS operations](docs/admin-cms-operations.md)
 - [Admin CMS architecture and threat model](docs/admin-cms-architecture.md)
@@ -161,13 +161,13 @@ Key reasons:
 - Runtime content keeps a small mtime cache so repeated reads avoid unnecessary markdown conversion.
 - Git-based content history remains simple and reviewable.
 
-The result is a small content system with a protected Blog editorial console, while avoiding a database or external CMS service.
+The result is a small content system with a protected editorial console, while avoiding a database or external CMS service.
 
 ## Tradeoff
 
 This design intentionally accepts a few constraints:
 
-- The built-in Admin CMS writes Blog posts only; edit site settings and projects through files, Git, or a sync job.
+- The built-in Admin workspace edits Articles, LeetCode, Projects, and Resume data. Site settings remain file/Git managed; project and resume writes are administrator-only and project creation has no delete or version-history workflow.
 - CMS writes require one writable Node.js instance and a persistent filesystem shared by live Blog content and `content/.trash`; multi-writer and serverless ephemeral deployments are unsupported.
 - Runtime file reads plus mtime cache are simpler than a database, but not ideal for very large content collections.
 - Markdown raw HTML is disabled and rendered HTML is passed through `rehype-sanitize`.

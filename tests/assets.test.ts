@@ -204,8 +204,9 @@ describe("content path helpers", () => {
     expect(getProjectAssetFilePath("project-a", ["..", "secret.png"])).toBeNull();
   });
 
-  it("limits blog asset filesystem paths to images", () => {
+  it("limits blog asset filesystem paths to supported media", () => {
     expect(getPostAssetFilePath("post", ["diagram.png"])).not.toBeNull();
+    expect(getPostAssetFilePath("post", ["demo.mp4"])).not.toBeNull();
     expect(getPostAssetFilePath("post", ["main.md"])).toBeNull();
     expect(getPostAssetFilePath("post", ["main.1.md"])).toBeNull();
     expect(getPostAssetFilePath("post", ["main.4.md"])).toBeNull();
@@ -298,6 +299,7 @@ describe("content path helpers", () => {
       const response = await getBlogAssetResponse(
         new Request(
           `https://example.test/articles/assets/${temporaryAsset.slug}/${temporaryAsset.assetFileName}?v=${temporaryAsset.version}`,
+          { headers: { range: "bytes=0-3" } },
         ),
         {
           params: Promise.resolve({
@@ -306,10 +308,13 @@ describe("content path helpers", () => {
         },
       );
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(206);
       expect(response.headers.get("Cache-Control")).toBe(
         "public, max-age=31536000, immutable",
       );
+      expect(response.headers.get("Accept-Ranges")).toBe("bytes");
+      expect(response.headers.get("Content-Range")).toBe("bytes 0-3/16");
+      await expect(response.text()).resolves.toBe("fake");
     } finally {
       await temporaryAsset.cleanup();
     }

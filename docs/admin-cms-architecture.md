@@ -1,14 +1,14 @@
 # Admin CMS 架構與安全說明
 
-這份文件記錄內建 Blog Admin CMS 的實際架構、資料完整性設計、威脅模型、限制與作品集能力證據。日常設定、volume、備份、封存復原及錯誤排除請使用 [Admin CMS 維運手冊](./admin-cms-operations.md)。
+這份文件記錄內建內容 Admin CMS 的實際架構、資料完整性設計、威脅模型、限制與作品集能力證據。日常設定、volume、備份、封存復原及錯誤排除請使用 [Admin CMS 維運手冊](./admin-cms-operations.md)。
 
 ## 範圍與非目標
 
-CMS 管理 `content/blog/**/main.md`，提供登入、文章列表／搜尋、草稿建立與更新、安全預覽、一秒 debounce autosave、一秒 revision heartbeat、有限檔案版本、發布／取消發布及可復原封存。公開 `/blog` 繼續使用原有 dynamic runtime Markdown pipeline，因此 Admin 儲存已發布文章後不需重建 image，公開內容會讀取更新後的 `main.md`。
+CMS 分別管理 `content/blog`、`content/leetcode`、`content/projects` 與 `content/resume`。Articles／LeetCode 提供草稿、直接預覽、已發布內容 autosave、revision heartbeat 與 lifecycle；未發布內容必須明確儲存草稿或發布。Projects／Resume 使用 administrator-only、明確儲存與 optimistic revision。Articles 與 Projects 共用區塊式 Markdown 編輯器、媒體插入及同一套 sanitized renderer；Projects 另可建立未發布專案與上傳封面。公開內容使用 dynamic runtime loader，因此修改已發布內容後不需重建 image。
 
-目前不管理 `content/site` 或 `content/projects`，也不提供：
+目前不管理 `content/site`，也不提供：
 
-- WYSIWYG、媒體庫或附件上傳 API
+- 集中式媒體庫、圖片處理 pipeline、virus scan、signed URL 或 LeetCode-local 附件上傳
 - archive listing／restore UI、完整且可查詢的 revision history、審批 workflow 或 audit log
 - OAuth／SSO／MFA、per-user token denylist 或細粒度 resource RBAC
 - distributed lock、多 writer、serverless persistence 或資料庫 transaction
@@ -42,7 +42,7 @@ flowchart LR
 
 | 元件 | 責任 |
 |---|---|
-| `app/admin`、`components/admin` | 登入與 Editorial Operations Console；處理一秒 autosave／heartbeat／安全預覽、Markdown local-tab undo／redo、loading、validation、authorization、conflict、confirmation 與 server-error UI。 |
+| `app/admin`、`components/admin` | 登入與 Editorial Operations Console；處理 autosave／heartbeat／安全預覽、聚焦顯示 source 的 Markdown 區塊編輯、媒體／Mermaid 插入、local-tab undo／redo、loading、validation、authorization、conflict 與 confirmation。 |
 | `app/api/admin/**` | HTTP boundary、session、Origin、RBAC、write flag、schema 與穩定 JSON envelope。 |
 | `lib/admin/config.ts` | Fail-closed env parsing、production secret strength、使用者白名單與 role。 |
 | `lib/admin/password.ts` | scrypt hash／verify 與 constant-time key comparison。 |
@@ -52,6 +52,7 @@ flowchart LR
 | `lib/admin/articles/store.ts` | Slug-to-path、list/read/create/update/archive、revision、manual／autosave mode 與 process-local mutation queue。 |
 | `lib/admin/articles/versions.ts` | 將手動及 lifecycle 寫入前的 source 輪替為 `main.1.md`～`main.4.md`，並拒絕不安全的 history path。 |
 | `lib/admin/articles/atomic-write.ts` | 同目錄 temporary file、`0600`、`fsync`、close、atomic rename 及 cleanup。 |
+| `lib/admin/media.ts`、`projects.ts`、`documents.ts` | 文章／專案媒體、專案建立、專案／履歷 explicit-save 文件；執行尺寸、MIME、path、role、revision 與 atomic-write 邊界。 |
 | `lib/content/frontmatter.ts` | Parse／serialize 與只重寫 CMS-owned fields 的 patch。 |
 | `lib/blog/markdown.ts` | 公開 Blog 與 Admin preview 共用的 Markdown render／sanitize pipeline。 |
 | `content/blog`、`content/.trash/blog` | Live source of truth 與 recoverable archive；兩者必須在同 filesystem。 |
@@ -122,12 +123,12 @@ Admin client 將同一份 flat article API response 依 `pathSegments[0]` 投影
 
 每個 real Blog root 在同一 Node process 中共享一條 mutation queue，避免同 process 的 create／update／archive 交錯。Create 先驗證目的目錄不存在；update 先重新讀取 source，將 request revision 與目前整檔 SHA-256 比較，不同時回 `409 revision_conflict` 及目前 revision／mtime。
 
-新文章沒有 server revision，因此 UI 要求第一次以明確的手動儲存建立 `main.md`；建立時沒有前版可輪替。既有文章的 update 必須帶 `saveMode`：
+新文章沒有 server revision，因此 UI 要求第一次以「儲存草稿」或「發布」建立 `main.md`；建立時沒有前版可輪替。未發布文章後續仍需明確儲存，只有已發布文章會由 client 自動同步。既有文章的 update 必須帶 `saveMode`：
 
-- `autosave`：使用者停止符合資格的修改 1 秒後送出，只原子取代 `main.md`，不觸碰 `main.1.md`～`main.4.md`，也拒絕任何 published lifecycle transition。
-- `manual`：手動儲存、發布及取消發布都使用此模式。寫入前把目前 `main.md` 保存為 `main.1.md`，較舊快照依序後移，最多保留至 `main.4.md`；連同 live `main.md` 合計五份。
+- `autosave`：已發布文章在使用者停止符合資格的修改 1 秒後送出，只原子取代 `main.md`，不觸碰 `main.1.md`～`main.4.md`，也拒絕任何 published lifecycle transition。
+- `manual`：儲存草稿、發布及取消發布都使用此模式。寫入前把目前 `main.md` 保存為 `main.1.md`，較舊快照依序後移，最多保留至 `main.4.md`；連同 live `main.md` 合計五份。
 
-Markdown／slug 使用相同的一秒 debounce 呼叫既有 server-side sanitizer 更新安全預覽。Client 以 sequence 丟棄 stale response；背景更新不強制切換 mobile tab。Save success 只採用 server 回傳的 slug、published、revision 與 timestamp，不以正規化後的 Markdown 重設 textarea，藉此保留游標、selection 與使用者原始換行手感。
+Markdown／slug 使用相同的一秒 debounce 呼叫既有 server-side sanitizer 更新完整預覽；區塊編輯器另以短 debounce 批次渲染 inactive blocks。Client 以 sequence 丟棄 stale response；背景更新不強制切換 preview tab。Save success 只採用 server 回傳的 slug、published、revision 與 timestamp，不以正規化後的 Markdown 重設目前區塊，藉此保留使用者輸入手感。
 
 若 autosave 已多次改寫 live source，下一次 manual update 會把當下最新的 `main.md` 放入 `main.1.md`。Manual writer 先驗證 `main.md` 與既有版本都是一般檔案而非 symlink，再把每個 next value 與 rollback value 寫入同目錄、完成 `fsync` 的暫存檔；全部 staging 成功才依 `main.4.md` 往 `main.md` 的順序 commit。若任一受捕捉的 rename／remove 失敗，會以 rollback stages 還原原本的檔案集合、內容、mode 與 timestamps。這不是帶 durable journal 的 crash-recovery transaction：process／OS 在多次 rename 中間被強制終止仍可能留下部分輪替，也不是不可變 revision store 或 audit log。
 
@@ -146,7 +147,7 @@ Autosave 的單檔流程可避免正常 single-process crash 留下半份 `main.
 
 Remote revision 改變時，乾淨且沒有 save in flight 的表單會重新讀取完整文章；dirty 或正在儲存的表單則保留本機資料、建立 conflict state 並停用 autosave，不能被 heartbeat 靜默覆蓋。頁面 hidden、offline、尚未選取已建立文章或已有 conflict 時不持續發出 revision request。
 
-Markdown textarea 另有瀏覽器分頁內的 bounded undo／redo state，支援 `Ctrl/Cmd+Z`、`Ctrl/Cmd+Shift+Z` 與 `Ctrl/Cmd+Y`。它在文章切換或 reload 時重設，只涵蓋本機 Markdown 編輯，不是 server persistence、backup、audit 或跨分頁協作機制。
+Markdown 區塊編輯器另有瀏覽器分頁內的 bounded undo／redo state；目前 focus 的 textarea 也保留瀏覽器原生鍵盤 undo／redo。History 在文章切換或 reload 時重設，只涵蓋本機 Markdown 編輯，不是 server persistence、backup、audit 或跨分頁協作機制。
 
 ### Archive
 
@@ -162,9 +163,9 @@ Archive 不含 checksum、actor、reason 或 previous revision，也沒有 resto
 
 ## Markdown 與公開內容
 
-Admin preview 直接呼叫公開 Blog 相同的 renderer。Raw HTML 未開啟，輸出經 `rehype-sanitize`；link 只允許 `http`、`https`、`mailto`、`tel`、安全 relative path 與 hash，image 只允許 `http`、`https` 與安全 relative path。Relative asset 會限制於文章內容根目錄。
+Admin preview 直接呼叫公開 Blog 相同的 renderer。Raw HTML 未開啟，輸出經 `rehype-sanitize`；link 只允許 `http`、`https`、`mailto`、`tel`、安全 relative path 與 hash，image 只允許 `http`、`https` 與安全 relative path。Relative asset 會限制於內容根目錄；未發布文章的 preview 改走 authenticated、`private, no-store` 的媒體路由，不會放寬公開 asset policy。
 
-Renderer 支援受控的 `youtube-nocookie.com` iframe。外部 `http(s)` link、image 及 embed 仍會使訪客連線至第三方，可能洩漏 IP／referrer 或受第三方可用性影響；publisher 應把內容 author 視為受信任角色並審查外部資源。
+Renderer 支援受控的 `youtube-nocookie.com` iframe、固定比例 image／MP4，以及 Mermaid `securityLevel: strict` client rendering。上傳僅接受指定 image MIME（12 MiB）或 MP4（100 MiB），SVG 不可由 Admin 上傳。外部 `http(s)` link、image 及 embed 仍會使訪客連線至第三方，可能洩漏 IP／referrer 或受第三方可用性影響；publisher 應把內容 author 視為受信任角色並審查外部資源。
 
 公開 list/detail route 是 force-dynamic 且只顯示 `published` 文章。Admin 儲存既有 published 文章後，公開 loader 依新的 `main.md`／mtime 更新內容，不需要重新 build；這也代表受權 admin 的變更一旦儲存就會直接影響公開站。Draft 仍以明文存在 persistent volume、archive 與 backup；若 host、volume、備份權限或錯誤的 static file server 暴露內容，應用層 published filter 無法保護 draft confidentiality。
 

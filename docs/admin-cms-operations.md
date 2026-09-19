@@ -1,19 +1,19 @@
 # Admin CMS 維運手冊
 
-本手冊說明如何設定、部署及維護內建的 Markdown Admin CMS。系統直接讀寫 Blog 的 `main.md`，沒有資料庫；同目錄的有限版本只能供人工維護復原，並不是自動復原、audit 或備份服務。架構、安全邊界與遷移條件另見 [Admin CMS 架構與安全說明](./admin-cms-architecture.md)。
+本手冊說明如何設定、部署及維護內建的 file-backed Admin CMS。系統直接讀寫 Articles／LeetCode Markdown、Project metadata／Markdown 與 Resume JSON，沒有資料庫；文章同目錄的有限版本只能供人工維護復原，並不是自動復原、audit 或備份服務。架構、安全邊界與遷移條件另見 [Admin CMS 架構與安全說明](./admin-cms-architecture.md)。
 
 ## 部署契約
 
 啟用寫入前，環境必須同時符合下列條件：
 
 - 只允許一個 Node.js process／container／pod 寫入同一份內容。
-- `content/blog` 與 `content/.trash/blog` 必須位於同一個可持久化 filesystem；封存使用目錄 `rename`，不可把兩者掛成不同 volume。
+- 完整 `content/` 必須持久化且可由唯一 writer 讀寫；其中 `content/blog` 與 `content/.trash/blog` 必須位於同一 filesystem，因為封存使用目錄 `rename`，不可把兩者掛成不同 volume。
 - production container 以 `nextjs:nodejs`、UID/GID `1001:1001` 執行；掛載後的目錄也必須讓該身分可讀寫。
 - 必須使用可保證同 filesystem 原子 `rename` 與可靠 `fsync` 的儲存層。
 - 必須由 HTTPS 提供服務。Production cookie 具有 `Secure`，純 HTTP 不會送出登入 cookie。
 - 不支援 serverless／edge ephemeral filesystem、多個 writable replicas 或跨區同時寫入。這些情境請改用資料庫與 object storage。
 
-無法滿足契約時，明確設定 `ADMIN_CMS_WRITE_ENABLED=false`。文章列表、讀取與安全預覽仍可使用，但建立、更新及封存會回傳 `503 write_disabled`。
+無法滿足契約時，明確設定 `ADMIN_CMS_WRITE_ENABLED=false`。工作區讀取與安全預覽仍可使用，但建立、更新、上傳及封存會回傳 `503 write_disabled`。
 
 ## 本機快速啟動
 
@@ -140,6 +140,11 @@ Docker build stage 另固定 `PNPM_HOME=/pnpm` 與 `PNPM_VERSION=10.30.1`；這�
 | `PUT` | `/api/admin/posts/<slug>` | 僅既有 draft → draft | 可修改 draft／published、發布或取消發布 | 需 Origin、write enabled 與目前 revision；`saveMode=manual|autosave`，舊 client 省略時預設 manual；autosave 不可改變發布狀態。 |
 | `DELETE` | `/api/admin/posts/<slug>` | 不可 | 可 | 需 Origin 與 write enabled；是可復原封存，不是永久刪除。 |
 | `POST` | `/api/admin/preview` | 可 | 可 | 需 Origin；沿用公開 Blog sanitizer；read-only 部署仍可用。 |
+| `POST` | `/api/admin/preview-blocks` | 可 | 可 | 批次渲染 inactive Markdown blocks；需 Origin。 |
+| `POST` | `/api/admin/media` | 可 | 可 | 上傳文章圖片或 MP4；需 Origin、write enabled，文章必須已先建立。 |
+| `GET` | `/api/admin/media/<slug>/<asset>` | 可 | 可 | 只供 authenticated draft preview；`private, no-store`。 |
+| `POST` | `/api/admin/projects` | 不可 | 可 | 建立未發布專案及初始 `meta.json`／`main.md`。 |
+| `POST` | `/api/admin/projects/<slug>/assets` | 不可 | 可 | 上傳專案封面、內文圖片或 MP4。 |
 
 Cookie 名稱為 `admin_session`，具有 `HttpOnly`、`SameSite=Strict`、`Path=/`，production 另有 `Secure`。JWT 僅接受 HS256，並驗證 issuer、audience、issued-at、expiry、JTI、username 與 role；每次 request 都會重新確認使用者仍在白名單且 role 相符。
 
@@ -161,13 +166,20 @@ Cookie 名稱為 `admin_session`，具有 `HttpOnly`、`SameSite=Strict`、`Path
 
 ### 一秒 debounce 自動儲存
 
-選取已存在、且已取得 server revision 的文章後，表單每次修改都會重新開始 1 秒 debounce；最後一次符合資格的修改停滿 1 秒，瀏覽器就以 `saveMode=autosave` 更新目前的 `main.md`。它不是固定每秒寫檔，也不會替尚未建立的文章自動送出第一筆資料。
+選取已存在、已發布、且已取得 server revision 的文章後，表單每次修改都會重新開始 1 秒 debounce；最後一次符合資格的修改停滿 1 秒，瀏覽器就以 `saveMode=autosave` 更新目前的 `main.md`。它不是固定每秒寫檔。未發布文章無論是新建或既有草稿都不會 autosave，必須明確按「儲存草稿」或「發布」。
 
-自動儲存只會在表單有效、頁面可見、瀏覽器 online、沒有其他 mutation／lifecycle action、沒有 revision conflict，且目前使用者有權修改該文章時執行。安全預覽是 read-only request，可和 autosave 同時更新，不會讓其中一方再多等一個 debounce 週期。新文章還沒有 slug 對應的 server revision，必須先按「手動儲存版本」建立 `main.md`；第一次建立沒有舊檔可供輪替。
+自動儲存只會在文章已發布、表單有效、頁面可見、瀏覽器 online、沒有其他 mutation／lifecycle action、沒有 revision conflict，且目前使用者有權修改該文章時執行。安全預覽是 read-only request，不論發布狀態都會自動更新；區塊離開 focus 後直接顯示排版結果，完整預覽則跟隨內容更新。新文章還沒有 slug 對應的 server revision，必須先按「儲存草稿」或「發布」建立 `main.md`；第一次建立沒有舊檔可供輪替。
 
-自動儲存只原子更新最新的 `main.md`，不建立、移動或改寫 `main.1.md`～`main.4.md`。自動儲存也不會改變 `published` lifecycle；發布與取消發布仍是明確的手動操作。Admin 修改已發布文章並完成自動或手動儲存後，公開 Blog 的 dynamic loader 會讀到新的 `main.md`，不需重建 image；因此已發布內容的修改會直接反映到公開頁。
+自動儲存只原子更新最新的 `main.md`，不建立、移動或改寫 `main.1.md`～`main.4.md`。自動儲存也不會改變 `published` lifecycle；儲存草稿、發布與取消發布仍是明確的手動操作。Admin 修改已發布文章並完成自動儲存後，公開 Blog 的 dynamic loader 會讀到新的 `main.md`，不需重建 image；因此已發布內容的修改會直接反映到公開頁。
 
-Markdown 內容或 slug 停止變動 1 秒後，右側安全預覽也會自動重新解析；desktop 可維持 editor／preview 並排，mobile 不會被背景更新強制切換分頁。每個請求都帶本次輸入快照的 sequence，較慢完成的舊預覽不會覆蓋較新的內容。Autosave 成功後只更新 revision／儲存狀態，不會把 server 正規化後的尾端換行重新灌回 textarea，因此游標、選取範圍與正在輸入的內容不會因回應跳動。
+Markdown 正文採整合式區塊編輯：focus block 顯示原始語法，inactive blocks 由 server sanitizer 快速排版；需要整篇檢查時切換到「完整預覽」。Markdown 內容或 slug 停止變動 1 秒後，完整預覽也會重新解析；背景更新不會強制切換 tab。每個請求都帶本次輸入快照的 sequence，較慢完成的舊預覽不會覆蓋較新的內容。Autosave 成功後只更新 revision／儲存狀態，不會把 server 正規化後的尾端換行重新灌回目前區塊。
+
+### 媒體與 Mermaid 流程圖
+
+- 圖片支援 JPG、PNG、WebP、GIF、AVIF，單檔最大 12 MiB；MP4 單檔最大 100 MiB。文章必須先建立 `main.md` 才能上傳附件。
+- 媒體工具以右下角拖曳控制公開寬度，並把寬度與 aspect ratio 寫入受控 Markdown metadata；renderer 只接受數字範圍內的值。
+- 未發布文章的圖片／MP4 preview 使用受 session 保護的 `/api/admin/media/**`；公開 `/articles/assets/**` 仍只提供 published article assets。
+- YouTube 使用 `youtube-nocookie.com`；Mermaid 使用 fenced `mermaid` block，browser 端以 strict security level 渲染。語法錯誤只在該 block 顯示錯誤，不執行 raw HTML。
 
 ### 每秒 revision 心跳與衝突保護
 
@@ -356,7 +368,7 @@ Logout 只刪除當前瀏覽器 cookie，沒有 server-side JTI denylist，不�
 | `403 forbidden` | editor 嘗試發布、取消發布、修改已發布文章或封存 | 改以 admin 執行 consequential action；不要只隱藏 UI，API 已強制 RBAC。 |
 | `409 revision_conflict` | 載入後檔案被另一畫面、Git sync 或人工編輯修改 | 先複製本機草稿，重新載入目前版本，人工合併後再存；不要重送舊 revision。details 含 `currentRevision`、`currentUpdatedAt`。 |
 | 其他 `409` | `slug_exists`、父 slug 已是文章，或現有 path 型態／symlink 不安全 | 選新 slug；檢查一層文章與兩層 series 衝突，勿強制覆蓋。 |
-| `413 request_too_large` | Login 超過 8 KiB，或其他 JSON 超過 512 KiB；UTF-8 多 byte 內容先達上限 | 縮短 Markdown／payload、把大型媒體改成受控附件；同步確認 proxy limit 不低於 app，但不要把 app limit 任意放大。 |
+| `413 request_too_large`／`asset_too_large` | Login 超過 8 KiB、JSON 超過 512 KiB、圖片超過 12 MiB、MP4 超過 100 MiB，或 multipart request 超過 101 MiB | 縮短 Markdown／壓縮媒體；同步確認 proxy limit 足以容納 app 上限，但不要任意放大 server policy。 |
 | `415 unsupported_media_type` | `Content-Type` 不是 `application/json` | 設定 `Content-Type: application/json`；可帶 charset。 |
 | `503 admin_unavailable` | secret／users JSON 缺失或格式錯誤、production secret 太弱、TTL／boolean／origin 無效 | 對照 env 表與 server log；`.env.example` placeholder 刻意不可用。 |
 | `503 write_disabled` | `ADMIN_CMS_WRITE_ENABLED=false` | 若部署符合單 writer、same-filesystem persistent volume 契約，再經變更流程開啟；不要只為消除錯誤而改成 true。 |

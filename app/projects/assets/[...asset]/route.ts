@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import { createAssetFileResponse } from "@/lib/content/asset-response";
 import { getProjectAssetFilePath } from "@/lib/projects/assets";
 
 type ProjectAssetRouteContext = {
@@ -21,9 +22,10 @@ const contentTypes: Record<string, string> = {
   ".png": "image/png",
   ".svg": "image/svg+xml",
   ".webp": "image/webp",
+  ".mp4": "video/mp4",
 };
 
-export async function GET(_request: Request, { params }: ProjectAssetRouteContext) {
+export async function GET(request: Request, { params }: ProjectAssetRouteContext) {
   const { asset } = await params;
   const [slug, ...assetSegments] = asset;
   const filePath = slug ? getProjectAssetFilePath(slug, assetSegments) : null;
@@ -33,15 +35,16 @@ export async function GET(_request: Request, { params }: ProjectAssetRouteContex
   }
 
   try {
-    const file = await fs.readFile(filePath);
+    const stats = await fs.stat(filePath);
     const contentType =
       contentTypes[path.extname(filePath).toLocaleLowerCase()] ?? "application/octet-stream";
 
-    return new NextResponse(new Uint8Array(file), {
-      headers: {
-        "Cache-Control": "no-store",
-        "Content-Type": contentType,
-      },
+    return createAssetFileResponse({
+      cacheControl: "no-store",
+      contentType,
+      filePath,
+      request,
+      stats,
     });
   } catch {
     return new NextResponse("Not found", { status: 404 });

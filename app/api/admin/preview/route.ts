@@ -9,6 +9,7 @@ import {
 import { isSameOriginRequest } from "@/lib/admin/origin";
 import { previewArticleRequestSchema } from "@/lib/admin/schemas";
 import { requireRequestSession } from "@/lib/admin/session";
+import { getAdminArticleMediaUrl } from "@/lib/admin/media";
 import { markdownToHtml } from "@/lib/blog/markdown";
 
 export const runtime = "nodejs";
@@ -26,7 +27,9 @@ export async function POST(request: Request) {
     requireRequestSession(request, ["admin", "editor"], config);
     const body = await readJsonBody(request, previewArticleRequestSchema);
     const { slug } = parseExistingArticleSlug(body.slug);
-    const html = await markdownToHtml(body.content, { slug });
+    const html = await markdownToHtml(body.content, {
+      resolveAssetUrl: (assetPath) => getAdminArticleMediaUrl(slug, assetPath),
+    });
     return apiSuccess({ html });
   } catch (error) {
     return toApiErrorResponse(error);

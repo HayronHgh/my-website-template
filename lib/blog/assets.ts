@@ -12,6 +12,7 @@ const BLOG_ASSET_EXTENSIONS = new Set([
   ".png",
   ".svg",
   ".webp",
+  ".mp4",
 ]);
 
 const hasUnsafeSegment = (segment: string) =>

@@ -7,17 +7,21 @@ async function createTemporaryMarkdownAsset() {
   const slug = `markdown-asset-test-${process.pid}-${Date.now()}`;
   const postDirectory = path.join(process.cwd(), "content", "blog", slug);
   const assetFilePath = path.join(postDirectory, "diagram.png");
+  const videoFilePath = path.join(postDirectory, "demo.mp4");
 
   await fs.mkdir(postDirectory, { recursive: true });
   await fs.writeFile(path.join(postDirectory, "main.md"), "# Test post\n", "utf8");
   await fs.writeFile(assetFilePath, "fake image bytes");
+  await fs.writeFile(videoFilePath, "fake mp4 bytes");
 
   const stats = await fs.stat(assetFilePath);
+  const videoStats = await fs.stat(videoFilePath);
 
   return {
     cleanup: () => fs.rm(postDirectory, { force: true, recursive: true }),
     slug,
     version: `${Math.trunc(stats.mtimeMs)}-${stats.size}`,
+    videoVersion: `${Math.trunc(videoStats.mtimeMs)}-${videoStats.size}`,
   };
 }
 
@@ -102,6 +106,23 @@ describe("markdown rendering", () => {
     expect(html).toContain("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
   });
 
+  it("preserves editor sizing for embedded media", async () => {
+    const youtube = await markdownToHtml("https://youtu.be/dQw4w9WgXcQ?mediaWidth=640&mediaAspect=16-9");
+    const image = await markdownToHtml('![Diagram](diagram.png "media;width=560;aspect=4:3")', { resolveAssetUrl: (asset) => `/projects/assets/demo/${asset}` });
+    const video = await markdownToHtml("[Video](assets/demo.mp4?mediaWidth=800&mediaAspect=16-9)", { resolveAssetUrl: (asset) => `/projects/assets/demo/${asset}` });
+    expect(youtube).toContain("media-embed"); expect(youtube).toContain("--media-width:640px");
+    expect(image).toContain("media-image"); expect(image).toContain("--media-aspect:4/3");
+    expect(video).toContain("<video"); expect(video).toContain("/projects/assets/demo/assets/demo.mp4");
+  });
+
+  it("emits Mermaid source containers for client-side strict rendering", async () => {
+    const html = await markdownToHtml("```mermaid\nflowchart TD\n  A --> B\n```");
+    expect(html).toContain('class="mermaid-diagram"');
+    expect(html).toContain('class="mermaid-source"');
+    expect(html).toContain("flowchart TD");
+    expect(html).not.toContain("code-block");
+  });
+
   it("keeps inline YouTube links as normal links", async () => {
     const html = await markdownToHtml(
       "Watch https://www.youtube.com/watch?v=dQw4w9WgXcQ later.",
@@ -143,6 +164,15 @@ describe("markdown rendering", () => {
       expect(html).toContain('src="/site/assets/bg.png"');
       expect(html).not.toContain("data:image");
       expect(html).not.toContain(`/articles/assets/${temporaryAsset.slug}/%23diagram`);
+
+      const videoHtml = await markdownToHtml(
+        "[Video](demo.mp4?mediaWidth=800&mediaAspect=16-9)",
+        { slug: temporaryAsset.slug },
+      );
+      expect(videoHtml).toContain("<video");
+      expect(videoHtml).toContain(
+        `src="/articles/assets/${temporaryAsset.slug}/demo.mp4?v=${temporaryAsset.videoVersion}"`,
+      );
     } finally {
       await temporaryAsset.cleanup();
     }

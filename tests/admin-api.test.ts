@@ -1,6 +1,9 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as login } from "@/app/api/admin/auth/login/route";
 import { POST as logout } from "@/app/api/admin/auth/logout/route";
+import { GET as getAdminMedia } from "@/app/api/admin/media/[...asset]/route";
 import { GET as getSession } from "@/app/api/admin/session/route";
 import { POST as preview } from "@/app/api/admin/preview/route";
 import { GET as listPosts } from "@/app/api/admin/posts/route";
@@ -169,6 +172,72 @@ describe("protected admin API", () => {
     expect(payload.data.html).toContain("安全預覽");
     expect(payload.data.html).not.toContain("<script");
     expect(payload.data.html).not.toContain("javascript:");
+  });
+
+  it("serves draft article media only through an authenticated preview route", async () => {
+    const slug = `admin-media-${process.pid}-${Date.now()}`;
+    const postDirectory = path.join(process.cwd(), "content", "blog", slug);
+    const assetPath = path.join(postDirectory, "assets", "draft.png");
+
+    await fs.mkdir(path.dirname(assetPath), { recursive: true });
+    await fs.writeFile(
+      path.join(postDirectory, "main.md"),
+      `---
+title: Draft media
+date: 2026-09-19
+summary: Draft media route test.
+tags:
+  - Test
+published: false
+---
+
+Body`,
+      "utf8",
+    );
+    await fs.writeFile(assetPath, "draft image bytes");
+
+    try {
+      const routeContext = {
+        params: Promise.resolve({ asset: [slug, "assets", "draft.png"] }),
+      };
+      const anonymous = await getAdminMedia(
+        new Request(`${origin}/api/admin/media/${slug}/assets/draft.png`),
+        routeContext,
+      );
+      expect(anonymous.status).toBe(401);
+
+      const { cookie } = await loginSuccessfully();
+      const response = await getAdminMedia(
+        new Request(`${origin}/api/admin/media/${slug}/assets/draft.png`, {
+          headers: { cookie },
+        }),
+        routeContext,
+      );
+      expect(response.status).toBe(200);
+      expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+      expect(response.headers.get("Content-Type")).toBe("image/png");
+      await expect(response.text()).resolves.toBe("draft image bytes");
+
+      const previewResponse = await preview(
+        jsonRequest(
+          "/api/admin/preview",
+          {
+            content: "![Draft](assets/draft.png)",
+            slug,
+          },
+          cookie,
+        ),
+      );
+      const previewPayload = (await previewResponse.json()) as {
+        data: { html: string };
+        ok: true;
+      };
+      expect(previewPayload.data.html).toContain(
+        `/api/admin/media/${slug}/assets/draft.png?v=`,
+      );
+    } finally {
+      await fs.rm(postDirectory, { force: true, recursive: true });
+    }
   });
 
   it("returns a revision-only heartbeat view and rejects unknown views", async () => {

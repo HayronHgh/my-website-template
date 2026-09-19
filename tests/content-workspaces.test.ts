@@ -36,8 +36,10 @@ describe("content workspace boundaries", () => {
     root = await mkdtemp(path.join(os.tmpdir(), "workspace-doc-"));
     await mkdir(path.join(root, "content/projects/demo"), { recursive: true });
     await writeFile(path.join(root, "content/projects/demo/main.md"), "# Original\n");
+    await writeFile(path.join(root, "content/projects/demo/meta.json"), '\uFEFF{"slug":"demo"}\n');
     vi.spyOn(process, "cwd").mockReturnValue(root);
     await expect(readDocument("../secret")).rejects.toMatchObject({ status: 400 });
+    await expect(readDocument("projects/demo/meta.json")).resolves.toMatchObject({ data: { slug: "demo" } });
     const record = await readDocument("projects/demo/main.md");
     await expect(updateDocument(record.key, "  ", record.revision)).rejects.toMatchObject({ status: 422 });
     const next = await updateDocument(record.key, "# Updated\n", record.revision);

@@ -24,6 +24,7 @@ export type AutosaveEligibility = {
   isDirty: boolean;
   isFormValid: boolean;
   isOnline: boolean;
+  isPublished: boolean;
   isPublishedEditor: boolean;
   isVisible: boolean;
 };
@@ -38,11 +39,13 @@ export function shouldAutosave({
   isDirty,
   isFormValid,
   isOnline,
+  isPublished,
   isPublishedEditor,
   isVisible,
 }: AutosaveEligibility) {
   return (
     hasSelectedArticle &&
+    isPublished &&
     isDirty &&
     isFormValid &&
     isOnline &&

@@ -327,7 +327,7 @@ const enhanceCodeBlocks = () => async (tree: unknown) => {
 
     const language = getCodeLanguage(codeNode);
 
-    if (language === "math") {
+    if (language === "math" || language === "mermaid") {
       return;
     }
 
@@ -393,6 +393,17 @@ const enhanceCodeBlocks = () => async (tree: unknown) => {
         type: "element",
       },
     ];
+  });
+};
+
+const renderMermaidBlocks = () => (tree: unknown) => {
+  visitMarkdownNodes(tree, (node) => {
+    if (node.type !== "element" || node.tagName !== "pre") return;
+    const codeNode = getCodeElement(node);
+    if (!codeNode || getCodeLanguage(codeNode) !== "mermaid") return;
+    node.tagName = "div";
+    node.properties = { className: ["mermaid-diagram"] };
+    node.children = [{ children: [{ type: "text", value: getTextContent(codeNode) }], properties: { className: ["mermaid-source"] }, tagName: "pre", type: "element" }];
   });
 };
 
@@ -473,6 +484,50 @@ function getYouTubeEmbedUrl(value: string) {
   }
 }
 
+type MediaSizing = { aspectHeight: number; aspectWidth: number; cleanUrl: string; width: number };
+function parseMediaSizing(value: string): MediaSizing {
+  const fallback = { aspectHeight: 9, aspectWidth: 16, cleanUrl: value, width: 720 };
+  try {
+    const absolute = /^[a-z][a-z\d+.-]*:/i.test(value);
+    const url = new URL(value, "https://media.local");
+    const widthValue = Number(url.searchParams.get("mediaWidth"));
+    const aspectMatch = url.searchParams.get("mediaAspect")?.match(/^(\d{1,5})-(\d{1,5})$/);
+    url.searchParams.delete("mediaWidth"); url.searchParams.delete("mediaAspect");
+    const cleanUrl = absolute ? url.toString() : `${url.pathname.replace(/^\//, "")}${url.search}${url.hash}`;
+    const aspectWidth = aspectMatch ? Number(aspectMatch[1]) : 16; const aspectHeight = aspectMatch ? Number(aspectMatch[2]) : 9;
+    return {
+      aspectHeight: aspectHeight > 0 ? aspectHeight : 9,
+      aspectWidth: aspectWidth > 0 ? aspectWidth : 16,
+      cleanUrl,
+      width: Number.isFinite(widthValue) ? Math.max(240, Math.min(1200, Math.round(widthValue))) : 720,
+    };
+  } catch { return fallback; }
+}
+
+function mediaStyle(sizing: MediaSizing) {
+  return `--media-width:${sizing.width}px;--media-aspect:${sizing.aspectWidth}/${sizing.aspectHeight}`;
+}
+
+const enhanceSizedImages = () => (tree: unknown) => {
+  const transform = (node: MarkdownNode) => {
+    if (!Array.isArray(node.children)) return;
+    node.children = node.children.map((child) => {
+      const image = child as MarkdownNode;
+      if (image.type === "element" && image.tagName === "img") {
+        const title = image.properties?.title;
+        const match = typeof title === "string" ? title.match(/^media;width=(\d+);aspect=(\d+):(\d+)$/) : null;
+        if (match) {
+          const sizing = parseMediaSizing(`asset?mediaWidth=${match[1]}&mediaAspect=${match[2]}-${match[3]}`);
+          delete image.properties?.title;
+          return { children: [image], properties: { className: ["media-embed", "media-image"], style: mediaStyle(sizing) }, tagName: "div", type: "element" };
+        }
+      }
+      transform(image); return image;
+    });
+  };
+  transform(tree as MarkdownNode);
+};
+
 function getSingleLinkUrl(node: MarkdownNode) {
   if (!Array.isArray(node.children)) {
     return null;
@@ -506,7 +561,7 @@ function getSingleLinkUrl(node: MarkdownNode) {
         .trim()
     : "";
 
-  return linkText === href ? href : null;
+  return linkText ? href : null;
 }
 
 const embedStandaloneYouTubeLinks = () => (tree: unknown) => {
@@ -516,7 +571,8 @@ const embedStandaloneYouTubeLinks = () => (tree: unknown) => {
     }
 
     const linkUrl = getSingleLinkUrl(node);
-    const embedUrl = linkUrl ? getYouTubeEmbedUrl(linkUrl) : null;
+    const sizing = linkUrl ? parseMediaSizing(linkUrl) : null;
+    const embedUrl = sizing ? getYouTubeEmbedUrl(sizing.cleanUrl) : null;
 
     if (!embedUrl) {
       return;
@@ -524,7 +580,8 @@ const embedStandaloneYouTubeLinks = () => (tree: unknown) => {
 
     node.tagName = "div";
     node.properties = {
-      className: ["youtube-embed"],
+      className: ["youtube-embed", "media-embed"],
+      style: mediaStyle(sizing!),
     };
     node.children = [
       {
@@ -545,18 +602,33 @@ const embedStandaloneYouTubeLinks = () => (tree: unknown) => {
   });
 };
 
+const embedStandaloneMp4Links = (
+  resolveAssetUrl?: (assetPath: string) => Promise<string> | string,
+) => () => async (tree: unknown) => {
+  await visitMarkdownNodesAsync(tree, async (node) => {
+    if (node.type !== "element" || node.tagName !== "p") return;
+    const linkUrl = getSingleLinkUrl(node); if (!linkUrl) return;
+    const sizing = parseMediaSizing(linkUrl);
+    let pathname = "";
+    try { pathname = new URL(sizing.cleanUrl, "https://media.local").pathname; } catch { return; }
+    if (!pathname.toLowerCase().endsWith(".mp4")) return;
+    const source = resolveAssetUrl ? await resolveAssetUrl(sizing.cleanUrl) : sizing.cleanUrl;
+    node.tagName = "div"; node.properties = { className: ["media-embed", "media-video"], style: mediaStyle(sizing) };
+    node.children = [{ children: [], properties: { controls: true, playsInline: true, preload: "metadata", src: source }, tagName: "video", type: "element" }];
+  });
+};
+
 export async function markdownToHtml(
   markdown: string,
   options: MarkdownToHtmlOptions = {},
 ) {
   const processor = remark().use(remarkGfm).use(remarkMath);
+  const resolveAssetUrl = options.resolveAssetUrl ?? (options.slug
+    ? (assetPath: string) => getVersionedBlogAssetUrl(options.slug!, assetPath)
+    : undefined);
 
-  if (options.resolveAssetUrl) {
-    processor.use(rewriteRelativeImageUrls(options.resolveAssetUrl));
-  } else if (options.slug) {
-    processor.use(rewriteRelativeImageUrls((assetPath) =>
-      getVersionedBlogAssetUrl(options.slug!, assetPath),
-    ));
+  if (resolveAssetUrl) {
+    processor.use(rewriteRelativeImageUrls(resolveAssetUrl));
   } else {
     processor.use(sanitizeMarkdownUrls);
   }
@@ -565,7 +637,10 @@ export async function markdownToHtml(
     .use(remarkRehype)
     .use(enhanceCodeBlocks)
     .use(rehypeSanitize, sanitizeSchema)
+    .use(renderMermaidBlocks)
+    .use(enhanceSizedImages)
     .use(embedStandaloneYouTubeLinks)
+    .use(embedStandaloneMp4Links(resolveAssetUrl))
     .use(rehypeKatex)
     .use(rehypeStringify)
     .process(markdown);

@@ -47,8 +47,9 @@ repaired without changing its wording; each such repair is recorded in the manif
 
 ## Editing and deployment
 
-- Articles and LeetCode retain autosave, preview, revision conflicts, and recoverable archive behavior.
-- Project/resume forms edit existing files with explicit save, schema validation, optimistic revision checks and atomic writes. They require the admin role. They do not yet provide version history or creation of new project folders.
+- Articles and LeetCode keep direct preview, revision conflicts, and recoverable archive behavior. Published entries autosave after the one-second debounce; unpublished entries require an explicit draft save or publish action.
+- Project/resume forms use explicit save, schema validation, optimistic revision checks and atomic writes. Administrators can create an unpublished project folder, upload a 16:9 cover, and edit its card metadata or Markdown case study. Project deletion and version history are not provided.
+- Article and project Markdown use the same block-style editor: the focused block shows source while inactive blocks render through the sanitized public pipeline. Article media is stored beside the article; project media is stored under the project `assets/` directory. Images are limited to 12 MiB and MP4 files to 100 MiB.
 - Resume PDF is a separate asset and must be updated separately.
 - Keep runtime content backed up. Mount/persist the complete content directory on the Mac deployment, including the new leetcode and resume directories; do not overwrite private content with template fixtures.
 - Existing CI/CD configuration is unchanged. Run validate:content, typecheck, test:run, lint and build before deployment. The content validator now also checks LeetCode and resume.

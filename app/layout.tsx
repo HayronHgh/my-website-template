@@ -3,6 +3,7 @@ import { JetBrains_Mono, Manrope } from "next/font/google";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { RouteImagePreloader } from "@/components/performance/route-image-preloader";
+import { MermaidRenderer } from "@/components/blog/mermaid-renderer";
 import { getSiteSettings } from "@/lib/site/settings";
 import "katex/dist/katex.min.css";
 import "./globals.css";
@@ -73,6 +74,7 @@ export default async function RootLayout({
       <body
         className={`${manrope.variable} ${jetbrainsMono.variable} antialiased`}
       >
+        <MermaidRenderer />
         <RouteImagePreloader images={routeImagePreloads} />
         <div className="flex min-h-screen flex-col">
           <Navbar

@@ -33,7 +33,8 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ChangeEvent, CompositionEvent, FormEvent, KeyboardEvent } from "react";
+import type { FormEvent } from "react";
+import { InlineMarkdownEditor } from "@/components/admin/inline-markdown-editor";
 import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
 import { NeonButton } from "@/components/ui/neon-button";
 import { PixelCard } from "@/components/ui/pixel-card";
@@ -55,15 +56,12 @@ import { formatAdminUpdatedAt } from "@/lib/admin/date";
 import {
   canRedoMarkdown,
   canUndoMarkdown,
-  classifyMarkdownHistoryShortcut,
   createMarkdownHistory,
   recordMarkdownEdit,
   redoMarkdownHistory,
   resetMarkdownHistory,
   undoMarkdownHistory,
-  updateMarkdownSelection,
   type MarkdownHistory,
-  type MarkdownSelection,
 } from "@/lib/admin/editor-history";
 import {
   AUTO_SAVE_DELAY_MS,
@@ -187,14 +185,6 @@ function serializePreviewInput(form: ArticleForm) {
   return JSON.stringify({ content: form.content, slug: form.slug });
 }
 
-function getMarkdownSelection(textarea: HTMLTextAreaElement): MarkdownSelection {
-  return {
-    direction: textarea.selectionDirection,
-    end: textarea.selectionEnd,
-    start: textarea.selectionStart,
-  };
-}
-
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof AdminClientError ? error.message : fallback;
 }
@@ -254,9 +244,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     currentUpdatedAt?: string;
   } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const markdownHistoryRef = useRef<MarkdownHistory>(markdownHistory);
-  const historyShortcutHandledRef = useRef(false);
   const markdownCompositionRef = useRef(false);
   const articleRequestSequence = useRef(0);
   const listRequestSequence = useRef(0);
@@ -754,16 +742,6 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
 
     commitMarkdownHistory(nextHistory);
     updateField("content", nextHistory.present.value);
-    window.requestAnimationFrame(() => {
-      const textarea = contentTextareaRef.current;
-      if (!textarea) {
-        return;
-      }
-
-      const { direction, end, start } = nextHistory.present.selection;
-      textarea.focus();
-      textarea.setSelectionRange(start, end, direction);
-    });
   }
 
   function performMarkdownHistoryAction(action: "redo" | "undo") {
@@ -774,67 +752,19 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     );
   }
 
-  function handleMarkdownChange(event: ChangeEvent<HTMLTextAreaElement>) {
-    const nativeEvent = event.nativeEvent as InputEvent;
-
-    if (nativeEvent.isComposing || markdownCompositionRef.current) {
-      updateField("content", event.currentTarget.value);
+  function handleInlineMarkdownChange(value: string) {
+    if (value.length > 500000) {
+      setError("Markdown 正文不可超過 500,000 個字元。");
       return;
     }
-
     const nextHistory = recordMarkdownEdit(
       markdownHistoryRef.current,
-      event.currentTarget.value,
-      getMarkdownSelection(event.currentTarget),
+      value,
       {
-        inputType: nativeEvent.inputType || "insertReplacementText",
-        timestamp: window.performance.now(),
+        direction: "none",
+        end: value.length,
+        start: value.length,
       },
-    );
-    commitMarkdownHistory(nextHistory);
-    updateField("content", nextHistory.present.value);
-  }
-
-  function handleMarkdownSelect(event: FormEvent<HTMLTextAreaElement>) {
-    markdownHistoryRef.current = updateMarkdownSelection(
-      markdownHistoryRef.current,
-      getMarkdownSelection(event.currentTarget),
-    );
-  }
-
-  function handleMarkdownKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    const action = classifyMarkdownHistoryShortcut({
-      altKey: event.altKey,
-      ctrlKey: event.ctrlKey,
-      isComposing: event.nativeEvent.isComposing,
-      key: event.key,
-      keyCode: event.keyCode,
-      metaKey: event.metaKey,
-      shiftKey: event.shiftKey,
-    });
-
-    if (!action) {
-      return;
-    }
-
-    event.preventDefault();
-    historyShortcutHandledRef.current = true;
-    performMarkdownHistoryAction(action);
-    window.setTimeout(() => {
-      historyShortcutHandledRef.current = false;
-    }, 0);
-  }
-
-  function handleMarkdownCompositionStart() {
-    markdownCompositionRef.current = true;
-    setIsMarkdownComposing(true);
-  }
-
-  function handleMarkdownCompositionEnd(event: CompositionEvent<HTMLTextAreaElement>) {
-    const nextHistory = recordMarkdownEdit(
-      markdownHistoryRef.current,
-      event.currentTarget.value,
-      getMarkdownSelection(event.currentTarget),
       {
         inputType: "insertReplacementText",
         timestamp: window.performance.now(),
@@ -842,29 +772,11 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     );
     commitMarkdownHistory(nextHistory);
     updateField("content", nextHistory.present.value);
-    markdownCompositionRef.current = false;
-    setIsMarkdownComposing(false);
   }
 
-  function handleMarkdownBeforeInput(event: FormEvent<HTMLTextAreaElement>) {
-    const nativeEvent = event.nativeEvent as InputEvent;
-
-    if (nativeEvent.isComposing || markdownCompositionRef.current) {
-      return;
-    }
-
-    const inputType = nativeEvent.inputType;
-    const action =
-      inputType === "historyUndo" ? "undo" : inputType === "historyRedo" ? "redo" : null;
-
-    if (!action) {
-      return;
-    }
-
-    event.preventDefault();
-    if (!historyShortcutHandledRef.current) {
-      performMarkdownHistoryAction(action);
-    }
+  function handleMarkdownComposingChange(isComposing: boolean) {
+    markdownCompositionRef.current = isComposing;
+    setIsMarkdownComposing(isComposing);
   }
 
   function validateForm() {
@@ -880,6 +792,12 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     if (tagsAreInvalid) {
       formElement?.querySelector<HTMLElement>("#post-tags")?.focus();
       setError("標籤最多 20 個，且每個標籤不可超過 40 個字元。");
+      return false;
+    }
+
+    if (!form.content.trim()) {
+      formElement?.querySelector<HTMLElement>("#post-content textarea, #post-content button")?.focus();
+      setError("Markdown 正文不可為空白。");
       return false;
     }
 
@@ -927,6 +845,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
           isDirty: submittedSnapshot !== baselineRef.current,
           isFormValid: formIsValid,
           isOnline,
+          isPublished: submittedForm.published,
           isPublishedEditor: submittedIsPublishedEditor,
           isVisible: isPageVisible,
         })
@@ -1086,6 +1005,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
         isDirty,
         isFormValid: formIsValid,
         isOnline,
+        isPublished: form.published,
         isPublishedEditor,
         isVisible: isPageVisible,
       })
@@ -1904,19 +1824,21 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                   </span>
                   <span className="font-mono text-xs text-slate-400">
                     {isMarkdownComposing
-                      ? "IME COMPOSITION — SAVE PAUSED"
+                      ? "IME COMPOSITION — SYNC PAUSED"
                       : isAutoSaving
-                      ? "AUTOSAVING MAIN.MD"
+                        ? "AUTOSAVING MAIN.MD"
                       : isSaving
-                        ? "CREATING MANUAL VERSION"
+                        ? "SAVING DRAFT"
                         : conflict
                           ? "SYNC CONFLICT — LOCAL KEPT"
                           : isDirty
-                            ? hasSelection
+                            ? form.published && hasSelection
                               ? "AUTOSAVE IN 1S"
                               : "MANUAL SAVE REQUIRED"
-                            : hasSelection
+                            : form.published && hasSelection
                               ? "REVISION SYNCED"
+                              : hasSelection
+                                ? "DRAFT SAVED"
                               : "NEW RECORD"}
                   </span>
                 </div>
@@ -1930,45 +1852,28 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                 ) : null}
               </div>
               <div className="flex flex-wrap gap-2">
-                <NeonButton
-                  className={disabledButtonClass}
-                  disabled={
-                    isMutationInFlight ||
-                    isArticleLoading ||
-                    isPreviewLoading ||
-                    Boolean(conflict) ||
-                    isPublishedEditor
-                  }
-                  onClick={() => void saveArticle()}
-                  title="立即儲存 main.md，並將舊版輪替為最多 4 份歷史版本。"
-                  variant="secondary"
-                >
-                  {isSaving ? (
-                    <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save aria-hidden="true" className="h-4 w-4" />
-                  )}
-                  手動儲存版本
-                </NeonButton>
-                <NeonButton
-                  className={disabledButtonClass}
-                  disabled={
-                    isPreviewLoading ||
-                    isArticleLoading ||
-                    isMutationInFlight ||
-                    !form.content ||
-                    !form.slug
-                  }
-                  onClick={() => void requestPreview()}
-                  variant="secondary"
-                >
-                  {isPreviewLoading ? (
-                    <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Eye aria-hidden="true" className="h-4 w-4" />
-                  )}
-                  更新預覽
-                </NeonButton>
+                {!form.published ? (
+                  <NeonButton
+                    className={disabledButtonClass}
+                    disabled={
+                      isMutationInFlight ||
+                      isArticleLoading ||
+                      isPreviewLoading ||
+                      Boolean(conflict) ||
+                      isPublishedEditor
+                    }
+                    onClick={() => void saveArticle(false)}
+                    title="儲存未發布內容；草稿不會自動同步到 main.md。"
+                    variant="secondary"
+                  >
+                    {isSaving ? (
+                      <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save aria-hidden="true" className="h-4 w-4" />
+                    )}
+                    儲存草稿
+                  </NeonButton>
+                ) : null}
                 {isAdmin ? (
                   <NeonButton
                     accent="amber"
@@ -2027,7 +1932,12 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
             ) : null}
             {form.published && isAdmin ? (
               <div className="mb-4 rounded border border-amber-300/30 bg-amber-950/15 px-4 py-3 text-sm text-amber-100/80">
-                此文章已發布；停止輸入 1 秒後更新的 main.md 會立即反映到公開網站。
+                此文章已發布；編輯內容會直接預覽，停止輸入 1 秒後自動同步 main.md，並立即反映到公開網站。
+              </div>
+            ) : null}
+            {!form.published && !isPublishedEditor ? (
+              <div className="mb-4 rounded border border-cyan-300/25 bg-cyan-950/10 px-4 py-3 text-sm text-cyan-100/75">
+                草稿會即時預覽，但不會自動寫入 main.md；請使用「儲存草稿」或「發布」提交內容。
               </div>
             ) : null}
 
@@ -2041,7 +1951,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                 type="button"
               >
                 <PencilLine aria-hidden="true" className="mr-2 inline h-4 w-4" />
-                編輯器
+                整合編輯
               </button>
               <button
                 aria-pressed={workspaceTab === "preview"}
@@ -2052,11 +1962,11 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                 type="button"
               >
                 <Eye aria-hidden="true" className="mr-2 inline h-4 w-4" />
-                安全預覽
+                完整預覽
               </button>
             </div>
 
-            <div className="studio-panes">
+            <div className="studio-panes studio-panes--inline">
               <PixelCard
                 as="section"
                 className={`studio-pane studio-source ${workspaceTab === "editor" ? "studio-pane--active" : ""}`}
@@ -2103,7 +2013,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                     </span>
                   </div>
                 </div>
-                <form onSubmit={(event) => event.preventDefault()} ref={formRef}>
+                <form autoComplete="off" onSubmit={(event) => event.preventDefault()} ref={formRef}>
                   <fieldset
                     className="space-y-4"
                     disabled={isArticleLoading || isSaving || isPublishedEditor}
@@ -2205,26 +2115,26 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                           {form.content.length.toLocaleString()} / 500,000
                         </span>
                       </div>
-                      <textarea
+                      <div
                         aria-describedby="post-content-history-help"
                         aria-invalid={hasAttemptedSubmit && !form.content.trim()}
-                        className="pixel-scrollbar min-h-[34rem] w-full resize-y rounded border border-[#26344d] bg-[#020617] px-4 py-3 font-mono text-sm leading-6 text-slate-200 outline-none invalid:border-rose-400 focus:border-[#6ea8b0] focus:ring-2 focus:ring-cyan-300/20"
                         id="post-content"
-                        maxLength={500000}
-                        onBeforeInput={handleMarkdownBeforeInput}
-                        onChange={handleMarkdownChange}
-                        onCompositionEnd={handleMarkdownCompositionEnd}
-                        onCompositionStart={handleMarkdownCompositionStart}
-                        onKeyDown={handleMarkdownKeyDown}
-                        onSelect={handleMarkdownSelect}
-                        ref={contentTextareaRef}
-                        required
-                        spellCheck="true"
-                        value={form.content}
-                      />
+                      >
+                        <InlineMarkdownEditor
+                          disabled={isArticleLoading || isSaving || isPublishedEditor}
+                          mediaUploadUrl="/api/admin/media"
+                          onChange={handleInlineMarkdownChange}
+                          onComposingChange={handleMarkdownComposingChange}
+                          onError={setError}
+                          onStatus={setMessage}
+                          previewUrl="/api/admin/preview-blocks"
+                          slug={form.slug}
+                          value={form.content}
+                        />
+                      </div>
                       <p className="mt-1 text-xs text-slate-400" id="post-content-history-help">
-                        停止輸入 1 秒後自動更新 main.md 與安全預覽；可用 Ctrl/⌘+Z
-                        復原本分頁的誤刪。
+                        點選區塊編輯原始 Markdown，離開後立即排版。已發布文章停止輸入 1 秒後自動同步
+                        main.md；草稿需明確儲存。圖片與 MP4 請先儲存新文章，再上傳媒體。
                       </p>
                     </div>
                   </fieldset>
