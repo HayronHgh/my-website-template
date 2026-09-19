@@ -1501,7 +1501,8 @@ a {
 
 .prose-content table {
   display: block;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   overflow-x: auto;
   border-collapse: collapse;
   border: 1px solid rgba(125, 211, 252, 0.18);
