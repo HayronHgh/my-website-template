@@ -11,7 +11,15 @@ export function MermaidRenderer() {
         const nodes = Array.from(document.querySelectorAll<HTMLElement>(".mermaid-diagram:not([data-mermaid-state])"));
         if (!nodes.length) return;
         const mermaid = (await import("mermaid")).default;
-        mermaid.initialize({ maxEdges: 300, maxTextSize: 50_000, securityLevel: "strict", startOnLoad: false, suppressErrorRendering: true, theme: "dark" });
+        mermaid.initialize({
+          htmlLabels: false,
+          maxEdges: 300,
+          maxTextSize: 50_000,
+          securityLevel: "strict",
+          startOnLoad: false,
+          suppressErrorRendering: true,
+          theme: "dark",
+        });
         for (const node of nodes) {
           if (disposed) break;
           const source = node.querySelector(".mermaid-source")?.textContent?.trim();
