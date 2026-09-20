@@ -41,7 +41,7 @@
   .article-filter-disclosure[open] > div { padding: 0 .75rem .75rem; }
   .article-showcase { display: flex; flex-direction: column; gap: 1.5rem; }
   .article-showcase > * { margin: 0; }
-  .article-featured { order: 2; }
+  .article-featured { order: -1; }
   .article-showcase > .pixel-card { padding: 1rem !important; }
   .article-showcase h2 { font-size: 1.0625rem; line-height: 1.6; }
   [data-mobile-layout="article-list"] { display: block; min-height: 0; border: 0; border-top: 1px solid #30364e; border-radius: 0; padding: 1.25rem 0; background: transparent; box-shadow: none; }
