@@ -5,6 +5,7 @@ import { getPublishedProjects } from "@/lib/projects/meta";
 import { getSiteSettings } from "@/lib/site/settings";
 import { getPublishedPostListItems } from "@/lib/blog/posts";
 import { getBlogArticlePath } from "@/lib/blog/slug";
+import { getPublishedProblems } from "@/lib/leetcode/public";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,8 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const articles = (await getPublishedPostListItems()).slice(0, 3);
-  const [projects, siteSettings] = await Promise.all([
+  const [articles, problems, projects, siteSettings] = await Promise.all([
+    getPublishedPostListItems(),
+    getPublishedProblems(),
     getPublishedProjects(),
     getSiteSettings(),
   ]);
@@ -35,17 +37,19 @@ export default async function Home() {
         siteProfile={siteSettings.siteProfile}
       />
       <DashboardSection
-        blogCardReadLabel={siteSettings.pages.blog.card.readLabel}
-        contactLinks={siteSettings.contactLinks}
         copy={siteSettings.pages.home.dashboard}
-        homePageData={{ ...siteSettings.homePageData, articles: articles.map((article) => ({
+        homePageData={{ ...siteSettings.homePageData, articles: articles.slice(0, 3).map((article) => ({
           slug: article.slug, title: article.title, date: article.date,
           category: article.tags[0] ?? "Article", excerpt: article.summary,
           href: getBlogArticlePath(article.slug),
         })) }}
+        practiceStats={{
+          notes: problems.filter((problem) => problem.problem?.entryType === "note").length,
+          published: problems.length,
+          solved: problems.filter((problem) => problem.problem?.status === "Solved").length,
+        }}
         projectCardLabels={siteSettings.pages.projectCard}
         projects={projects.filter((project) => project.group === "featured").slice(0, 3)}
-        siteProfile={siteSettings.siteProfile}
         timelineCopy={siteSettings.pages.home.timeline}
       />
     </>

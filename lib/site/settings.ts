@@ -325,7 +325,7 @@ const defaultPages: SitePages = {
       matchingArticlePlural: "matching articles",
       matchingArticleSingular: "matching article",
       placeholder: "Search title, summary, #tag",
-      quickReadButtonLabel: "Quick read",
+      quickReadButtonLabel: "Read",
       readTimeSuffix: "min read",
       removeTagLabel: "Remove tag",
       searchResultsTitle: "Search results",
@@ -366,13 +366,13 @@ const defaultPages: SitePages = {
   },
   home: {
     dashboard: {
-      aboutTitle: "About Me",
+      aboutTitle: "Engineering Strengths",
       blogLink: { href: "/articles", label: "View articles ->" },
       blogTitle: "Articles",
       contactEyebrow: "Signal Links",
       contactTitle: "Connect",
       featuredProjectsLink: { href: "/projects", label: "View all ->" },
-      featuredProjectsTitle: "Featured Projects",
+      featuredProjectsTitle: "Selected Projects",
       profileFactLabels: {
         email: "Email",
         location: "Location",
@@ -380,7 +380,7 @@ const defaultPages: SitePages = {
         timezone: "Timezone",
       },
       skillsLink: { href: "/resume", label: "More skills ->" },
-      skillsTitle: "Skills",
+      skillsTitle: "Focus",
     },
     heroActions: {
       contact: { href: "/contact", label: "Contact Me" },
@@ -696,13 +696,9 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     workingStyle: arrayOrFallback(settings.siteProfile?.workingStyle, fallbackSiteProfile.workingStyle),
     specialties: arrayOrFallback(settings.siteProfile?.specialties, fallbackSiteProfile.specialties),
   };
-  const navigationItems = arrayOrFallback(settings.navigationItems, fallbackNavigationItems).map((item) =>
-    item.href === "/blog" ? { ...item, href: "/articles", label: "Articles" } : item,
-  );
-  if (!navigationItems.some((item) => item.href === "/leetcode")) {
-    const afterArticles = navigationItems.findIndex((item) => item.href === "/articles") + 1;
-    navigationItems.splice(afterArticles, 0, { key: "leetcode", href: "/leetcode", label: "LeetCode", icon: "file", glow: "amber" });
-  }
+  const navigationItems = arrayOrFallback(settings.navigationItems, fallbackNavigationItems)
+    .map((item) => item.href === "/blog" ? { ...item, href: "/articles", label: "Articles" } : item)
+    .filter((item) => item.href !== "/leetcode");
   const timelineItems = arrayOrFallback(settings.timelineItems, fallbackTimelineItems);
   const skillItems = arrayOrFallback(settings.skillItems, fallbackSkillItems);
   const blogPreviewPosts = arrayOrFallback(settings.blogPreviewPosts, fallbackBlogPreviewPosts);

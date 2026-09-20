@@ -131,7 +131,6 @@ function BlogPostCard({
               onClick={handleOpenPost}
             >
               {copy.quickReadButtonLabel}
-              <span aria-hidden>-&gt;</span>
             </Link>
           </div>
         </div>
@@ -157,6 +156,70 @@ function BlogPostCard({
             <span className="h-1 w-2/3 rounded-[2px] bg-cyan-200/12" />
           </div>
         </div>
+      </div>
+    </article>
+  );
+}
+
+function RecommendedPostCard({
+  copy,
+  onSelectPost,
+  onSelectTag,
+  post,
+}: Pick<BlogPostShowcaseProps, "copy" | "onSelectPost" | "onSelectTag"> & {
+  post: BlogPostListItem;
+}) {
+  const handleOpenPost = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+      return;
+    }
+
+    event.preventDefault();
+    onSelectPost(post.slug);
+  };
+
+  return (
+    <article className="group flex aspect-square min-w-0 flex-col overflow-hidden rounded-[6px] border border-[#26344d] bg-[#0b1220] p-4 shadow-[inset_0_0_0_1px_#111b2d,0_8px_22px_rgba(0,0,0,0.24)] transition-colors duration-200 hover:border-[#5f7c94] hover:bg-[#101827] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.055),0_10px_28px_rgba(0,0,0,0.28),0_0_14px_rgba(34,211,238,0.06)]">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 font-mono text-[11px] text-[#8ea0c8]">
+        <button
+          className={cn(
+            "inline-flex max-w-full items-center gap-1 truncate rounded-[3px] border px-2 py-1 font-bold transition duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200",
+            getCategoryToneClass(post),
+          )}
+          onClick={() => onSelectTag(post.tags[0] ?? post.series?.title ?? post.title)}
+          type="button"
+        >
+          <span aria-hidden>#</span>
+          {post.tags[0] ?? post.series?.title ?? copy.categoryFallback}
+        </button>
+        <time dateTime={post.date}>{formatDate(post.date)}</time>
+      </div>
+
+      <Link
+        className="mt-4 flex min-h-0 flex-1 flex-col rounded-[4px] text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-200"
+        href={getBlogArticlePath(post.slug)}
+        onClick={handleOpenPost}
+      >
+        <h3 className="clamp-2 font-mono text-lg font-black leading-7 text-white transition group-hover:text-cyan-100">
+          {post.title}
+        </h3>
+        <p className="clamp-2 mt-3 text-sm leading-6 text-[#aeb9cc]">
+          {post.summary}
+        </p>
+      </Link>
+
+      <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#26344d] pt-3">
+        <p className="inline-flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-[#7f8db3]">
+          <PixelIcon className="h-3.5 w-3.5" name="clock" />
+          {post.readTimeMinutes} {copy.readTimeSuffix}
+        </p>
+        <Link
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[4px] border border-[#30445f] bg-[#101827] px-3 font-mono text-xs font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+          href={getBlogArticlePath(post.slug)}
+          onClick={handleOpenPost}
+        >
+          {copy.quickReadButtonLabel}
+        </Link>
       </div>
     </article>
   );
@@ -193,16 +256,17 @@ export function BlogPostShowcase({
       {!isSearching && featuredPosts.length > 0 ? (
         <PixelCard accent="purple" className="article-featured space-y-4 p-3!">
           <div>
-            <h2 className="font-mono text-xl font-black text-white">
+            <h2 className="inline-flex items-center gap-2 font-mono text-xl font-black text-white">
+              <PixelIcon className="h-4 w-4" name="star" />
               Recommended articles
             </h2>
             <p className="mt-1 text-sm leading-6 text-[#9fb0d8]">
               Curated articles to start with
             </p>
           </div>
-          <div className="grid gap-3">
+          <div className="pixel-scrollbar grid grid-flow-col auto-cols-[82vw] gap-3 overflow-x-auto pb-2 sm:auto-cols-[44vw] lg:grid-flow-row lg:grid-cols-3 lg:auto-cols-auto lg:overflow-visible lg:pb-0">
             {featuredPosts.map((post) => (
-              <BlogPostCard
+              <RecommendedPostCard
                 copy={copy}
                 key={post.slug}
                 onSelectPost={onSelectPost}

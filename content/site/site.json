@@ -402,8 +402,8 @@
         }
       },
       "dashboard": {
-        "aboutTitle": "About",
-        "featuredProjectsTitle": "Featured Projects",
+        "aboutTitle": "Engineering Strengths",
+        "featuredProjectsTitle": "Selected Projects",
         "featuredProjectsLink": {
           "label": "View all ->",
           "href": "/projects"
@@ -413,7 +413,7 @@
           "label": "View articles ->",
           "href": "/articles"
         },
-        "skillsTitle": "Skills",
+        "skillsTitle": "Focus",
         "skillsLink": {
           "label": "More skills ->",
           "href": "/resume"
@@ -574,7 +574,7 @@
         "categoryFallback": "Article",
         "readTimeSuffix": "min read",
         "emptyMessage": "No matching article.",
-        "quickReadButtonLabel": "Quick read"
+        "quickReadButtonLabel": "Read"
       },
       "reader": {
         "noSelectionMessage": "Select an article to read.",
