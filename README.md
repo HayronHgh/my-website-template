@@ -4,6 +4,12 @@ A sanitized, file-driven developer portfolio template built with Next.js, TypeSc
 
 The goal is to let personal site settings, page images, project cards, project detail pages, and blog posts update from files without rebuilding the app. The built-in authenticated Admin console can create, edit, preview, publish, and recoverably archive Blog posts; site settings and projects remain file-managed. This is useful when the same Docker image keeps running while `content/` is mounted from a persistent volume or updated by a Git sync job.
 
+## Live Example
+
+[Hayron's engineering portfolio](https://www.hayronhgh.com/) is a production deployment of PortfolioKit. It demonstrates the homepage engineering dashboard, project case studies, long-form articles, integrated algorithm practice, responsive mobile layouts, and the protected file-backed Admin workflow running with Docker.
+
+The live site uses private runtime content and branding. This repository keeps sanitized starter content so the template can be reused without publishing deployment data.
+
 ## Architecture
 
 ```txt
