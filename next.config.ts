@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  agentRules: false,
   images: {
     localPatterns: [
       { pathname: "/site/assets/**" },
@@ -23,6 +24,11 @@ const nextConfig: NextConfig = {
       {
         source: "/blog/:path*",
         destination: "/articles/:path*",
+        permanent: true,
+      },
+      {
+        source: "/leetcode",
+        destination: "/articles#algorithm-practice",
         permanent: true,
       },
     ];

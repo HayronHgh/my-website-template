@@ -18,7 +18,7 @@ export default async function ProblemPage({ params }: Props) {
   const post = await getPublishedProblem((await params).slug.join("/"));
   if (!post) notFound();
   return <Section><Container><article className="content-panel reading-panel">
-    <Link href="/leetcode" className="content-back">← LeetCode 題庫</Link>
+    <Link href="/articles#algorithm-practice" className="content-back">← Algorithm Practice</Link>
     <p className="content-caption">{post.problem!.entryType === "note" ? "LEETCODE / 學習筆記" : `LEETCODE / ${post.problem!.difficulty} / ${post.problem!.status ? problemStatusLabels[post.problem!.status] : "未註記"} / ${post.problem!.language}`}</p>
     <h1>{post.title}</h1><p className="content-summary">{post.description}</p>
     <p className="content-caption">{post.tags.join(" / ")} · {post.date}</p>

@@ -2,6 +2,19 @@ packages:
   - .
   - "!dist/**"
 
+overrides:
+  flatted: 3.4.2
+  picomatch@<3: 2.3.2
+  picomatch@>=4 <4.0.4: 4.0.4
+  brace-expansion@<2: 1.1.18
+  brace-expansion@>=4: 5.0.9
+  postcss: 8.5.25
+  sharp: 0.35.4
+  nanoid@<3.3.18: 3.3.18
+  vite: 8.0.16
+  js-yaml: 4.3.0
+  lodash-es: 4.18.1
+
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver

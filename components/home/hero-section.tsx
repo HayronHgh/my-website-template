@@ -52,9 +52,8 @@ export function HeroSection({
               {hero.description}
             </p>
           </div>
-          <div className="hero-skills">{hero.techStack.map((skill) => <span key={skill}>{skill}</span>)}</div>
 
-          <div className="flex flex-wrap gap-3 lg:hidden">
+          <div className="hero-actions flex flex-wrap gap-3 md:hidden">
             <NeonButton accent="cyan" href={actions.projects.href}>
               <PixelIcon className="h-5 w-5" name="projects" />
               {actions.projects.label}
@@ -73,6 +72,7 @@ export function HeroSection({
               {actions.contact.label}
             </NeonButton>
           </div>
+
         </div>
       </Container>
     </section>

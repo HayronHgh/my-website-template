@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { ProjectCard } from "@/components/projects/project-card";
 import { Container } from "@/components/ui/container";
-import { NeonButton } from "@/components/ui/neon-button";
 import { PageHero } from "@/components/ui/page-hero";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
-import { ui } from "@/components/ui/pixel-theme";
 import { Section } from "@/components/ui/section";
 import type { ProjectGroup } from "@/data/site";
 import { getPublishedProjects } from "@/lib/projects/meta";
@@ -108,80 +106,6 @@ export default async function ProjectsPage() {
           </PixelCard>
         ))}
 
-        <PixelCard accent="blue" className="space-y-3" id="project-archive">
-          <div className="flex items-center gap-2">
-            <PixelIcon className="h-4 w-4" name="projects" />
-            <h2 className="font-mono text-lg font-black text-white">{pageCopy.indexTitle}</h2>
-          </div>
-          <div className="divide-y divide-cyan-300/10">
-            {projectItems.map((project) => (
-              <article
-                className="grid gap-3 py-3 first:pt-0 last:pb-0 sm:grid-cols-[1fr_auto] sm:items-center"
-                key={`index-${project.slug}`}
-              >
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-mono text-base font-black text-[#eef3ff]">
-                      {project.title}
-                    </h3>
-                    {project.year ? (
-                      <span className={ui.tinyTag}>
-                        {project.year}
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-1 text-sm leading-6 text-[#9fb0d8]">{project.description}</p>
-                </div>
-                <div className="flex flex-wrap gap-2 sm:justify-end">
-                  <NeonButton
-                    accent={project.accent}
-                    href={project.detailsUrl}
-                    size="md"
-                    variant="ghost"
-                  >
-                    <PixelIcon className="h-4 w-4" name="projects" />
-                    {pageCopy.actions.details}
-                  </NeonButton>
-                  {project.caseStudyUrl ? (
-                    <NeonButton
-                      accent="purple"
-                      href={project.caseStudyUrl}
-                      size="md"
-                      variant="ghost"
-                    >
-                      <PixelIcon className="h-4 w-4" name="file" />
-                      {pageCopy.actions.caseStudy}
-                    </NeonButton>
-                  ) : null}
-                  {project.repoUrl ? (
-                    <NeonButton
-                      accent="purple"
-                      external
-                      href={project.repoUrl}
-                      size="md"
-                      variant="ghost"
-                    >
-                      <PixelIcon className="h-4 w-4" name="github" />
-                      {pageCopy.actions.repository}
-                    </NeonButton>
-                  ) : null}
-                  {project.demoUrl ? (
-                    <NeonButton
-                      accent="amber"
-                      external
-                      href={project.demoUrl}
-                      size="md"
-                      variant="ghost"
-                    >
-                      <PixelIcon className="h-4 w-4" name="projects" />
-                      {pageCopy.actions.demo}
-                    </NeonButton>
-                  ) : null}
-                </div>
-              </article>
-            ))}
-          </div>
-        </PixelCard>
       </Container>
     </Section>
   );
