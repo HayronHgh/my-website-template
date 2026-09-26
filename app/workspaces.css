@@ -255,8 +255,10 @@ a.focus-link:focus-visible { outline:2px solid #c291ff; outline-offset:3px; }
   .content-gateways h2 { font-size:.95rem; }
   .content-gateways p { font-size:.72rem; }
   .content-panel { padding:1rem; }
-  .content-domain-switcher,.research-parameter-grid { grid-template-columns:1fr; }
-  .content-domain-switcher a { padding:.9rem; }
+  .research-parameter-grid { grid-template-columns:1fr; }
+  .content-domain-switcher { gap:.5rem; }
+  .content-domain-switcher a { padding:.75rem .625rem; gap:.5rem; }
+  .content-domain-switcher a > span:not(.content-domain-arrow) { min-width:0; overflow-wrap:anywhere; }
   .research-card,.research-card:nth-child(4n+2),.research-card:nth-child(4n+3) { grid-column:1/-1; min-height:0; }
   .research-card { padding:1rem; gap:1.5rem; }
   .research-card footer { align-items:flex-start; flex-direction:column; }
