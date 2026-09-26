@@ -78,17 +78,15 @@ export default async function ProjectsPage() {
             key={group}
           >
             <div className="flex flex-col justify-between gap-2 px-1 sm:flex-row sm:items-end">
-              <div className="flex items-start gap-2">
-                <PixelIcon
-                  className="mt-0.5 h-4 w-4"
-                  name={group === "featured" ? "star" : "projects"}
-                />
-                <div>
-                  <h2 className="font-mono text-lg font-black text-[#8ed2d8]">
-                    {title}
-                  </h2>
-                  <p className="mt-1 text-sm leading-6 text-[#9fb0d8]">{description}</p>
-                </div>
+              <div className="min-w-0">
+                <h2 className="flex items-center gap-2 font-mono text-lg font-black text-[#8ed2d8]">
+                  <PixelIcon
+                    className="h-4 w-4 shrink-0"
+                    name={group === "featured" ? "star" : "projects"}
+                  />
+                  <span>{title}</span>
+                </h2>
+                <p className="mt-1 pl-6 text-sm leading-6 text-[#9fb0d8]">{description}</p>
               </div>
             </div>
 
