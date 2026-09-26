@@ -26,11 +26,6 @@ const nextConfig: NextConfig = {
         destination: "/articles/:path*",
         permanent: true,
       },
-      {
-        source: "/leetcode",
-        destination: "/articles#algorithm-practice",
-        permanent: true,
-      },
     ];
   },
   output: "standalone",

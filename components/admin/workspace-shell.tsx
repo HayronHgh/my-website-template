@@ -2,7 +2,7 @@
 /* Native navigation intentionally triggers the editors' beforeunload guard. */
 /* eslint-disable @next/next/no-html-link-for-pages */
 import { usePathname } from "next/navigation";
-const entries = [["/admin","總覽","cyan"],["/admin/articles","文章","purple"],["/admin/leetcode","LeetCode","amber"],["/admin/projects","專案","blue"],["/admin/resume","履歷","pink"]];
+const entries = [["/admin","總覽","cyan"],["/admin/articles","文章","purple"],["/admin/research","研究","green"],["/admin/leetcode","LeetCode","amber"],["/admin/projects","專案","blue"],["/admin/resume","履歷","pink"]];
 export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   if (pathname.startsWith("/admin/login")) return children;

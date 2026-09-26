@@ -4,6 +4,7 @@ import { resumeSchema } from "@/lib/resume/schema";
 import { readProblemMetadata, validateEntryContent } from "@/lib/leetcode/schema";
 import { blogFrontmatterSchema } from "@/lib/blog/schema";
 import { parseFrontmatter } from "@/lib/content/frontmatter";
+import { readResearchMetadata, researchExperimentSchema } from "@/lib/research/schema";
 import type { ContentValidationIssue } from "@/lib/content/validation";
 
 export async function validateAdditionalDomains(root: string, projectSlugs: Set<string>, issues: ContentValidationIssue[]) {
@@ -37,4 +38,34 @@ export async function validateAdditionalDomains(root: string, projectSlugs: Set<
     }
   }
   await walk(path.join(root, "content/leetcode"), 0);
+
+  async function walkResearch(directory: string, depth: number) {
+    let entries;
+    try { entries = await fs.readdir(directory, { withFileTypes: true }); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") report(directory, error); return; }
+    for (const entry of entries) {
+      const file = path.join(directory, entry.name);
+      if (entry.name.startsWith(".")) continue;
+      if (entry.isSymbolicLink()) { report(file, new Error("Symbolic links are not supported.")); continue; }
+      if (entry.isDirectory() && depth < 2) {
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.name)) report(file, new Error("Invalid research slug."));
+        await walkResearch(file, depth + 1);
+      } else if (entry.isFile() && entry.name === "main.md") {
+        try {
+          const parsed = parseFrontmatter(await fs.readFile(file, "utf8"));
+          blogFrontmatterSchema.parse(parsed.data);
+          readResearchMetadata(parsed.data);
+          const experimentPath = path.join(path.dirname(file), "experiment.json");
+          const scriptPath = path.join(path.dirname(file), "experiment.mjs");
+          const [hasConfig, hasScript] = await Promise.all([
+            fs.access(experimentPath).then(() => true, () => false),
+            fs.access(scriptPath).then(() => true, () => false),
+          ]);
+          if (hasConfig !== hasScript) throw new Error("experiment.json and experiment.mjs must be provided together.");
+          if (hasConfig) researchExperimentSchema.parse(JSON.parse(await fs.readFile(experimentPath, "utf8")));
+        } catch (error) { report(file, error); }
+      }
+    }
+  }
+  await walkResearch(path.join(root, "content/research"), 0);
 }

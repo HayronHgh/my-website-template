@@ -12,6 +12,7 @@ export type AdminSaveMode = "manual" | "autosave";
 
 export type AdminArticleInput = {
   problem?: import("@/lib/leetcode/schema").ProblemMetadata;
+  research?: import("@/lib/research/schema").ResearchMetadata;
   content: string;
   date: string;
   description: string;

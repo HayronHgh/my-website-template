@@ -28,6 +28,7 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV BLOG_CONTENT_DIRECTORY=/app/content/blog
+ENV RESEARCH_RUNNER_ENABLED=true
 
 RUN addgroup -S -g 1001 nodejs \
     && adduser -S -D -H -u 1001 -G nodejs nextjs
@@ -37,7 +38,7 @@ COPY --chown=nextjs:nodejs --from=builder /app/content ./content
 COPY --chown=nextjs:nodejs --from=builder /app/.next/standalone ./
 COPY --chown=nextjs:nodejs --from=builder /app/.next/static ./.next/static
 
-RUN mkdir -p /app/content/blog /app/content/.trash/blog \
+RUN mkdir -p /app/content/blog /app/content/research /app/content/.trash/blog /app/content/.trash/research \
     && chown -R nextjs:nodejs /app/content \
     && chmod -R u+rwX /app/content
 

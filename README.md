@@ -19,6 +19,8 @@ app/
   projects/[slug]/page.tsx     Project detail article
   blog/page.tsx                Blog search and reader
   blog/[...slug]/page.tsx      Direct article route
+  leetcode/page.tsx            Algorithm practice index
+  research/                    Ranked research index and detail pages
   admin/                       Protected editorial console and login
   api/admin/                   Auth, session, article, and preview APIs
 
@@ -33,6 +35,11 @@ content/
   blog/
     template-architecture/
       main.md                  Blog frontmatter + markdown body
+  research/
+    experiment-name/
+      main.md                  Research frontmatter + markdown body
+      experiment.json          Allowed numeric controls (optional)
+      experiment.mjs           Trusted JavaScript experiment (optional)
 
 lib/
   admin/                       JWT, RBAC, request policy, and article writes
@@ -74,7 +81,7 @@ Project-to-blog relations work in two ways:
 - Explicit: blog `relatedProjects` points to a project slug.
 - Tag-based: project `relatedTags` overlaps with blog `tags`.
 
-The protected Admin workspace manages Articles, LeetCode records, Projects, and Resume data while keeping each domain in its own file-backed content model. Its API/RBAC contract, environment variables, persistent-volume requirements, backups, archive recovery, and security boundaries are documented in:
+The protected Admin workspace manages Articles, Research, LeetCode records, Projects, and Resume data while keeping each domain in its own file-backed content model. Its API/RBAC contract, environment variables, persistent-volume requirements, backups, archive recovery, and security boundaries are documented in:
 
 - [Admin CMS operations](docs/admin-cms-operations.md)
 - [Admin CMS architecture and threat model](docs/admin-cms-architecture.md)
@@ -128,6 +135,7 @@ Runtime content behavior:
 - `/projects` reads `content/projects/*/meta.json` on request.
 - `/projects/[slug]` reads `content/projects/[slug]/main.md` on request.
 - `/blog` reads `content/blog/**/main.md` on request.
+- `/research` reads ranked entries from `content/research/**/main.md` on request.
 - `dynamic = "force-dynamic"` and `revalidate = 0` are used on runtime content routes.
 - File reads and markdown rendering use an in-memory mtime cache keyed by file path, `mtimeMs`, and file size.
 - Mounted content changes are picked up on the next request after the file timestamp or size changes.
@@ -173,7 +181,8 @@ The result is a small content system with a protected editorial console, while a
 
 This design intentionally accepts a few constraints:
 
-- The built-in Admin workspace edits Articles, LeetCode, Projects, and Resume data. Site settings remain file/Git managed; project and resume writes are administrator-only and project creation has no delete or version-history workflow.
+- The built-in Admin workspace edits Articles, Research, LeetCode, Projects, and Resume data. Site settings remain file/Git managed; project and resume writes are administrator-only and project creation has no delete or version-history workflow.
+- Research experiments execute only pre-authored `experiment.mjs` files and accept numeric parameters declared by `experiment.json`. Public pages expose controls and designed results, never a code editor. The production Docker image enables this trusted-code player; non-Docker environments can keep `RESEARCH_RUNNER_ENABLED=false`. It is not an OS sandbox, so only administrator-authored scripts should be deployed.
 - CMS writes require one writable Node.js instance and a persistent filesystem shared by live Blog content and `content/.trash`; multi-writer and serverless ephemeral deployments are unsupported.
 - Runtime file reads plus mtime cache are simpler than a database, but not ideal for very large content collections.
 - Markdown raw HTML is disabled and rendered HTML is passed through `rehype-sanitize`.

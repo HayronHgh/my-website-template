@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Manrope } from "next/font/google";
+import localFont from "next/font/local";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { RouteImagePreloader } from "@/components/performance/route-image-preloader";
@@ -11,14 +11,18 @@ import "./workspaces.css";
 import "./admin-workspace.css";
 import "./mobile-public.css";
 
-const manrope = Manrope({
+const manrope = localFont({
+  display: "swap",
+  src: "./fonts/manrope-latin-variable.woff2",
   variable: "--font-manrope",
-  subsets: ["latin"],
+  weight: "200 800",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const jetbrainsMono = localFont({
+  display: "swap",
+  src: "./fonts/jetbrains-mono-latin-variable.woff2",
   variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
+  weight: "100 800",
 });
 
 export const runtime = "nodejs";

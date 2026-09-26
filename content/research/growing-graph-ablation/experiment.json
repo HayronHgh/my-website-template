@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "title": "Growing Graph 消融播放器",
+  "description": "調整訓練輪數、擴張週期與每次新增節點數，比較固定圖與增生圖的合成學習曲線。",
+  "timeoutMs": 5000,
+  "parameters": [
+    { "key": "epochs", "label": "訓練輪數", "min": 20, "max": 100, "step": 5, "default": 40, "description": "模擬的總訓練 epoch。" },
+    { "key": "growth_interval", "label": "擴張週期", "min": 4, "max": 20, "step": 1, "default": 8, "description": "每隔多少 epoch 增加一次節點。" },
+    { "key": "growth_nodes", "label": "新增節點", "min": 1, "max": 20, "step": 1, "default": 6, "description": "每次擴張加入的節點數。" },
+    { "key": "seed", "label": "Random seed", "min": 1, "max": 9999, "step": 1, "default": 17, "description": "固定後可重現相同曲線。" }
+  ],
+  "sampleResult": {
+    "summary": "週期性擴張模型在第 16 個 epoch 後逐漸拉開差距；擴張當下有短暫震盪，但最終準確率高於固定拓樸。",
+    "metrics": [
+      { "label": "Static final", "value": 81.7, "unit": "%" },
+      { "label": "Growing final", "value": 87.1, "unit": "%" },
+      { "label": "Accuracy gain", "value": 5.4, "unit": "pt" },
+      { "label": "Added nodes", "value": 30, "unit": "nodes" }
+    ],
+    "plots": [{
+      "title": "Validation accuracy",
+      "xLabel": "Epoch",
+      "yLabel": "Accuracy (%)",
+      "yScale": "linear",
+      "series": [
+        { "label": "Static graph", "color": "#eabe77", "points": [{ "x": 1, "y": 57.1 }, { "x": 5, "y": 63.4 }, { "x": 10, "y": 69.8 }, { "x": 15, "y": 74.2 }, { "x": 20, "y": 77.1 }, { "x": 25, "y": 79.0 }, { "x": 30, "y": 80.2 }, { "x": 35, "y": 81.0 }, { "x": 40, "y": 81.7 }] },
+        { "label": "Growing graph", "color": "#a9d978", "points": [{ "x": 1, "y": 56.8 }, { "x": 5, "y": 63.6 }, { "x": 10, "y": 70.7 }, { "x": 15, "y": 75.8 }, { "x": 20, "y": 80.1 }, { "x": 25, "y": 82.5 }, { "x": 30, "y": 84.7 }, { "x": 35, "y": 86.0 }, { "x": 40, "y": 87.1 }] }
+      ]
+    }],
+    "tables": [{
+      "title": "Growth interval ablation",
+      "columns": ["Interval", "Added nodes", "Final accuracy", "Training cost"],
+      "rows": [["Static", 0, "81.7%", "1.00×"], [12, 18, "84.3%", "1.08×"], [8, 30, "87.1%", "1.16×"], [4, 60, "86.4%", "1.39×"]]
+    }]
+  }
+}

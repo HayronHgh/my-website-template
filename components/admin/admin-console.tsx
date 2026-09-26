@@ -41,6 +41,7 @@ import { PixelCard } from "@/components/ui/pixel-card";
 import { adminRequest, AdminClientError } from "@/components/admin/admin-api";
 import { getAdminArticleApiPath as articleApiPath } from "@/lib/admin/article-url";
 import { problemTemplate, type ProblemMetadata } from "@/lib/leetcode/schema";
+import type { ResearchMetadata } from "@/lib/research/schema";
 import {
   getAdminArticleGroupKey,
   getAdminArticleLeafSlug,
@@ -81,12 +82,13 @@ import type {
 
 type AdminConsoleProps = {
   initialSlug?: string;
-  domain?: "articles" | "leetcode";
+  domain?: "articles" | "leetcode" | "research";
   initialSession: AdminSession;
 };
 
 type ArticleForm = {
   problem?: ProblemMetadata;
+  research?: ResearchMetadata;
   content: string;
   date: string;
   description: string;
@@ -129,10 +131,23 @@ function getToday() {
   }).format(new Date());
 }
 
-function createNewArticleForm(domain: "articles" | "leetcode" = "articles"): ArticleForm {
+function createNewArticleForm(domain: "articles" | "leetcode" | "research" = "articles"): ArticleForm {
   return {
     ...(domain === "leetcode" ? { problem: { id: 1, difficulty: "Easy" as const, status: "Todo" as const, language: "TypeScript" } } : {}),
-    content: domain === "leetcode" ? problemTemplate : [
+    ...(domain === "research" ? { research: { area: "Machine Learning", rank: 10, stage: "exploring" as const } } : {}),
+    content: domain === "leetcode" ? problemTemplate : domain === "research" ? [
+      "## Research question",
+      "",
+      "清楚描述假設、問題邊界與評估條件。",
+      "",
+      "## Method",
+      "",
+      "記錄資料、模型、實驗流程與可重現設定。",
+      "",
+      "## Findings",
+      "",
+      "整理目前證據、限制與下一步。",
+    ].join("\n") : [
       "## 背景",
       "",
       "說明這篇文章要解決的問題與讀者會得到什麼。",
@@ -153,6 +168,7 @@ function createNewArticleForm(domain: "articles" | "leetcode" = "articles"): Art
 function articleToForm(article: AdminArticle): ArticleForm {
   return {
     ...(article.problem ? { problem: article.problem } : {}),
+    ...(article.research ? { research: article.research } : {}),
     content: article.content.replace(/^\n/, "").replace(/\n$/, ""),
     date: article.date,
     description: article.description,
@@ -165,6 +181,8 @@ function articleToForm(article: AdminArticle): ArticleForm {
 
 function articleToListItem(article: AdminArticle): AdminArticleListItem {
   return {
+    ...(article.problem ? { problem: article.problem } : {}),
+    ...(article.research ? { research: article.research } : {}),
     date: article.date,
     description: article.description,
     pathSegments: article.pathSegments,
@@ -190,9 +208,13 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 export function AdminConsole({ initialSession, domain = "articles", initialSlug }: AdminConsoleProps) {
-  const apiRoot = domain === "leetcode" ? "/api/admin/leetcode" : "/api/admin/posts";
+  const apiRoot = domain === "leetcode"
+    ? "/api/admin/leetcode"
+    : domain === "research"
+      ? "/api/admin/research"
+      : "/api/admin/posts";
   const getAdminArticleApiPath = useCallback((slug: string) => articleApiPath(slug).replace("/api/admin/posts", apiRoot), [apiRoot]);
-  const publicLabel = domain === "leetcode" ? "LeetCode" : "Articles";
+  const publicLabel = domain === "leetcode" ? "LeetCode" : domain === "research" ? "Research" : "Articles";
   const [posts, setPosts] = useState<AdminArticleListItem[]>([]);
   const openedInitialSlug = useRef(false);
   useEffect(() => {
@@ -490,7 +512,12 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     }
 
     try {
-      const result = await adminRequest<{ html: string }>(domain === "leetcode" ? "/api/admin/leetcode-preview" : "/api/admin/preview", {
+      const previewUrl = domain === "leetcode"
+        ? "/api/admin/leetcode-preview"
+        : domain === "research"
+          ? "/api/admin/research-preview"
+          : "/api/admin/preview";
+      const result = await adminRequest<{ html: string }>(previewUrl, {
         body: JSON.stringify({ content: nextForm.content, slug: nextForm.slug }),
         method: "POST",
       });
@@ -877,6 +904,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
 
     const payload = {
       ...(submittedForm.problem ? { problem: submittedForm.problem } : {}),
+      ...(submittedForm.research ? { research: submittedForm.research } : {}),
       content: submittedForm.content,
       date: submittedForm.date,
       description: submittedForm.description,
@@ -1331,6 +1359,12 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
             tags: parsedTags,
             title: form.title,
             ...(form.problem ? { kind: "leetcode", ...form.problem } : {}),
+            ...(form.research ? {
+              kind: "research",
+              researchArea: form.research.area,
+              researchRank: form.research.rank,
+              researchStage: form.research.stage,
+            } : {}),
           },
           form.content,
         ),
@@ -1843,7 +1877,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                   </span>
                 </div>
                 <p className="mt-2 truncate font-mono text-sm text-slate-300">
-                  {form.slug ? `${domain === "leetcode" ? "content/leetcode" : "content/blog"}/${form.slug}/main.md` : "等待指定新的 slug"}
+                  {form.slug ? `${domain === "leetcode" ? "content/leetcode" : domain === "research" ? "content/research" : "content/blog"}/${form.slug}/main.md` : "等待指定新的 slug"}
                 </p>
                 {lastSavedAt ? (
                   <p className="mt-1 font-mono text-[0.68rem] text-slate-400">
@@ -1923,6 +1957,14 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                 <label>難度<select value={form.problem.difficulty ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, difficulty: e.target.value as ProblemMetadata["difficulty"] })}>{["Easy","Medium","Hard"].map((v) => <option key={v}>{v}</option>)}</select></label>
                 <label>進度<select value={form.problem.status ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, status: e.target.value as ProblemMetadata["status"] })}>{["Todo","Attempted","Solved","Review"].map((v) => <option key={v}>{v}</option>)}</select></label>
                 <label>語言<input maxLength={40} value={form.problem.language ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, language: e.target.value })} /></label>
+              </fieldset>
+            ) : null}
+            {form.research ? (
+              <fieldset className="content-filters mb-4" disabled={isMutationInFlight || isArticleLoading || isPublishedEditor}>
+                <legend className="sr-only">研究資料</legend>
+                <label>研究領域<input maxLength={80} required value={form.research.area} onChange={(e) => updateField("research", { ...form.research!, area: e.target.value })} /></label>
+                <label>展示排序<input type="number" min="0" max="999" required value={form.research.rank} onChange={(e) => updateField("research", { ...form.research!, rank: Number(e.target.value) })} /></label>
+                <label>研究階段<select value={form.research.stage} onChange={(e) => updateField("research", { ...form.research!, stage: e.target.value as ResearchMetadata["stage"] })}><option value="exploring">探索中</option><option value="implementing">實作中</option><option value="evaluating">評估中</option><option value="published">成果整理</option></select></label>
               </fieldset>
             ) : null}
             {isPublishedEditor ? (
@@ -2122,12 +2164,12 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                       >
                         <InlineMarkdownEditor
                           disabled={isArticleLoading || isSaving || isPublishedEditor}
-                          mediaUploadUrl="/api/admin/media"
+                          mediaUploadUrl={domain === "research" ? "/api/admin/research-media" : "/api/admin/media"}
                           onChange={handleInlineMarkdownChange}
                           onComposingChange={handleMarkdownComposingChange}
                           onError={setError}
                           onStatus={setMessage}
-                          previewUrl="/api/admin/preview-blocks"
+                          previewUrl={domain === "research" ? "/api/admin/research-preview-blocks" : "/api/admin/preview-blocks"}
                           slug={form.slug}
                           value={form.content}
                         />

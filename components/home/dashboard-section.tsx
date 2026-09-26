@@ -189,7 +189,7 @@ export function DashboardSection({
 
             <Link
               className={`${sectionLinkClassName} mt-auto block w-fit self-end pt-4`}
-              href="/articles#algorithm-practice"
+              href="/leetcode"
             >
               Browse practice notes -&gt;
             </Link>

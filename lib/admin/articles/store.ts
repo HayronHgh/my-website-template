@@ -86,6 +86,7 @@ function toArticle(
 function toArticleListItem(article: AdminArticle): AdminArticleListItem {
   return {
     ...(article.problem ? { problem: article.problem } : {}),
+    ...(article.research ? { research: article.research } : {}),
     date: article.date,
     description: article.description,
     pathSegments: article.pathSegments,
