@@ -1,0 +1,9 @@
+{
+  "title": "Focus",
+  "enabled": true,
+  "items": [
+    { "title": "增生圖神經", "description": "探索節點擴張如何影響學習表現。", "status": "", "href": "/research", "linkLabel": "查看研究", "enabled": true },
+    { "title": "PSO", "description": "參數選擇與收斂行為。", "status": "", "href": "/research", "linkLabel": "查看研究", "enabled": true },
+    { "title": "ContextOS", "description": "", "status": "", "href": "", "linkLabel": "查看內容", "enabled": true }
+  ]
+}

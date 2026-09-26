@@ -1,4 +1,5 @@
 import path from "node:path";
+import { defaultFocus, focusSchema, type FocusData } from "@/lib/site/focus";
 import {
   adjustmentNotes as fallbackAdjustmentNotes,
   blogPreviewPosts as fallbackBlogPreviewPosts,
@@ -54,7 +55,7 @@ export type RouteImageEntry = {
   src: string;
 };
 
-export type RuntimeHomePageData = typeof fallbackHomePageData;
+export type RuntimeHomePageData = typeof fallbackHomePageData & { focus: FocusData };
 
 export type SiteMetadataCopy = {
   description: string;
@@ -713,6 +714,9 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   const homePageData: RuntimeHomePageData = {
     ...fallbackHomePageData,
     ...settings.homePageData,
+    focus: await readTextFileWithMtimeCache(path.join(SITE_CONTENT_DIRECTORY, "focus.json"))
+      .then((source) => focusSchema.parse(JSON.parse(source.replace(/^\uFEFF/, ""))))
+      .catch(() => defaultFocus),
     hero: {
       ...fallbackHomePageData.hero,
       ...settings.homePageData?.hero,

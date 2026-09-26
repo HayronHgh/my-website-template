@@ -16,22 +16,37 @@ const destinations = [
   },
 ] as const;
 
-export function ContentDomainSwitcher({ current }: { current?: "leetcode" | "research" }) {
+const articlesDestination = {
+  detail: "觀點、方法與設計決策",
+  href: "/articles",
+  label: "Articles",
+  tone: "purple",
+} as const;
+
+export function ContentDomainSwitcher({ current = "articles" }: { current?: "articles" | "leetcode" | "research" }) {
+  const cycle = [articlesDestination, ...destinations];
+  const currentIndex = cycle.findIndex((destination) => destination.href === `/${current}`);
+  const links = [
+    { destination: cycle[(currentIndex + cycle.length - 1) % cycle.length], direction: "previous" },
+    { destination: cycle[(currentIndex + 1) % cycle.length], direction: "next" },
+  ];
   return (
     <nav className="content-domain-switcher" aria-label="學習與研究分區">
-      {destinations.map((destination) => (
+      {links.map(({ destination, direction }) => (
         <Link
-          aria-current={destination.href === `/${current}` ? "page" : undefined}
+          aria-label={`${direction === "previous" ? "上一個分區" : "下一個分區"}：${destination.label}`}
           className={`${ui.panel} ${ui.panelHover}`}
+          data-direction={direction}
           data-glow={destination.tone}
           href={destination.href}
           key={destination.href}
         >
+          {direction === "previous" ? <span className="content-domain-arrow" aria-hidden>←</span> : null}
           <span>
             <strong>{destination.label}</strong>
             <small>{destination.detail}</small>
           </span>
-          <span aria-hidden>↗</span>
+          {direction === "next" ? <span className="content-domain-arrow" aria-hidden>→</span> : null}
         </Link>
       ))}
     </nav>

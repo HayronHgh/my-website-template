@@ -22,6 +22,7 @@ function normalizeHref(href: string) {
 
 function isActivePath(pathname: string, item: NavigationItem) {
   const href = normalizeHref(item.href);
+  if (href === "/articles" && /^\/(research|leetcode)(\/|$)/.test(pathname)) return true;
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
@@ -60,6 +61,7 @@ export function MobileMenu({ navigationItems, pathname, routeImageMap }: MobileM
                       "border-[#6ea8b0] bg-[#151e2f] text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.06)]",
                   )}
                   href={item.href}
+                  aria-current={isActivePath(pathname, item) ? "page" : undefined}
                   key={item.href}
                   onFocus={() => preloadRouteImageForHref(item.href, routeImageMap)}
                   onClick={() => setIsOpen(false)}

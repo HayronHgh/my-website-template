@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Play } from "lucide-react";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { researchStageLabels } from "@/lib/research/schema";
 import type { AdminArticleListItem } from "@/types/admin";
@@ -14,7 +15,7 @@ export function ResearchGrid({ entries }: { entries: ResearchEntry[] }) {
       {entries.map((entry, index) => (
         <Link
           className="research-card"
-          data-glow={index % 3 === 0 ? "green" : index % 3 === 1 ? "cyan" : "purple"}
+          data-glow="green"
           href={`/research/${entry.slug.split("/").map(encodeURIComponent).join("/")}`}
           key={entry.slug}
         >
@@ -29,7 +30,7 @@ export function ResearchGrid({ entries }: { entries: ResearchEntry[] }) {
           </div>
           <footer>
             <span>{entry.tags.slice(0, 3).join(" / ")}</span>
-            <span>{entry.hasExperiment ? "可執行實驗" : "研究筆記"} <PixelIcon className="inline h-3 w-3" name={entry.hasExperiment ? "tech-python" : "file"} /></span>
+            <span>{entry.hasExperiment ? "互動實驗" : "研究筆記"} {entry.hasExperiment ? <Play aria-hidden className="inline h-3 w-3" /> : <PixelIcon className="inline h-3 w-3" name="file" />}</span>
           </footer>
         </Link>
       ))}

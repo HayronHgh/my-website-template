@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FocusPanel } from "@/components/home/focus-panel";
 import { BlogCard } from "@/components/blog/blog-card";
 import { ProjectCard } from "@/components/projects/project-card";
 import { Container } from "@/components/ui/container";
@@ -42,7 +43,7 @@ export function DashboardSection({
           <PixelCard
             accent="cyan"
             as="section"
-            className="about-panel min-h-45 border-[#2d5364] bg-[#0b1220] p-4! lg:h-[202px]"
+            className="about-panel min-h-45 border-[#2d5364] bg-[#0b1220] p-4! lg:min-h-[202px]"
           >
             <p className="pixel-section-kicker">
               <span className="pixel-section-icon pixel-section-icon-about" aria-hidden />
@@ -50,18 +51,15 @@ export function DashboardSection({
             </p>
 
             <div className="mt-3 grid gap-3 md:grid-cols-3">
-              {strengths.map((strength, index) => (
+              {strengths.map((strength) => (
                 <article
                   className="flex min-h-[116px] min-w-0 flex-col rounded-[4px] border border-[#263f55] bg-[#0e1727] p-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)]"
                   key={strength.name}
                 >
                   <div className="flex min-w-0 items-start justify-between gap-2">
-                    <h3 className="truncate font-mono text-xs font-black leading-5 text-[#eef6ff]">
+                    <h3 className="font-mono text-xs font-black leading-5 text-[#eef6ff]">
                       {strength.name}
                     </h3>
-                    <span className="shrink-0 font-mono text-[9px] font-bold uppercase tracking-wide text-cyan-200/65">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
                   </div>
                   <p className="clamp-2 mt-1 text-[11px] leading-4 text-[#9fb0c9]">
                     {strength.subtitle || strength.note}
@@ -91,7 +89,7 @@ export function DashboardSection({
           <PixelCard
             accent="amber"
             as="section"
-            className="flex flex-col gap-3 p-3! lg:h-[430px] [&_.project-preview-compact]:lg:h-[180px] [&_.project-preview-compact]:lg:aspect-auto"
+            className="flex flex-col gap-3 p-3! lg:min-h-[430px] [&_.project-preview-compact]:lg:h-[180px] [&_.project-preview-compact]:lg:aspect-auto"
           >
             <div className="flex items-center justify-between gap-4">
               <p className="pixel-section-kicker">
@@ -115,30 +113,7 @@ export function DashboardSection({
             </div>
           </PixelCard>
 
-          <PixelCard accent="purple" as="section" className="flex min-h-45 flex-col lg:h-[430px]">
-            <p className="pixel-section-kicker">
-              <span className="pixel-section-icon pixel-section-icon-skills" aria-hidden />
-              {copy.skillsTitle}
-            </p>
-            <div className="pixel-scrollbar mt-4 grid min-h-0 flex-1 auto-rows-min gap-2.5 overflow-y-auto pr-1.5">
-              {homePageData.skills.map((skill) => (
-                <div
-                  className="flex min-h-10 items-center rounded-[5px] border border-[#26344d] bg-[#101827] px-3 shadow-[inset_0_0_0_1px_#172238]"
-                  key={skill.name}
-                >
-                  <h3 className="truncate font-mono text-sm font-black leading-5 text-white">
-                    {skill.name}
-                  </h3>
-                </div>
-              ))}
-            </div>
-            <Link
-              className={`${sectionLinkClassName} mt-4 block w-fit self-end`}
-              href={copy.skillsLink.href}
-            >
-              {copy.skillsLink.label}
-            </Link>
-          </PixelCard>
+          <div className="focus-slot"><FocusPanel data={homePageData.focus} /></div>
 
           <PixelCard accent="purple" as="section" className="space-y-3 p-3!">
             <div className="flex items-center justify-between gap-4">
@@ -164,7 +139,7 @@ export function DashboardSection({
               Algorithm Practice
             </p>
             <p className="mt-3 text-sm leading-6 text-[#b7c2d8]">
-              題解與複習紀錄整合進技術文章工作區，保留問題拆解、正確性與複雜度分析。
+              記錄解題思路、複雜度分析與複習筆記。
             </p>
 
             <dl className="mt-4 grid grid-cols-3 gap-2">

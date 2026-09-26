@@ -69,6 +69,7 @@ export default async function BlogPage() {
       />
 
       <Container className="mt-5 space-y-5">
+        <ContentDomainSwitcher />
         <BlogSearchApp
           copy={siteSettings.pages.blog}
           initialListing={initialListing}
@@ -76,7 +77,6 @@ export default async function BlogPage() {
           tags={toTagOptions(hashtagIndex)}
         />
 
-        <ContentDomainSwitcher />
       </Container>
     </Section>
   );

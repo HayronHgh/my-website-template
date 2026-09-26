@@ -30,6 +30,7 @@ function normalizeHref(href: string) {
 
 function isActivePath(pathname: string, item: NavigationItem) {
   const href = normalizeHref(item.href);
+  if (href === "/articles" && /^\/(research|leetcode)(\/|$)/.test(pathname)) return true;
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 

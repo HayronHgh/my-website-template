@@ -4,7 +4,9 @@ import { adminRequest, AdminClientError } from "@/components/admin/admin-api";
 import { InlineMarkdownEditor } from "@/components/admin/inline-markdown-editor";
 import type { ProjectItem } from "@/data/site";
 import type { ResumeData } from "@/lib/resume/schema";
-type RecordData = { key: string; revision: string; data: ProjectItem | ResumeData | string };
+import type { FocusData } from "@/lib/site/focus";
+import { FocusPanel } from "@/components/home/focus-panel";
+type RecordData = { key: string; revision: string; data: ProjectItem | ResumeData | FocusData | string };
 const lines = (value: string) => value.split("\n");
 function normalizeLists(value: unknown): unknown {
   if (Array.isArray(value)) return value.every((item) => typeof item === "string")
@@ -39,7 +41,16 @@ export function DocumentEditor({ initial, canEdit }: { initial: RecordData; canE
       setConflict(e instanceof AdminClientError && e.status === 409);
     } finally { setBusy(false); }
   }
-  const project = !record.key.startsWith("resume/") && typeof data !== "string" ? data as ProjectItem : null;
+  const project = record.key.startsWith("projects/") && typeof data !== "string" ? data as ProjectItem : null;
+  const focus = record.key === "site/focus.json" ? data as FocusData : null;
+  const patchFocus = (patch: Partial<FocusData>) => setData({ ...focus!, ...patch });
+  const moveFocus = (index: number, offset: number) => {
+    const items = [...focus!.items];
+    const target = index + offset;
+    if (target < 0 || target >= items.length) return;
+    [items[index], items[target]] = [items[target], items[index]];
+    patchFocus({ items });
+  };
   const projectSlug = record.key.startsWith("projects/") ? record.key.split("/")[1] : "";
   const resume = record.key.startsWith("resume/") ? data as ResumeData : null;
   const patchProject = (key: string, value: unknown) => setData({ ...project!, [key]: value });
@@ -55,7 +66,7 @@ export function DocumentEditor({ initial, canEdit }: { initial: RecordData; canE
   }
   return <div className="content-panel document-editor">
     <div className="document-toolbar"><span role="status">{busy ? "儲存中…" : dirty ? "尚未儲存" : message || "已同步"}</span><button onClick={() => void save()} disabled={busy || !dirty || !canEdit || conflict}>儲存變更</button></div>
-    {!canEdit && <p>目前帳號可檢視；專案與履歷由管理員編輯。</p>}
+    {!canEdit && <p>目前帳號可檢視；此內容由管理員編輯。</p>}
     {error && <div role="alert" className="workspace-error"><p>{error}</p>{conflict && <><p>請先複製本機內容，再重新載入並合併。</p><button onClick={async () => { try { await navigator.clipboard.writeText(typeof data === "string" ? data : JSON.stringify(data, null, 2)); setMessage("本機內容已複製"); } catch { setError("無法存取剪貼簿，請手動複製內容。"); } }}>複製本機內容</button><button onClick={async () => {
       if (!window.confirm("重新載入會放棄本機變更，確定已保留內容？")) return;
       setBusy(true);
@@ -63,6 +74,18 @@ export function DocumentEditor({ initial, canEdit }: { initial: RecordData; canE
       catch (e) { setError((e as Error).message); } finally { setBusy(false); }
     }}>重新載入</button></>}</div>}
     <fieldset disabled={busy || !canEdit}>
+    {focus && <div className="focus-editor-layout"><div className="document-fields">
+      <label>區塊標題<input maxLength={60} value={focus.title} onChange={(e) => patchFocus({ title: e.target.value })} /></label>
+      <label>首頁展示<select value={String(focus.enabled)} onChange={(e) => patchFocus({ enabled: e.target.value === "true" })}><option value="true">顯示</option><option value="false">隱藏整個 Focus 區塊</option></select></label>
+      {focus.items.map((item, index) => <section className="document-entry" key={index}>
+        <h2>方向 {index + 1}</h2>
+        {([['title','主題名稱',80],['description','正在探索的問題或方向',240],['status','狀態（選填，例如實作中）',30],['href','連結（選填，站內路徑或 HTTPS）',500],['linkLabel','連結文字',40]] as const).map(([key,label,maxLength]) => <label key={key}>{label}<input maxLength={maxLength} value={item[key]} onChange={(e) => patchFocus({ items: focus.items.map((v,i) => i === index ? { ...v, [key]:e.target.value } : v) })} /></label>)}
+        <label>項目展示<select value={String(item.enabled)} onChange={(e) => patchFocus({ items: focus.items.map((v,i) => i === index ? { ...v, enabled:e.target.value === "true" } : v) })}><option value="true">顯示</option><option value="false">隱藏</option></select></label>
+        <div className="workspace-actions"><button type="button" disabled={index === 0} onClick={() => moveFocus(index,-1)}>上移</button><button type="button" disabled={index === focus.items.length-1} onClick={() => moveFocus(index,1)}>下移</button><button type="button" onClick={() => { if(window.confirm("移除此方向？儲存後才會套用。")) patchFocus({ items: focus.items.filter((_,i) => i !== index) }); }}>移除</button></div>
+      </section>)}
+      <button type="button" disabled={focus.items.length >= 8} onClick={() => patchFocus({ items:[...focus.items,{ title:"新方向",description:"",status:"",href:"",linkLabel:"查看內容",enabled:true }] })}>＋ 新增方向</button>
+      <small>最多 8 項，建議首頁保留 3 項。第一個顯示中的項目會以主題區呈現。</small>
+    </div><aside className="focus-editor-preview"><h2>首頁即時預覽</h2><FocusPanel data={focus} preview /></aside></div>}
     {typeof data === "string" && <InlineMarkdownEditor disabled={busy || !canEdit} onChange={setData} onError={setError} onStatus={setMessage} previewUrl={`/api/admin/projects/${encodeURIComponent(projectSlug)}/preview`} slug={projectSlug} value={data} />}
     {project && <div className="document-fields">
       {([["title","專案名稱"],["category","分類"],["summary","摘要"],["description","說明"],["scope","負責範圍"],["year","年份"],["publicBoundary","公開範圍"]] as const).map(([key,label]) =>

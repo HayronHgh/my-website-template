@@ -7,12 +7,13 @@ import { atomicWriteTextFile } from "@/lib/admin/articles/atomic-write";
 import { clearContentCache } from "@/lib/content/cache";
 import { projectMetaSchema } from "@/lib/content/validation";
 import { resumeSchema } from "@/lib/resume/schema";
+import { focusSchema } from "@/lib/site/focus";
 import { isSafeMarkdownUrl } from "@/lib/content/url-policy";
 const queues = new Map<string, Promise<unknown>>();
 const revisionOf = (text: string) => createHash("sha256").update(text).digest("hex");
 
 async function resolveDocument(key: string) {
-  if (!/^(?:resume\/resume.json|projects\/[a-z0-9]+(?:-[a-z0-9]+)*\/(?:meta.json|main.md))$/.test(key))
+  if (!/^(?:site\/focus.json|resume\/resume.json|projects\/[a-z0-9]+(?:-[a-z0-9]+)*\/(?:meta.json|main.md))$/.test(key))
     throw new AdminApiError(400, "invalid_document", "不支援這個內容項目。");
   let current = path.join(process.cwd(), "content");
   for (const part of ["", ...key.split("/")]) {
@@ -38,7 +39,7 @@ export async function updateDocument(key: string, data: unknown, revision: strin
       if (!parsed.success) throw new AdminApiError(422, "invalid_document", "專案說明不可為空白。");
       source = parsed.data;
     } else {
-      const parsed = (key.startsWith("resume/") ? resumeSchema : projectMetaSchema).safeParse(data);
+      const parsed = (key === "site/focus.json" ? focusSchema : key.startsWith("resume/") ? resumeSchema : projectMetaSchema).safeParse(data);
       if (!parsed.success) throw new AdminApiError(422, "invalid_document", "內容欄位不完整或格式錯誤。", parsed.error.issues);
       const values = parsed.data as Record<string, unknown>;
       if (key.startsWith("resume/")) {

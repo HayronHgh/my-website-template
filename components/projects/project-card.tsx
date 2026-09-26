@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { NeonButton } from "@/components/ui/neon-button";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
@@ -75,13 +76,13 @@ export function ProjectCard({
       accent={project.accent}
       as="article"
       className={cn(
-        "group flex h-full flex-col bg-[#0b1220]",
+        "project-card group flex h-full flex-col bg-[#0b1220]",
         compact ? "p-3! gap-3" : "gap-5",
       )}
       id={project.slug}
       interactive
     >
-      <div
+      <Link href={project.detailsUrl}
         aria-label={`${project.title} project preview`}
         className={cn(
           `project-preview project-preview-${project.slug}`,
@@ -90,7 +91,6 @@ export function ProjectCard({
           "transition duration-200 group-hover:brightness-110",
         )}
         data-cover={project.cover}
-        role="img"
         style={previewStyle}
       >
         <div className="preview-toolbar">
@@ -106,18 +106,18 @@ export function ProjectCard({
           <span />
           <span />
         </div>
-      </div>
+      </Link>
 
       <div className={cn("flex flex-1 flex-col", compact ? "gap-2.5" : "gap-4")}>
-        <div className="flex items-start justify-between gap-3">
+        <div className="project-card-heading">
           <div className="min-w-0">
             <h3
               className={cn(
-                "truncate font-mono font-bold text-white",
+                "project-card-title font-mono font-bold text-white",
                 compact ? "text-lg" : "text-xl",
               )}
             >
-              {project.title}
+              <Link href={project.detailsUrl}>{project.title}</Link>
             </h3>
             <p className={cn("mt-1.5 text-sm leading-6 text-slate-300", compact && "clamp-2")}>
               {project.summary}
