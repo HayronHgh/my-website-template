@@ -140,6 +140,7 @@ a.focus-link:focus-visible { outline:2px solid #c291ff; outline-offset:3px; }
 .research-card h2 + p { margin-top:.75rem; color:#aebbd0; font-size:.88rem; line-height:1.8; }
 .research-card footer { padding-top:1rem; border-top:1px solid #29364a; text-transform:none; letter-spacing:0; }
 .research-reading-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:1rem; }
+.research-reading-layout > .reading-panel { width:100%; min-width:0; max-width:min(960px,100%); overflow-wrap:anywhere; }
 .research-experiment { max-width:960px; width:100%; min-width:0; margin:auto; padding:clamp(1.2rem,4vw,2.5rem); border:1px solid #304151; border-top:2px solid #a9d978; border-radius:4px; background:#0d1620; color-scheme:dark; }
 .research-experiment h2 { color:#d5ebbd; font:700 1rem var(--font-jetbrains-mono),monospace; line-height:1.6; }
 .research-experiment-header > p { max-width:65ch; margin-top:.65rem; color:#aebbd0; font-size:.85rem; line-height:1.8; }
