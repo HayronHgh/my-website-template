@@ -5,7 +5,7 @@ import { z } from "zod";
 import { AdminApiError } from "@/lib/admin/http";
 import { atomicWriteTextFile } from "@/lib/admin/articles/atomic-write";
 import { clearContentCache } from "@/lib/content/cache";
-import { projectMetaSchema } from "@/lib/content/validation";
+import { parseProjectMeta } from "@/lib/content/validation";
 import { resumeSchema } from "@/lib/resume/schema";
 import { focusSchema } from "@/lib/site/focus";
 import { isSafeMarkdownUrl } from "@/lib/content/url-policy";
@@ -39,7 +39,8 @@ export async function updateDocument(key: string, data: unknown, revision: strin
       if (!parsed.success) throw new AdminApiError(422, "invalid_document", "專案說明不可為空白。");
       source = parsed.data;
     } else {
-      const parsed = (key === "site/focus.json" ? focusSchema : key.startsWith("resume/") ? resumeSchema : projectMetaSchema).safeParse(data);
+      const parsed = key.startsWith("projects/") ? parseProjectMeta(data) :
+        (key === "site/focus.json" ? focusSchema : resumeSchema).safeParse(data);
       if (!parsed.success) throw new AdminApiError(422, "invalid_document", "內容欄位不完整或格式錯誤。", parsed.error.issues);
       const values = parsed.data as Record<string, unknown>;
       if (key.startsWith("resume/")) {

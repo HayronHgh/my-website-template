@@ -48,6 +48,14 @@
 .studio-toolbar { border-top: 2px solid var(--section-accent); }
 .studio-view-tabs button { min-height: 44px; }
 .admin-shell .document-toolbar { padding-bottom: 1.25rem; margin-bottom: 1.75rem; flex-wrap: wrap; }
+.project-view-switch { display: inline-flex; gap: .25rem; margin: 1.25rem 0 .75rem; padding: .25rem; border: 1px solid #3e5266; border-radius: 6px; background: #0c1020; }
+.project-view-switch a { min-width: 7rem; padding: .65rem 1rem; border-radius: 4px; color: #9aabc4; text-align: center; font-size: .85rem; }
+.project-view-switch a[aria-current="page"] { background: #234255; color: #e5f8fa; box-shadow: 0 1px 4px #0006; }
+.project-view-switch a:hover { color: #e5f8fa; }
+.project-public-link { display: inline-block; margin-left: 1rem; color: #9bd5df; font-size: .8rem; }
+.project-lifecycle-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #3b405a; background: #0c102080; }
+.project-lifecycle-actions span { margin-right: auto; color: #b9c7db; font-size: .85rem; }
+.document-editor .project-delete-button { border-color: #97576d; color: #ffc7d1; }
 .admin-shell .document-fields { gap: 1.75rem; align-items: start; }
 .admin-shell .document-fields label { gap: .65rem; font-size: .875rem; min-width: 0; }
 .admin-shell .document-entry { gap: 1.25rem; padding: 1.5rem; border: 1px solid #363b56; background: #0c102050; }

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { adminRequest, AdminClientError } from "@/components/admin/admin-api";
 import { InlineMarkdownEditor } from "@/components/admin/inline-markdown-editor";
 import type { ProjectItem } from "@/data/site";
@@ -15,8 +16,25 @@ function normalizeLists(value: unknown): unknown {
   if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, normalizeLists(item)]));
   return value;
 }
+const projectFieldNames: Record<string, string> = {
+  title: "專案名稱", category: "分類", summary: "摘要", description: "說明",
+  tech: "技術", cover: "封面", accent: "強調色", detailsUrl: "詳細頁連結",
+  slug: "slug", publicBoundary: "公開範圍", scope: "負責範圍", year: "年份",
+};
+function describeError(cause: unknown) {
+  if (!(cause instanceof AdminClientError) || !Array.isArray(cause.details)) {
+    return cause instanceof Error ? cause.message : "操作失敗";
+  }
+  const fields = cause.details.slice(0, 5).map((issue: unknown) => {
+    if (!issue || typeof issue !== "object" || !("path" in issue)) return null;
+    const path = Array.isArray(issue.path) ? issue.path.join(".") : String(issue.path);
+    return projectFieldNames[path] ?? path;
+  }).filter(Boolean);
+  return fields.length ? `${cause.message} 請檢查：${[...new Set(fields)].join("、")}。` : cause.message;
+}
 
 export function DocumentEditor({ initial, canEdit }: { initial: RecordData; canEdit: boolean }) {
+  const router = useRouter();
   const [record, setRecord] = useState(initial);
   const [data, setData] = useState(initial.data);
   const [busy, setBusy] = useState(false);
@@ -31,13 +49,14 @@ export function DocumentEditor({ initial, canEdit }: { initial: RecordData; canE
   }, [dirty]);
   async function save() {
     if (busy || !canEdit || conflict || !dirty) return;
-    if (!window.confirm("儲存後會更新公開網站，確定套用這些變更？")) return;
+    if (!window.confirm(project?.published === false ? "儲存非公開草稿的變更？" : "儲存後會更新公開網站，確定套用這些變更？")) return;
     setBusy(true); setError(""); setMessage("");
     try {
       const result = await adminRequest<RecordData>("/api/admin/documents", { method: "PUT", body: JSON.stringify({ key: record.key, revision: record.revision, data: normalizeLists(data) }) });
       setRecord(result); setData(result.data); setMessage("已儲存");
+      if (record.key.startsWith("projects/")) router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "儲存失敗");
+      setError(describeError(e));
       setConflict(e instanceof AdminClientError && e.status === 409);
     } finally { setBusy(false); }
   }
@@ -55,6 +74,45 @@ export function DocumentEditor({ initial, canEdit }: { initial: RecordData; canE
   const resume = record.key.startsWith("resume/") ? data as ResumeData : null;
   const patchProject = (key: string, value: unknown) => setData({ ...project!, [key]: value });
   const patchResume = (key: string, value: unknown) => setData({ ...resume!, [key]: value });
+  async function changePublication() {
+    if (!project || !canEdit || busy || conflict) return;
+    if (dirty) { setError("請先儲存作品卡片的變更，再切換公開狀態。"); return; }
+    const nextPublished = project.published === false;
+    if (!window.confirm(nextPublished ? "公開後，訪客即可看到此專案。確定公開？" : "轉為非公開後，訪客將無法查看此專案。確定繼續？")) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      const nextProject = nextPublished ? {
+        ...project, accent: project.accent ?? "cyan",
+        detailsUrl: project.detailsUrl ?? `/projects/${projectSlug}`,
+        cover: project.cover || `generated:${projectSlug}`, published: true,
+      } : { ...project, published: false };
+      const result = await adminRequest<RecordData>("/api/admin/documents", {
+        method: "PUT", body: JSON.stringify({ key: record.key, revision: record.revision,
+          data: nextProject }),
+      });
+      setRecord(result); setData(result.data);
+      setMessage(nextPublished ? "已公開" : "已轉為非公開");
+      router.refresh();
+    } catch (cause) {
+      setError(describeError(cause));
+      setConflict(cause instanceof AdminClientError && cause.status === 409);
+    } finally { setBusy(false); }
+  }
+  async function deleteProject() {
+    if (!project || !canEdit || busy || conflict) return;
+    if (dirty) { setError("請先儲存或放棄未儲存的變更，再刪除專案。"); return; }
+    if (window.prompt(`刪除會將專案和媒體移到可復原封存區。請輸入 ${projectSlug} 確認：`) !== projectSlug) return;
+    setBusy(true); setError("");
+    try {
+      await adminRequest(`/api/admin/projects/${encodeURIComponent(projectSlug)}`, {
+        method: "DELETE", body: JSON.stringify({ revision: record.revision }),
+      });
+      router.push("/admin/projects"); router.refresh();
+    } catch (cause) {
+      setError(describeError(cause)); setBusy(false);
+      setConflict(cause instanceof AdminClientError && cause.status === 409);
+    }
+  }
   async function uploadCover(file: File | undefined) {
     if (!file || !project || !projectSlug) return;
     setBusy(true); setError(""); setMessage("封面上傳中…");
@@ -67,6 +125,7 @@ export function DocumentEditor({ initial, canEdit }: { initial: RecordData; canE
   return <div className="content-panel document-editor">
     <div className="document-toolbar"><span role="status">{busy ? "儲存中…" : dirty ? "尚未儲存" : message || "已同步"}</span><button onClick={() => void save()} disabled={busy || !dirty || !canEdit || conflict}>儲存變更</button></div>
     {!canEdit && <p>目前帳號可檢視；此內容由管理員編輯。</p>}
+    {project && canEdit && <div className="project-lifecycle-actions"><span>目前狀態：{project.published === false ? "非公開" : "公開"}</span><button type="button" disabled={busy || conflict} onClick={() => void changePublication()}>{project.published === false ? "公開專案" : "轉為非公開"}</button><button type="button" className="project-delete-button" disabled={busy || conflict} onClick={() => void deleteProject()}>刪除專案</button></div>}
     {error && <div role="alert" className="workspace-error"><p>{error}</p>{conflict && <><p>請先複製本機內容，再重新載入並合併。</p><button onClick={async () => { try { await navigator.clipboard.writeText(typeof data === "string" ? data : JSON.stringify(data, null, 2)); setMessage("本機內容已複製"); } catch { setError("無法存取剪貼簿，請手動複製內容。"); } }}>複製本機內容</button><button onClick={async () => {
       if (!window.confirm("重新載入會放棄本機變更，確定已保留內容？")) return;
       setBusy(true);
@@ -90,9 +149,8 @@ export function DocumentEditor({ initial, canEdit }: { initial: RecordData; canE
     {project && <div className="document-fields">
       {([["title","專案名稱"],["category","分類"],["summary","摘要"],["description","說明"],["scope","負責範圍"],["year","年份"],["publicBoundary","公開範圍"]] as const).map(([key,label]) =>
         <label key={key}>{label}<textarea rows={key === "description" ? 4 : 2} value={project[key] ?? ""} onChange={(e) => patchProject(key, e.target.value || undefined)} /></label>)}
-      <label>發布狀態<select value={String(project.published !== false)} onChange={(e) => patchProject("published", e.target.value === "true")}><option value="false">草稿</option><option value="true">公開</option></select></label>
       <label>展示分組<select value={project.group ?? "featured"} onChange={(e) => patchProject("group", e.target.value)}>{["featured","systems","experiments"].map((v) => <option key={v}>{v}</option>)}</select></label>
-      <section className="project-cover-field"><div><h2>專案封面</h2><p>建議 16:9、至少 1280 × 720。支援 JPG、PNG、WebP、GIF、AVIF，最大 12MB。</p></div><input accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={(event) => void uploadCover(event.target.files?.[0])} type="file" /><label>封面路徑<input value={project.cover} onChange={(event) => patchProject("cover", event.target.value)} /></label><label>圖片焦點<input value={project.coverPosition} onChange={(event) => patchProject("coverPosition", event.target.value)} /><small>CSS object-position，例如 center center 或 50% 30%。</small></label></section>
+      <section className="project-cover-field"><div><h2>專案封面</h2><p>建議 16:9、至少 1280 × 720。支援 JPG、PNG、WebP、GIF、AVIF，最大 12MB。</p></div><input accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={(event) => void uploadCover(event.target.files?.[0])} type="file" /><label>封面路徑<input value={project.cover ?? ""} onChange={(event) => patchProject("cover", event.target.value)} /></label><label>圖片焦點<input value={project.coverPosition ?? ""} onChange={(event) => patchProject("coverPosition", event.target.value)} /><small>CSS object-position，例如 center center 或 50% 30%。</small></label></section>
       {(["tech","outcomes","relatedTags"] as const).map((key) => <label key={key}>{{tech:"技術",outcomes:"成果",relatedTags:"相關文章標籤"}[key]} · 每行一項<textarea value={(project[key] ?? []).join("\n")} onChange={(e) => patchProject(key, lines(e.target.value))} /></label>)}
       {(["repoUrl","demoUrl","caseStudyUrl"] as const).map((key) => <label key={key}>{{repoUrl:"原始碼連結",demoUrl:"展示連結",caseStudyUrl:"案例文章連結"}[key]}<input value={project[key] ?? ""} onChange={(e) => patchProject(key, e.target.value || undefined)} /></label>)}
     </div>}

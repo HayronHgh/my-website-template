@@ -79,6 +79,19 @@ export const projectMetaSchema = z.object({
   year: z.string().trim().min(1).optional(),
 }).passthrough();
 
+// Drafts may be saved a field at a time. Publishing still requires the full schema.
+export const projectDraftMetaSchema = projectMetaSchema.partial().extend({
+  slug: projectMetaSchema.shape.slug,
+  title: projectMetaSchema.shape.title,
+  published: z.literal(false),
+});
+
+export function parseProjectMeta(source: unknown) {
+  const isDraft = typeof source === "object" && source !== null &&
+    "published" in source && source.published === false;
+  return (isDraft ? projectDraftMetaSchema : projectMetaSchema).safeParse(source);
+}
+
 const siteImageSchema = z.union([
   z.string().trim().min(1),
   z.object({
@@ -523,7 +536,7 @@ async function validateProjects(
       continue;
     }
 
-    const parsedMeta = projectMetaSchema.safeParse(rawMeta);
+    const parsedMeta = parseProjectMeta(rawMeta);
 
     if (!parsedMeta.success) {
       addZodIssues(issues, rootDirectory, metaPath, parsedMeta.error);
@@ -539,14 +552,14 @@ async function validateProjects(
       });
     }
 
-    if (meta.detailsUrl !== `/projects/${folderSlug}`) {
+    if (meta.detailsUrl !== undefined && meta.detailsUrl !== `/projects/${folderSlug}`) {
       issues.push({
         filePath: toDisplayPath(rootDirectory, metaPath),
         message: `detailsUrl must be "/projects/${folderSlug}".`,
       });
     }
 
-    if (!isSafePublicOrRemoteImage(meta.cover)) {
+    if (meta.cover !== undefined && !isSafePublicOrRemoteImage(meta.cover)) {
       issues.push({
         filePath: toDisplayPath(rootDirectory, metaPath),
         message: `cover path is not allowed: ${meta.cover}`,

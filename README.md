@@ -181,7 +181,7 @@ The result is a small content system with a protected editorial console, while a
 
 This design intentionally accepts a few constraints:
 
-- The built-in Admin workspace edits Articles, Research, LeetCode, Projects, and Resume data. Site settings remain file/Git managed; project and resume writes are administrator-only and project creation has no delete or version-history workflow.
+- The built-in Admin workspace edits Articles, Research, LeetCode, Projects, and Resume data. Site settings remain file/Git managed; project and resume writes are administrator-only. Project deletion moves the project and its assets to the recoverable `content/.trash/projects` archive; project version history is not provided.
 - Research experiments execute only pre-authored `experiment.mjs` files and accept numeric parameters declared by `experiment.json`. Public pages expose controls and designed results, never a code editor. The production Docker image enables this trusted-code player; non-Docker environments can keep `RESEARCH_RUNNER_ENABLED=false`. It is not an OS sandbox, so only administrator-authored scripts should be deployed.
 - CMS writes require one writable Node.js instance and a persistent filesystem shared by live Blog content and `content/.trash`; multi-writer and serverless ephemeral deployments are unsupported.
 - Runtime file reads plus mtime cache are simpler than a database, but not ideal for very large content collections.

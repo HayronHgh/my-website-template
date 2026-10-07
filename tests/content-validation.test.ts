@@ -61,6 +61,20 @@ afterEach(async () => {
 });
 
 describe("content validation", () => {
+  it("accepts incomplete private projects while keeping published projects strict", async () => {
+    await writeFile("content/projects/draft-project/meta.json", JSON.stringify({
+      slug: "draft-project", title: "Draft Project", published: false,
+    }));
+    await writeFile("content/projects/draft-project/main.md", "# Draft Project\n");
+    await writeFile("content/projects/public-project/meta.json", JSON.stringify({
+      slug: "public-project", title: "Public Project", published: true,
+    }));
+    await writeFile("content/projects/public-project/main.md", "# Public Project\n");
+    const result = await validateContent(rootDirectory);
+    expect(result.issues.some((issue) => issue.filePath.includes("draft-project"))).toBe(false);
+    expect(result.issues.some((issue) => issue.filePath.includes("public-project"))).toBe(true);
+  });
+
   it("passes for a valid project and blog post", async () => {
     await writeValidProject();
     await writeFile(

@@ -7,8 +7,59 @@ import { clearContentCache } from "@/lib/content/cache";
 import { projectMetaSchema } from "@/lib/content/validation";
 import { PROJECT_CONTENT_DIRECTORY } from "@/lib/projects/constants";
 import { getProjectDirectoryPath } from "@/lib/projects/assets";
+import { readDocument } from "@/lib/admin/documents";
 
 const PROJECT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export async function archiveProject(slug: string, revision: string) {
+  if (!PROJECT_SLUG_PATTERN.test(slug)) {
+    throw new AdminApiError(400, "invalid_slug", "專案 slug 不正確。");
+  }
+  const projectDirectory = getProjectDirectoryPath(slug);
+  if (!projectDirectory) throw new AdminApiError(404, "project_not_found", "找不到專案。");
+  const projectRoot = await fs.realpath(PROJECT_CONTENT_DIRECTORY);
+  const directoryStat = await fs.lstat(projectDirectory).catch(() => null);
+  if (!directoryStat?.isDirectory() || directoryStat.isSymbolicLink() ||
+      path.dirname(projectDirectory) !== projectRoot) {
+    throw new AdminApiError(404, "project_not_found", "找不到專案。");
+  }
+  const current = await readDocument(`projects/${slug}/meta.json`);
+  if (current.revision !== revision) {
+    throw new AdminApiError(409, "revision_conflict", "專案已在其他地方更新，請重新載入後再刪除。");
+  }
+
+  const contentRoot = path.dirname(projectRoot);
+  const trashParent = path.join(contentRoot, ".trash");
+  const trashRoot = path.join(trashParent, "projects");
+  for (const directory of [trashParent, trashRoot]) {
+    await fs.mkdir(directory).catch((error: NodeJS.ErrnoException) => {
+      if (error.code !== "EEXIST") throw error;
+    });
+    const stat = await fs.lstat(directory);
+    if (!stat.isDirectory() || stat.isSymbolicLink()) {
+      throw new AdminApiError(409, "unsafe_trash_root", "封存目錄不安全，無法刪除專案。");
+    }
+  }
+  if (path.dirname(await fs.realpath(trashRoot)) !== await fs.realpath(trashParent) ||
+      path.dirname(await fs.realpath(trashParent)) !== await fs.realpath(contentRoot)) {
+    throw new AdminApiError(409, "unsafe_trash_root", "封存目錄超出內容範圍。");
+  }
+
+  const archiveId = `${Date.now()}-${randomUUID()}`;
+  const archiveRoot = path.join(trashRoot, archiveId);
+  const archivedAt = new Date().toISOString();
+  await fs.mkdir(archiveRoot);
+  try {
+    await atomicWriteTextFile(path.join(archiveRoot, "archive.json"),
+      `${JSON.stringify({ archiveId, archivedAt, slug }, null, 2)}\n`);
+    await fs.rename(projectDirectory, path.join(archiveRoot, slug));
+  } catch (error) {
+    await fs.rm(archiveRoot, { recursive: true, force: true }).catch(() => undefined);
+    throw error;
+  }
+  clearContentCache();
+  return { archiveId, archivedAt, slug };
+}
 
 export async function createProject(slug: string, title: string) {
   if (!PROJECT_SLUG_PATTERN.test(slug)) {
