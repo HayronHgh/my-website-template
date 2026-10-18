@@ -76,7 +76,7 @@ def prepare(root):
         match = header_parts(source)
         header = match[2]
         number = re.match(r"(\d+)\.", file.parent.name)
-        old_slug = str(file.parent.relative_to(root / "content/blog"))
+        old_slug = file.parent.relative_to(root / "content/blog").as_posix()
         corrections = []
         if number:
             problem_id = int(number[1])
