@@ -15,6 +15,7 @@ export function mergeCommittedArticleIdentity<
 }
 
 export type AutosaveEligibility = {
+  allowDrafts?: boolean;
   currentSnapshot: string;
   failedSnapshot: string | null;
   hasConflict: boolean;
@@ -30,6 +31,7 @@ export type AutosaveEligibility = {
 };
 
 export function shouldAutosave({
+  allowDrafts = false,
   currentSnapshot,
   failedSnapshot,
   hasConflict,
@@ -45,7 +47,7 @@ export function shouldAutosave({
 }: AutosaveEligibility) {
   return (
     hasSelectedArticle &&
-    isPublished &&
+    (isPublished || allowDrafts) &&
     isDirty &&
     isFormValid &&
     isOnline &&

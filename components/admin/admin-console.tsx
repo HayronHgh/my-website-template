@@ -35,14 +35,14 @@ import {
 } from "react";
 import type { FormEvent } from "react";
 import { InlineMarkdownEditor } from "@/components/admin/inline-markdown-editor";
-import { LeetCodePracticePlan } from "@/components/admin/leetcode-practice-plan";
-import { LeetCodeProgressLibrary } from "@/components/admin/leetcode-progress-library";
+import { LeetCodeNotebookSidebar, type NotebookSelection } from "@/components/admin/leetcode-notebook-sidebar";
+import { cleanProblemTitle } from "@/lib/leetcode/notebook";
 import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
 import { NeonButton } from "@/components/ui/neon-button";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { adminRequest, AdminClientError } from "@/components/admin/admin-api";
 import { getAdminArticleApiPath as articleApiPath } from "@/lib/admin/article-url";
-import { problemStatusLabels, problemTemplate, type ProblemMetadata } from "@/lib/leetcode/schema";
+import { problemTemplate, type ProblemMetadata } from "@/lib/leetcode/schema";
 import type { ResearchMetadata } from "@/lib/research/schema";
 import {
   getAdminArticleGroupKey,
@@ -218,11 +218,16 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
   const getAdminArticleApiPath = useCallback((slug: string) => articleApiPath(slug).replace("/api/admin/posts", apiRoot), [apiRoot]);
   const publicLabel = domain === "leetcode" ? "LeetCode" : domain === "research" ? "Research" : "Articles";
   const [posts, setPosts] = useState<AdminArticleListItem[]>([]);
+  const openingNotebookRef = useRef(false);
   const openedInitialSlug = useRef(false);
   useEffect(() => {
-    if (initialSlug && !openedInitialSlug.current) {
+    let restoredSlug = initialSlug;
+    if (domain === "leetcode" && !restoredSlug) {
+      try { restoredSlug = window.localStorage.getItem("leetcode:last-notebook") ?? undefined; } catch { /* Storage may be unavailable. */ }
+    }
+    if (restoredSlug && parseSafeExistingBlogSlug(restoredSlug) && !openedInitialSlug.current) {
       openedInitialSlug.current = true;
-      void loadArticle(initialSlug);
+      void loadArticle(restoredSlug);
     }
     // The initial URL selection is consumed once; subsequent selection is local.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -549,7 +554,10 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
       return;
     }
 
-    if (!force && isDirty && !window.confirm("目前有尚未儲存的變更，確定要離開嗎？")) {
+    if (!force && domain === "leetcode" && isDirtyRef.current) {
+      await saveArticle(latestFormRef.current.published);
+      if (serializeForm(latestFormRef.current) !== baselineRef.current) return;
+    } else if (!force && isDirty && !window.confirm("目前有尚未儲存的變更，確定要離開嗎？")) {
       return;
     }
 
@@ -585,6 +593,12 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
       baselineRef.current = nextBaseline;
       isDirtyRef.current = false;
       setSelectedSlug(result.article.slug);
+      if (domain === "leetcode") {
+        try { window.localStorage.setItem("leetcode:last-notebook", result.article.slug); } catch { /* URL still preserves selection. */ }
+        const url = new URL(window.location.href);
+        url.searchParams.set("slug", result.article.slug);
+        window.history.replaceState(window.history.state, "", url);
+      }
       setRevision(result.article.revision);
       resetMarkdownEditorHistory(nextForm.content);
       setForm(nextForm);
@@ -811,6 +825,9 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
   function validateForm() {
     setHasAttemptedSubmit(true);
     const formElement = formRef.current;
+    if (domain === "leetcode" && formElement && !formElement.checkValidity()) {
+      formElement.querySelectorAll<HTMLDetailsElement>("details").forEach((details) => { details.open = true; });
+    }
 
     if (!slugIsSafe) {
       formElement?.querySelector<HTMLElement>("#post-slug")?.focus();
@@ -860,6 +877,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     if (isAutomatic) {
       if (
         !shouldAutosave({
+          allowDrafts: domain === "leetcode",
           currentSnapshot: submittedSnapshot,
           failedSnapshot: failedAutoSaveSnapshotRef.current,
           hasConflict: Boolean(conflictRef.current),
@@ -972,7 +990,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
         hasNewerLocalChanges
           ? "已儲存先前快照；較新的本機變更會在停止輸入 1 秒後繼續儲存。"
           : isAutomatic
-          ? "已自動更新 main.md。"
+          ? domain === "leetcode" ? "變更已自動儲存。" : "已自動更新 main.md。"
           : result.article.published
             ? "文章已發布並建立手動版本。"
             : "草稿已儲存並建立手動版本。",
@@ -1022,6 +1040,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
 
     if (
       !shouldAutosave({
+        allowDrafts: domain === "leetcode",
         currentSnapshot,
         failedSnapshot: failedAutoSaveSnapshotRef.current,
         hasConflict: Boolean(conflict),
@@ -1406,10 +1425,26 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     setPendingAction(action);
   }
 
-  async function openPracticeArticle(slug: string) {
-    await loadArticle(slug);
-    if (selectedSlugRef.current === slug) {
-      document.querySelector(".studio-workbench")?.scrollIntoView({ block: "start" });
+  async function chooseNotebook(problem: NotebookSelection) {
+    if (isMutationInFlight || isArticleLoading || openingNotebookRef.current) return;
+    openingNotebookRef.current = true;
+    try {
+      if (isDirtyRef.current) {
+        await saveArticle(latestFormRef.current.published);
+        if (serializeForm(latestFormRef.current) !== baselineRef.current) return;
+      }
+      setIsSaving(true);
+      const result = await adminRequest<{ article: AdminArticle; created: boolean }>(apiRoot, {
+        method: "POST", body: JSON.stringify({ intent: "open-notebook", id: problem.id, title: problem.title, difficulty: problem.difficulty ?? null, language: problem.language ?? "Python" }),
+      });
+      await loadArticle(result.article.slug, true);
+      await refreshPosts({ silent: true });
+      setMessage(result.created ? "題本與模板已建立為草稿，編輯會自動儲存。" : "已接續原有題本。");
+    } catch (cause) {
+      handleRequestError(cause, "無法建立題本，請重試。");
+    } finally {
+      openingNotebookRef.current = false;
+      setIsSaving(false);
     }
   }
 
@@ -1431,12 +1466,12 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     : null;
 
   return (
-    <div className="admin-editor pb-16">
+    <div className={`admin-editor pb-16 ${domain === "leetcode" ? "leetcode-studio" : ""}`}>
       <MarkdownCopyButtons />
       <div className="workspace-canvas">
         <header className="mb-6 flex flex-col gap-4 border-b border-[#26344d] pb-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="mb-2 flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#8ed2d8]">
+            <div className={`${domain === "leetcode" ? "hidden" : "mb-2 flex"} items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#8ed2d8]`}>
               <ShieldCheck aria-hidden="true" className="h-4 w-4" />
               Content workspace
             </div>
@@ -1445,21 +1480,21 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
               ref={consoleHeadingRef}
               tabIndex={-1}
             >
-              {publicLabel} 工作區
+              {domain === "leetcode" ? "解題筆記" : `${publicLabel} 工作區`}
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
-              管理 Markdown 文章的草稿、預覽與發布狀態。每次寫入都會驗證版本，避免覆蓋他人的更新。
+              {domain === "leetcode" ? "選一題，留下思路。寫好之後再公開。" : "管理 Markdown 文章的草稿、預覽與發布狀態。每次寫入都會驗證版本，避免覆蓋他人的更新。"}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
-            <div className="rounded border border-[#30445f] bg-[#0b1220] px-3 py-2 text-slate-300">
+            <div className={`${domain === "leetcode" ? "hidden" : ""} rounded border border-[#30445f] bg-[#0b1220] px-3 py-2 text-slate-300`}>
               <span className="text-slate-400">IDENTITY / </span>
               {initialSession.user.displayName}
               <span className="ml-2 text-[#8ed2d8]">{initialSession.user.role}</span>
             </div>
             <div
               aria-label={`同步狀態：${heartbeatLabels[heartbeatStatus]}`}
-              className="flex items-center gap-2 rounded border border-[#30445f] bg-[#0b1220] px-3 py-2 text-slate-300"
+              className={`${domain === "leetcode" ? "hidden" : "flex"} items-center gap-2 rounded border border-[#30445f] bg-[#0b1220] px-3 py-2 text-slate-300`}
               title={
                 lastHeartbeatAt
                   ? `最後心跳：${formatAdminUpdatedAt(lastHeartbeatAt)}`
@@ -1597,32 +1632,16 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
           </div>
         ) : null}
 
-        {domain === "leetcode" ? (
-          <>
-            <LeetCodePracticePlan
-              refreshKey={posts.map((post) => `${post.slug}:${post.revision}`).join("|")}
-              onOpenArticle={(slug) => void openPracticeArticle(slug)}
-            />
-            <LeetCodeProgressLibrary
-              disabled={isDirty || isMutationInFlight || isArticleLoading}
-              refreshKey={posts.map((post) => `${post.slug}:${post.revision}`).join("|")}
-              selectedSlug={selectedSlug}
-              onOpen={(slug) => void openPracticeArticle(slug)}
-              onUpdated={(slugs) => {
-                void refreshPosts({ silent: true });
-                const currentSlug = selectedSlugRef.current;
-                if (currentSlug && slugs.includes(currentSlug) && !isDirtyRef.current) {
-                  void loadArticle(currentSlug);
-                }
-              }}
-            />
-          </>
-        ) : null}
-
         <div
           className={`studio-layout ${isSidebarCollapsed ? "studio-layout--focused" : ""}`}
         >
-          {!isSidebarCollapsed ? (
+          {!isSidebarCollapsed && domain === "leetcode" ? (
+            <LeetCodeNotebookSidebar posts={posts} selectedSlug={selectedSlug}
+              disabled={isMutationInFlight || isArticleLoading} loading={isListLoading} error={listError}
+              onCollapse={() => setIsSidebarCollapsed(true)} onReload={() => void refreshPosts()}
+              onChoose={(problem) => void chooseNotebook(problem)} onOpen={(slug) => void loadArticle(slug)} />
+          ) : null}
+          {!isSidebarCollapsed && domain !== "leetcode" ? (
             <PixelCard
               aria-busy={isListLoading}
               as="section"
@@ -1864,6 +1883,9 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
           ) : null}
 
           <section className="studio-workbench" aria-busy={isArticleLoading || isMutationInFlight}>
+            {domain === "leetcode" && !hasSelection ? (
+              <div className="notebook-welcome"><PencilLine size={30} aria-hidden="true" /><h2>{isArticleLoading || isSaving ? "正在準備題本…" : "從一題開始"}</h2><p>從左側選擇題本，或在練習順序點選新題目。題解模板會自動建立並儲存為草稿。</p>{isSidebarCollapsed ? <button className="notebook-control" onClick={() => setIsSidebarCollapsed(false)} type="button">展開題目清單</button> : null}</div>
+            ) : <>
             {isSidebarCollapsed ? (
               <button
                 aria-label="展開文章側欄"
@@ -1885,10 +1907,10 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                         : "border-cyan-300/30 text-cyan-200"
                     }`}
                   >
-                    {form.published ? "published" : "draft"}
+                    {domain === "leetcode" ? (form.published ? "公開" : "草稿") : (form.published ? "published" : "draft")}
                   </span>
                   <span className="font-mono text-xs text-slate-400">
-                    {isMarkdownComposing
+                    {domain === "leetcode" ? (isSaving || isAutoSaving ? "儲存中…" : conflict ? "請先處理版本衝突" : isDirty ? "尚有變更，將自動儲存" : "已儲存") : isMarkdownComposing
                       ? "IME COMPOSITION — SYNC PAUSED"
                       : isAutoSaving
                         ? "AUTOSAVING MAIN.MD"
@@ -1907,12 +1929,13 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                               : "NEW RECORD"}
                   </span>
                 </div>
-                <p className="mt-2 truncate font-mono text-sm text-slate-300">
+                {domain === "leetcode" ? <h2 className="notebook-editor-title">{form.problem?.id ? <span>#{form.problem.id}</span> : null}{cleanProblemTitle(form.title, form.problem?.id)}</h2> : null}
+                <p className={`${domain === "leetcode" ? "hidden" : ""} mt-2 truncate font-mono text-sm text-slate-300`}>
                   {form.slug ? `${domain === "leetcode" ? "content/leetcode" : domain === "research" ? "content/research" : "content/blog"}/${form.slug}/main.md` : "等待指定新的 slug"}
                 </p>
                 {lastSavedAt ? (
                   <p className="mt-1 font-mono text-[0.68rem] text-slate-400">
-                    LAST SAVED {formatAdminUpdatedAt(lastSavedAt)}
+                    {domain === "leetcode" ? "更新時間" : "LAST SAVED"} {formatAdminUpdatedAt(lastSavedAt)}
                   </p>
                 ) : null}
               </div>
@@ -1928,7 +1951,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                       isPublishedEditor
                     }
                     onClick={() => void saveArticle(false)}
-                    title="儲存未發布內容；草稿不會自動同步到 main.md。"
+                    title={domain === "leetcode" ? "立即儲存草稿，保持非公開。" : "儲存未發布內容；草稿不會自動同步到 main.md。"}
                     variant="secondary"
                   >
                     {isSaving ? (
@@ -1954,7 +1977,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                     }
                   >
                     <Flame aria-hidden="true" className="h-4 w-4" />
-                    {form.published ? "取消發布" : "發布"}
+                    {domain === "leetcode" ? (form.published ? "取消公開" : "手動公開") : (form.published ? "取消發布" : "發布")}
                   </NeonButton>
                 ) : null}
                 {isAdmin && hasSelection ? (
@@ -1980,15 +2003,14 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
             {form.problem && (form.problem.entryType === "note" || form.problem.entryType === "template") ? (
               <p className="content-caption">LeetCode / {form.problem.entryType === "note" ? "學習筆記" : "模板草稿"} · 不使用題號、難度與解題進度。</p>
             ) : null}
-            {form.problem?.format === "legacy" ? <p className="content-caption">舊版筆記：保留原段落，可直接編輯，不要求改套新版模板。</p> : null}
+            {form.problem?.format === "legacy" && domain !== "leetcode" ? <p className="content-caption">舊版筆記：保留原段落，可直接編輯，不要求改套新版模板。</p> : null}
             {form.problem && (!form.problem.entryType || form.problem.entryType === "problem") ? (
-              <fieldset className="content-filters mb-4" disabled={isMutationInFlight || isArticleLoading || isPublishedEditor}>
+              <details className="notebook-settings"><summary>題目設定</summary><fieldset className="content-filters mb-4" disabled={isMutationInFlight || isArticleLoading || isPublishedEditor}>
                 <legend className="sr-only">題目資料</legend>
                 <label>題號<input type="number" min="1" value={form.problem.id ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, id: Number(e.target.value) })} /></label>
-                <label>難度<select value={form.problem.difficulty ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, difficulty: e.target.value as ProblemMetadata["difficulty"] })}>{["Easy","Medium","Hard"].map((v) => <option key={v}>{v}</option>)}</select></label>
-                <label>進度<select value={form.problem.status ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, status: e.target.value as ProblemMetadata["status"] })}>{Object.entries(problemStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+                <label>難度<select value={form.problem.difficulty ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, difficulty: (e.target.value || null) as ProblemMetadata["difficulty"] })}><option value="">未設定</option>{["Easy","Medium","Hard"].map((v) => <option key={v}>{v}</option>)}</select></label>
                 <label>語言<input maxLength={40} value={form.problem.language ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, language: e.target.value })} /></label>
-              </fieldset>
+              </fieldset></details>
             ) : null}
             {form.research ? (
               <fieldset className="content-filters mb-4" disabled={isMutationInFlight || isArticleLoading || isPublishedEditor}>
@@ -2008,7 +2030,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                 此文章已發布；編輯內容會直接預覽，停止輸入 1 秒後自動同步 main.md，並立即反映到公開網站。
               </div>
             ) : null}
-            {!form.published && !isPublishedEditor ? (
+            {!form.published && !isPublishedEditor && domain !== "leetcode" ? (
               <div className="mb-4 rounded border border-cyan-300/25 bg-cyan-950/10 px-4 py-3 text-sm text-cyan-100/75">
                 草稿會即時預覽，但不會自動寫入 main.md；請使用「儲存草稿」或「發布」提交內容。
               </div>
@@ -2091,6 +2113,8 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                     className="space-y-4"
                     disabled={isArticleLoading || isSaving || isPublishedEditor}
                   >
+                    <details className="notebook-article-settings space-y-4" open={domain !== "leetcode"}>
+                    <summary className={domain === "leetcode" ? "" : "hidden"}>文章資訊</summary>
                     <div>
                       <label className="mb-1.5 block text-sm font-semibold text-slate-300" htmlFor="post-slug">
                         Slug <span aria-hidden="true" className="text-amber-300">*</span>
@@ -2179,6 +2203,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                         value={form.description}
                       />
                     </div>
+                    </details>
                     <div>
                       <div className="mb-1.5 flex items-center justify-between gap-3">
                         <label className="text-sm font-semibold text-slate-300" htmlFor="post-content">
@@ -2206,8 +2231,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                         />
                       </div>
                       <p className="mt-1 text-xs text-slate-400" id="post-content-history-help">
-                        點選區塊編輯原始 Markdown，離開後立即排版。已發布文章停止輸入 1 秒後自動同步
-                        main.md；草稿需明確儲存。圖片與 MP4 請先儲存新文章，再上傳媒體。
+                        {domain === "leetcode" ? "點選區塊編輯，停止輸入後自動儲存。草稿只會在按下「手動公開」後出現在網站。" : "點選區塊編輯原始 Markdown，離開後立即排版。已發布文章停止輸入 1 秒後自動同步 main.md；草稿需明確儲存。圖片與 MP4 請先儲存新文章，再上傳媒體。"}
                       </p>
                     </div>
                   </fieldset>
@@ -2256,6 +2280,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                 )}
               </PixelCard>
             </div>
+            </>}
           </section>
         </div>
       </div>

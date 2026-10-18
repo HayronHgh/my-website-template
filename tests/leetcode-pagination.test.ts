@@ -4,7 +4,7 @@ import { paginateProblems, problemPageHref, type PublicProblem } from "@/lib/lee
 const problems: PublicProblem[] = Array.from({ length: 31 }, (_, index) => ({
   id: index + 1, title: `Problem ${index + 1}`, slug: `problem-${index + 1}`,
   tags: [index % 2 ? "tree" : "array"], summary: "", difficulty: "Easy",
-  status: "Solved", language: "Python", entryType: "problem",
+  status: "Solved", language: "Python", entryType: "problem", updatedAt: "2026-10-18T08:00:00Z",
 }));
 
 describe("public problem pagination", () => {
@@ -20,7 +20,7 @@ describe("public problem pagination", () => {
     const result = paginateProblems(problems, { tag: "array", status: "Solved", q: "Problem", page: "2" });
     expect(result).toMatchObject({ total: 16, pageCount: 2, start: 16, end: 16 });
     expect(result.items[0].id).toBe(31);
-    expect(problemPageHref(result, 1)).toBe("/leetcode?q=Problem&status=Solved&tag=array");
+    expect(problemPageHref(result, 1)).toBe("/leetcode?q=Problem&tag=array");
   });
 
   it("bounds page numbers and handles no matches", () => {

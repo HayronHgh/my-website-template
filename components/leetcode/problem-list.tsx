@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { problemStatusLabels } from "@/lib/leetcode/schema";
+import { formatProblemUpdatedAt } from "@/lib/leetcode/notebook";
 import { problemPageHref, type ProblemPage } from "@/lib/leetcode/problem-pagination";
 
 export type { PublicProblem } from "@/lib/leetcode/problem-pagination";
@@ -15,12 +15,11 @@ export function ProblemList({ result }: { result: ProblemPage }) {
       <Link aria-current={category === "problem" ? "page" : undefined} href={problemPageHref(result, 1, "problem")}>題解 · {result.problemCount}</Link>
       <Link aria-current={category === "note" ? "page" : undefined} href={problemPageHref(result, 1, "note")}>學習筆記 · {result.noteCount}</Link>
     </nav>
-    <form action="/leetcode" method="get" key={`${category}:${result.query}:${result.difficulty}:${result.status}:${result.tag}`}>
+    <form action="/leetcode" method="get" key={`${category}:${result.query}:${result.difficulty}:${result.tag}`}>
       <input name="category" type="hidden" value={category} />
       <div className="content-filters">
         <label>搜尋題目<input defaultValue={result.query} maxLength={100} name="q" placeholder="題號、題名或標籤" type="search" /></label>
         <label>難度<select disabled={category === "note"} defaultValue={result.difficulty} name="difficulty"><option value="">全部難度</option>{["Easy", "Medium", "Hard"].map((value) => <option key={value}>{value}</option>)}</select></label>
-        <label>進度<select disabled={category === "note"} defaultValue={result.status} name="status"><option value="">全部進度</option>{Object.entries(problemStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <label>主題<select defaultValue={result.tag} name="tag"><option value="">全部主題</option>{result.tags.map((value) => <option key={value}>{value}</option>)}</select></label>
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -31,7 +30,7 @@ export function ProblemList({ result }: { result: ProblemPage }) {
     {!items.length ? <div className="content-empty"><h2>{result.problemCount + result.noteCount ? "沒有符合條件的內容" : "解題紀錄準備中"}</h2><p>試著調整搜尋或篩選條件。</p></div> :
       <div className="problem-list">{items.map((problem) => <Link className="problem-row" href={`/leetcode/${problem.slug.split("/").map(encodeURIComponent).join("/")}`} key={problem.slug}>
         <span className="content-caption">{problem.id === null ? "筆記" : `#${problem.id}`}</span><div><h2>{problem.title}</h2><p>{problem.tags.join(" / ")}</p></div>
-        <span data-difficulty={problem.difficulty ?? undefined}>{problem.difficulty ?? "—"}</span><span>{problem.status ? problemStatusLabels[problem.status] : "—"}</span>
+        <span data-difficulty={problem.difficulty ?? undefined}>{problem.difficulty ?? "—"}</span><time className="content-caption" dateTime={problem.updatedAt}>更新 {formatProblemUpdatedAt(problem.updatedAt)}</time>
       </Link>)}</div>}
     {pageCount > 1 ? (
       <nav aria-label="題目分頁" className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#26344d] pt-4">

@@ -11,6 +11,7 @@ import { isSameOriginRequest } from "@/lib/admin/origin";
 import { createArticleRequestSchema } from "@/lib/leetcode/requests";
 import { requireRequestSession } from "@/lib/admin/session";
 import { assertCmsWriteEnabled } from "@/lib/admin/write-policy";
+import { openNotebookSchema, openProblemNotebook } from "@/lib/leetcode/open-notebook";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,7 +54,11 @@ export async function POST(request: Request) {
 
     const session = requireRequestSession(request, ["admin", "editor"], config);
     assertCmsWriteEnabled(config);
-    const body = await readJsonBody(request, createArticleRequestSchema);
+    const body = await readJsonBody(request, z.union([openNotebookSchema, createArticleRequestSchema]));
+    if ("intent" in body) {
+      const result = await openProblemNotebook(body, session.user.role);
+      return apiSuccess(result, { status: result.created ? 201 : 200 });
+    }
     const { slug, ...articleInput } = body;
     const article = await articleStore.create(slug, articleInput, session.user.role);
 

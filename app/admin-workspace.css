@@ -1,4 +1,50 @@
 /* Editorial canvas: shared public palette, isolated from public hero/layout rules. */
+/* LeetCode: one library and one writing surface. */
+.leetcode-studio .workspace-canvas { max-width: 1920px; padding-top: 1.5rem; }
+.leetcode-studio > .workspace-canvas > header { align-items: center; margin-bottom: .75rem; padding-bottom: 1rem; }
+.leetcode-studio > .workspace-canvas > header h1 { font-size: 1.45rem; }
+.leetcode-studio .studio-toolbar { position: sticky; top: 5.5rem; z-index: 16; border-top-width: 1px; box-shadow: none; background: #101426f5; }
+.leetcode-studio .studio-source, .leetcode-studio .studio-preview { background: #101426; box-shadow: none; }
+.notebook-library { min-width: 0; border: 1px solid #363b56; border-radius: 6px; background: #101426; }
+.notebook-library-head { display: grid; gap: .85rem; padding: 1rem; }
+.notebook-library-head h2 { color: #e4edf9; font-size: .95rem; font-weight: 700; }
+.notebook-control { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 38px; padding: .45rem .65rem; border: 1px solid #36445b; border-radius: 4px; background: #15192d; color: #b9dfe3; font: inherit; font-size: .8rem; cursor: pointer; }
+.notebook-control:disabled, .notebook-rows button:disabled, .notebook-next:disabled { opacity: .5; cursor: wait; }
+.notebook-create { width: 100%; border-color: #587581; background: #1b303c; color: #e4edf9; }
+.notebook-add { display: grid; gap: .7rem; }
+.notebook-add label { display: grid; gap: .35rem; font-size: .75rem; color: #a4b4cc; }
+.notebook-add input { width: 100%; min-height: 40px; padding: .5rem; border: 1px solid #36445b; border-radius: 4px; background: #0c1020; color: #e4edf9; }
+.notebook-next { padding: .7rem .8rem; border-left: 2px solid #8ed2d8; background: #8ed2d808; text-align: left; color: #8ed2d8; font-size: .75rem; }
+.notebook-next span { display: block; margin-top: .3rem; color: #e4edf9; line-height: 1.5; }
+.notebook-tabs { display: flex; gap: .25rem; border-bottom: 1px solid #363b56; }
+.notebook-tabs button { min-height: 38px; flex: 1; border-bottom: 2px solid transparent; font-size: .75rem; color: #8fa0b9; }
+.notebook-tabs button[aria-pressed="true"] { border-color: #8ed2d8; color: #e4edf9; }
+.notebook-search { display: flex; align-items: center; gap: .5rem; padding: .55rem .65rem; border: 1px solid #36445b; border-radius: 4px; color: #8fa0b9; background: #0c1020; }
+.notebook-search input { min-width: 0; width: 100%; background: transparent; color: #e4edf9; font-size: .8rem; outline: none; }
+.notebook-search:focus-within { outline: 2px solid #8ed2d8; }
+.notebook-rows { padding: 0 .5rem .5rem; }
+.notebook-rows li + li { border-top: 1px solid #ffffff06; }
+.notebook-rows button { display: flex; align-items: start; gap: .65rem; width: 100%; min-height: 62px; padding: .7rem .5rem; border-radius: 4px; text-align: left; }
+.notebook-rows button:hover { background: #ffffff05; }
+.notebook-rows button[aria-current="true"] { background: #1b303c; box-shadow: inset 2px 0 #8ed2d8; }
+.notebook-number { flex: 0 0 3rem; padding-top: .1rem; color: #8fa0b9; font-size: .75rem; font-variant-numeric: tabular-nums; }
+.notebook-row-copy { flex: 1; min-width: 0; }
+.notebook-row-copy strong { display: block; overflow-wrap: anywhere; color: #e4edf9; font-size: .8rem; font-weight: 500; line-height: 1.5; }
+.notebook-row-copy small { display: block; margin-top: .3rem; color: #8fa0b9; font-size: .65rem; }
+.notebook-add-mark { color: #8ed2d8; }
+.notebook-list-message { display: flex; flex-wrap: wrap; gap: .5rem; padding: 1rem; color: #8fa0b9; font-size: .8rem; }
+.notebook-pagination { display: flex; align-items: center; justify-content: space-between; gap: .5rem; border-top: 1px solid #363b56; padding: .75rem 1rem; font-size: .7rem; color: #8fa0b9; }
+.notebook-pagination > div { display: flex; gap: .3rem; }
+.notebook-editor-title { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .75rem; color: #e4edf9; font-size: 1.15rem; font-weight: 600; }
+.notebook-editor-title > span { color: #8ed2d8; font-variant-numeric: tabular-nums; }
+.notebook-settings, .leetcode-studio .notebook-article-settings { margin-bottom: 1rem; border: 1px solid #363b56; border-radius: 4px; padding: .75rem 1rem; }
+.notebook-settings summary, .leetcode-studio .notebook-article-settings summary { cursor: pointer; color: #a4b4cc; font-size: .8rem; }
+.notebook-settings .content-filters { margin-top: 1rem; }
+.notebook-welcome { display: flex; min-height: 65vh; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 2rem; border: 1px dashed #363b56; border-radius: 6px; color: #8fa0b9; }
+.notebook-welcome h2 { color: #e4edf9; font-size: 1.3rem; }
+.notebook-welcome p { max-width: 26rem; text-align: center; line-height: 1.8; font-size: .875rem; }
+@media (min-width: 1100px) { .leetcode-studio .studio-layout:not(.studio-layout--focused) { grid-template-columns: 19rem minmax(0,1fr); } }
+@media (max-width: 1099px) { .leetcode-studio .notebook-library { max-height: 27rem; } .leetcode-studio .studio-toolbar { position: static; } }
 .admin-shell {
   --studio-gap: clamp(1rem, 1.5vw, 2rem);
   --studio-gutter: clamp(1rem, 2.5vw, 4rem);

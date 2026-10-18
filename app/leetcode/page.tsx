@@ -20,7 +20,7 @@ export default async function LeetCodePage({ searchParams }: { searchParams: Pro
   const [problems, settings] = await Promise.all([getPublishedProblems(), getSiteSettings()]);
   const result = paginateProblems(problems.map((problem) => ({
     ...problem.problem!, slug: problem.slug, summary: problem.description,
-    tags: problem.tags, title: problem.title,
+    tags: problem.tags, title: problem.title, updatedAt: problem.updatedAt,
   })), await searchParams);
   return (
     <Section className="!pt-0 sm:!pt-0">

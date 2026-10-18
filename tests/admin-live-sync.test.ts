@@ -55,6 +55,11 @@ describe("admin live sync timing", () => {
 });
 
 describe("shouldAutosave", () => {
+  it("autosaves opted-in notebooks while retaining selection and conflict protection", () => {
+    expect(shouldAutosave({ ...eligibleAutosave, allowDrafts: true, isPublished: false })).toBe(true);
+    expect(shouldAutosave({ ...eligibleAutosave, allowDrafts: true, isPublished: false, hasConflict: true })).toBe(false);
+    expect(shouldAutosave({ ...eligibleAutosave, allowDrafts: true, isPublished: false, hasSelectedArticle: false })).toBe(false);
+  });
   it("allows an eligible published article to autosave", () => {
     expect(shouldAutosave(eligibleAutosave)).toBe(true);
   });

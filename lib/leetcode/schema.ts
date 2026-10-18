@@ -10,7 +10,7 @@ export const problemSchema = z.object({
   format: z.enum(["v1", "legacy"]).optional(),
 }).strict().superRefine((value, ctx) => {
   if (!value.entryType || value.entryType === "problem") {
-    for (const key of ["id", "difficulty", "status", "language"] as const) {
+    for (const key of ["id", "language"] as const) {
       if (value[key] === null) ctx.addIssue({ code: "custom", path: [key], message: "題解需要完整題目資料。" });
     }
   } else if (value.id !== null || value.difficulty !== null || value.status !== null || value.language !== null) {
@@ -21,7 +21,7 @@ export type ProblemMetadata = z.infer<typeof problemSchema>;
 
 export function readProblemMetadata(data: Record<string, unknown>) {
   return problemSchema.parse({
-    id: data.id, difficulty: data.difficulty, status: data.status, language: data.language,
+    id: data.id, difficulty: data.difficulty ?? null, status: data.status ?? null, language: data.language,
     ...(data.entryType === undefined ? {} : { entryType: data.entryType }),
     ...(data.format === undefined ? {} : { format: data.format }),
   });

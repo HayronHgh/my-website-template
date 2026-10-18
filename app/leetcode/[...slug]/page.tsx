@@ -5,13 +5,13 @@ import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
 import { getPublishedProblem } from "@/lib/leetcode/public";
-import { problemStatusLabels } from "@/lib/leetcode/schema";
+import { cleanProblemTitle, formatProblemUpdatedAt } from "@/lib/leetcode/notebook";
 type Props = { params: Promise<{ slug: string[] }> };
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getPublishedProblem((await params).slug.join("/"));
-  return { title: post ? `${post.title} · LeetCode` : "LeetCode", description: post?.description,
+  return { title: post ? `${cleanProblemTitle(post.title, post.problem?.id)} · LeetCode` : "LeetCode", description: post?.description,
     alternates: post ? { canonical: `/leetcode/${post.slug.split("/").map(encodeURIComponent).join("/")}` } : undefined };
 }
 export default async function ProblemPage({ params }: Props) {
@@ -21,9 +21,9 @@ export default async function ProblemPage({ params }: Props) {
     <Link href="/leetcode" className="content-back">
       <span aria-hidden="true">←</span><span>Algorithm Practice</span>
     </Link>
-    <p className="content-caption">{post.problem!.entryType === "note" ? "LEETCODE / 學習筆記" : `LEETCODE / ${post.problem!.difficulty} / ${post.problem!.status ? problemStatusLabels[post.problem!.status] : "未註記"} / ${post.problem!.language}`}</p>
-    <h1>{post.title}</h1><p className="content-summary">{post.description}</p>
-    <p className="content-caption">{post.tags.join(" / ")} · {post.date}</p>
+    <p className="content-caption">{post.problem!.entryType === "note" ? "LeetCode / 學習筆記" : ["LeetCode", post.problem!.difficulty, post.problem!.language].filter(Boolean).join(" / ")}</p>
+    <h1>{post.problem?.id ? <span className="mr-3 text-slate-400">#{post.problem.id}</span> : null}{cleanProblemTitle(post.title, post.problem?.id)}</h1><p className="content-summary">{post.description}</p>
+    <p className="content-caption">{post.tags.length ? `${post.tags.join(" / ")} · ` : ""}<time dateTime={post.updatedAt}>更新 {formatProblemUpdatedAt(post.updatedAt)}</time></p>
     <div className="prose-content" dangerouslySetInnerHTML={{ __html: post.html }} /><MarkdownCopyButtons />
   </article></Container></Section>;
 }
