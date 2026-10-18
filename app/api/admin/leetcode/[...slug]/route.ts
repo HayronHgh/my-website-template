@@ -11,6 +11,12 @@ import { isSameOriginRequest } from "@/lib/admin/origin";
 import { updateArticleRequestSchema } from "@/lib/leetcode/requests";
 import { requireRequestSession } from "@/lib/admin/session";
 import { assertCmsWriteEnabled } from "@/lib/admin/write-policy";
+import { z } from "zod";
+
+const progressRequestSchema = z.object({
+  revision: z.string().regex(/^[a-f0-9]{64}$/),
+  status: z.enum(["Todo", "Attempted", "Solved", "Review"]),
+}).strict();
 
 type AdminPostRouteContext = {
   params: Promise<{
@@ -83,6 +89,37 @@ export async function DELETE(request: Request, { params }: AdminPostRouteContext
     const { slug } = await params;
     const archive = await articleStore.archive(slug, session.user.role);
     return apiSuccess({ archive });
+  } catch (error) {
+    return toApiErrorResponse(error);
+  }
+}
+
+export async function PATCH(request: Request, { params }: AdminPostRouteContext) {
+  try {
+    const config = loadAdminConfig();
+    if (!isSameOriginRequest(request, config.allowedOrigins)) {
+      throw new AdminApiError(403, "invalid_origin", "要求來源未通過驗證。");
+    }
+    const session = requireRequestSession(request, ["admin", "editor"], config);
+    assertCmsWriteEnabled(config);
+    assertSafeArticleRoutePath(request, "/api/admin/leetcode/");
+    const { slug } = await params;
+    const input = await readJsonBody(request, progressRequestSchema);
+    const current = await articleStore.read(slug);
+    if (!current.problem?.id || (current.problem.entryType && current.problem.entryType !== "problem")) {
+      throw new AdminApiError(422, "not_a_problem", "只有題解可以切換刷題進度。");
+    }
+    const article = await articleStore.update(slug, {
+      content: current.content,
+      date: current.date,
+      description: current.description,
+      problem: { ...current.problem, status: input.status },
+      published: current.published,
+      revision: input.revision,
+      tags: current.tags,
+      title: current.title,
+    }, session.user.role, "manual");
+    return apiSuccess({ article });
   } catch (error) {
     return toApiErrorResponse(error);
   }

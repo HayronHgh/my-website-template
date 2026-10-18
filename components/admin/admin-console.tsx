@@ -35,12 +35,14 @@ import {
 } from "react";
 import type { FormEvent } from "react";
 import { InlineMarkdownEditor } from "@/components/admin/inline-markdown-editor";
+import { LeetCodePracticePlan } from "@/components/admin/leetcode-practice-plan";
+import { LeetCodeProgressLibrary } from "@/components/admin/leetcode-progress-library";
 import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
 import { NeonButton } from "@/components/ui/neon-button";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { adminRequest, AdminClientError } from "@/components/admin/admin-api";
 import { getAdminArticleApiPath as articleApiPath } from "@/lib/admin/article-url";
-import { problemTemplate, type ProblemMetadata } from "@/lib/leetcode/schema";
+import { problemStatusLabels, problemTemplate, type ProblemMetadata } from "@/lib/leetcode/schema";
 import type { ResearchMetadata } from "@/lib/research/schema";
 import {
   getAdminArticleGroupKey,
@@ -1404,6 +1406,13 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     setPendingAction(action);
   }
 
+  async function openPracticeArticle(slug: string) {
+    await loadArticle(slug);
+    if (selectedSlugRef.current === slug) {
+      document.querySelector(".studio-workbench")?.scrollIntoView({ block: "start" });
+    }
+  }
+
   const confirmationCopy = pendingAction
     ? {
         archive: {
@@ -1586,6 +1595,28 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
               </NeonButton>
             </div>
           </div>
+        ) : null}
+
+        {domain === "leetcode" ? (
+          <>
+            <LeetCodePracticePlan
+              refreshKey={posts.map((post) => `${post.slug}:${post.revision}`).join("|")}
+              onOpenArticle={(slug) => void openPracticeArticle(slug)}
+            />
+            <LeetCodeProgressLibrary
+              disabled={isDirty || isMutationInFlight || isArticleLoading}
+              refreshKey={posts.map((post) => `${post.slug}:${post.revision}`).join("|")}
+              selectedSlug={selectedSlug}
+              onOpen={(slug) => void openPracticeArticle(slug)}
+              onUpdated={(slugs) => {
+                void refreshPosts({ silent: true });
+                const currentSlug = selectedSlugRef.current;
+                if (currentSlug && slugs.includes(currentSlug) && !isDirtyRef.current) {
+                  void loadArticle(currentSlug);
+                }
+              }}
+            />
+          </>
         ) : null}
 
         <div
@@ -1955,7 +1986,7 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                 <legend className="sr-only">題目資料</legend>
                 <label>題號<input type="number" min="1" value={form.problem.id ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, id: Number(e.target.value) })} /></label>
                 <label>難度<select value={form.problem.difficulty ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, difficulty: e.target.value as ProblemMetadata["difficulty"] })}>{["Easy","Medium","Hard"].map((v) => <option key={v}>{v}</option>)}</select></label>
-                <label>進度<select value={form.problem.status ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, status: e.target.value as ProblemMetadata["status"] })}>{["Todo","Attempted","Solved","Review"].map((v) => <option key={v}>{v}</option>)}</select></label>
+                <label>進度<select value={form.problem.status ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, status: e.target.value as ProblemMetadata["status"] })}>{Object.entries(problemStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
                 <label>語言<input maxLength={40} value={form.problem.language ?? ""} onChange={(e) => updateField("problem", { ...form.problem!, language: e.target.value })} /></label>
               </fieldset>
             ) : null}
