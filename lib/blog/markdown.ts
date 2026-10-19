@@ -499,7 +499,7 @@ function parseMediaSizing(value: string): MediaSizing {
       aspectHeight: aspectHeight > 0 ? aspectHeight : 9,
       aspectWidth: aspectWidth > 0 ? aspectWidth : 16,
       cleanUrl,
-      width: Number.isFinite(widthValue) ? Math.max(240, Math.min(1200, Math.round(widthValue))) : 720,
+      width: Number.isFinite(widthValue) && widthValue > 0 ? Math.max(240, Math.min(1200, Math.round(widthValue))) : fallback.width,
     };
   } catch { return fallback; }
 }

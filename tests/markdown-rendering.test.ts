@@ -104,6 +104,18 @@ describe("markdown rendering", () => {
 
     expect(html).toContain("<iframe");
     expect(html).toContain("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
+    expect(html).toContain("--media-width:720px");
+  });
+
+  it.each(["", "?mediaWidth=", "?mediaWidth=0", "?mediaWidth=-10", "?mediaWidth=invalid"])("defaults missing or invalid YouTube widths to 720px: %s", async (query) => {
+    const html = await markdownToHtml(`https://youtu.be/dQw4w9WgXcQ${query}`);
+    expect(html).toContain("--media-width:720px");
+    expect(html).toContain("--media-aspect:16/9");
+  });
+
+  it("uses the same default for standalone MP4 links without sizing", async () => {
+    const html = await markdownToHtml("[Video](assets/demo.mp4)");
+    expect(html).toContain("--media-width:720px");
   });
 
   it("preserves editor sizing for embedded media", async () => {
