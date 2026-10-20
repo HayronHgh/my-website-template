@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ProjectCard } from "@/components/projects/project-card";
+import { getProjectCoverStyle } from "@/lib/projects/cover-style";
 import type { ProjectItem } from "@/data/site";
 
 const project: ProjectItem = {
@@ -9,6 +10,12 @@ const project: ProjectItem = {
 };
 
 describe("project cover appearance", () => {
+  it("uses original image colors in the shared card/detail style", () => {
+    const style = getProjectCoverStyle('/cover with spaces.webp', "50% 25%");
+    expect(style).toEqual({ backgroundImage: 'url("/cover with spaces.webp")',
+      backgroundPosition: "50% 25%", backgroundSize: "cover", boxShadow: "none" });
+    expect(getProjectCoverStyle(undefined, "center")).toEqual({ backgroundPosition: "center" });
+  });
   it("shows uploaded covers without a gradient, inset shadow or brightness filter", () => {
     const card = ProjectCard({ project });
     const preview = card.props.children[0];

@@ -14,6 +14,7 @@ import {
   getProjectDetailBySlug,
 } from "@/lib/projects/details";
 import { getProjectAssetUrl } from "@/lib/projects/assets";
+import { getProjectCoverStyle } from "@/lib/projects/cover-style";
 import { getSiteSettings } from "@/lib/site/settings";
 
 type ProjectDetailPageProps = {
@@ -71,13 +72,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
   const coverImageUrl = project.cover.startsWith("generated:")
     ? undefined
     : getProjectAssetUrl(project.slug, project.cover);
-  const previewStyle = coverImageUrl
-    ? {
-        backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(3, 7, 18, 0.34)), url(${JSON.stringify(coverImageUrl)})`,
-        backgroundPosition: project.coverPosition,
-        backgroundSize: "cover",
-      }
-    : { backgroundPosition: project.coverPosition };
+  const previewStyle = getProjectCoverStyle(coverImageUrl, project.coverPosition);
 
   return (
     <Section>

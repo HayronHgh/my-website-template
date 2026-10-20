@@ -3,6 +3,7 @@ import { NeonButton } from "@/components/ui/neon-button";
 import { PixelCard } from "@/components/ui/pixel-card";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { getProjectAssetUrl } from "@/lib/projects/assets";
+import { getProjectCoverStyle } from "@/lib/projects/cover-style";
 import { cn } from "@/lib/utils";
 import type { ProjectItem } from "@/data/site";
 import type { ProjectCardLabels } from "@/lib/site/settings";
@@ -34,14 +35,7 @@ export function ProjectCard({
   const coverImageUrl = project.cover.startsWith("generated:")
     ? undefined
     : getProjectAssetUrl(project.slug, project.cover);
-  const previewStyle = coverImageUrl
-    ? {
-        backgroundImage: `url(${JSON.stringify(coverImageUrl)})`,
-        backgroundPosition: project.coverPosition,
-        backgroundSize: "cover",
-        boxShadow: "none",
-      }
-    : { backgroundPosition: project.coverPosition };
+  const previewStyle = getProjectCoverStyle(coverImageUrl, project.coverPosition);
   const projectLinks = [
     project.caseStudyUrl
       ? {
