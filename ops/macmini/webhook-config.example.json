@@ -1,0 +1,6 @@
+{
+  "repository": "HayronHgh/my-website-template",
+  "root": "/Users/heguanhong/my-website-standalone",
+  "secret_file": "/Users/heguanhong/my-website-standalone/.cd/webhook/secret",
+  "port": 9077
+}

@@ -36,9 +36,10 @@ export function ProjectCard({
     : getProjectAssetUrl(project.slug, project.cover);
   const previewStyle = coverImageUrl
     ? {
-        backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(3, 7, 18, 0.34)), url(${JSON.stringify(coverImageUrl)})`,
+        backgroundImage: `url(${JSON.stringify(coverImageUrl)})`,
         backgroundPosition: project.coverPosition,
         backgroundSize: "cover",
+        boxShadow: "none",
       }
     : { backgroundPosition: project.coverPosition };
   const projectLinks = [
@@ -88,7 +89,8 @@ export function ProjectCard({
           `project-preview project-preview-${project.slug}`,
           coverImageUrl && "project-preview-image",
           compact && "project-preview-compact",
-          "transition duration-200 group-hover:brightness-110",
+          "transition duration-200",
+          !coverImageUrl && "group-hover:brightness-110",
         )}
         data-cover={project.cover}
         style={previewStyle}
