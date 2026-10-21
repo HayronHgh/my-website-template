@@ -9,6 +9,7 @@ import remarkRehype from "remark-rehype";
 import { codeToTokens, type BundledLanguage, type SpecialLanguage } from "shiki";
 import { getVersionedBlogAssetUrl } from "@/lib/blog/assets";
 import { sanitizeMarkdownUrl } from "@/lib/content/url-policy";
+import { renderChartBlocks } from "@/lib/content/chart-renderer";
 
 type MarkdownNode = {
   children?: unknown;
@@ -327,7 +328,7 @@ const enhanceCodeBlocks = () => async (tree: unknown) => {
 
     const language = getCodeLanguage(codeNode);
 
-    if (language === "math" || language === "mermaid") {
+    if (language === "math" || language === "mermaid" || language === "chart") {
       return;
     }
 
@@ -637,6 +638,7 @@ export async function markdownToHtml(
     .use(remarkRehype)
     .use(enhanceCodeBlocks)
     .use(rehypeSanitize, sanitizeSchema)
+    .use(renderChartBlocks)
     .use(renderMermaidBlocks)
     .use(enhanceSizedImages)
     .use(embedStandaloneYouTubeLinks)

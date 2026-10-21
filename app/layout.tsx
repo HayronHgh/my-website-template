@@ -10,6 +10,7 @@ import "./globals.css";
 import "./workspaces.css";
 import "./admin-workspace.css";
 import "./mobile-public.css";
+import "./charts.css";
 
 const manrope = localFont({
   display: "swap",

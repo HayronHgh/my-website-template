@@ -342,3 +342,9 @@ Common types:
 ```txt
 feat, fix, docs, style, refactor, perf, test, chore, build, ci, revert
 ```
+
+## Markdown 統計圖表
+
+Markdown 支援 `chart` 程式碼區塊（柱狀、圓餅、折線），後台工具列可直接插入模板。
+語法與限制請看 [圖表使用說明](docs/markdown-charts.md)，完整示範在
+[statistical-charts.md](docs/examples/statistical-charts.md)。
