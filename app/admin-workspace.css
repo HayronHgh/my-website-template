@@ -149,8 +149,32 @@
 .inline-block-gap:hover, .inline-block-gap:focus-visible { color: #b7e5ed; background: #152330; }
 .inline-block-preview:focus-visible, .inline-block-gap:focus-visible, .inline-add-block:focus-visible, .inline-editor-toolbar button:focus-visible { outline: 2px solid #6ea8b0; outline-offset: 2px; }
 .inline-block-fallback { white-space: pre-wrap; overflow-wrap: anywhere; }
+.inline-block-row { position: relative; min-width: 0; }
+.inline-block-row[data-dragging="true"] { opacity: .45; }
+.inline-block-content, .inline-block-source-wrap { min-width: 0; }
+.inline-block-actions { position: absolute; z-index: 3; top: -1rem; right: .25rem; display: flex; gap: .15rem; padding: .15rem; border: 1px solid #35445d; border-radius: 3px; background: #101426; opacity: 0; pointer-events: none; }
+.inline-block-row:hover .inline-block-actions, .inline-block-row:focus-within .inline-block-actions { opacity: 1; pointer-events: auto; }
+.inline-block-actions button { display: inline-flex; align-items: center; justify-content: center; width: 32px; min-height: 32px; padding: .25rem; border: 1px solid transparent; border-radius: 2px; background: transparent; color: #9cabbf; }
+.inline-block-actions button:hover { color: #b7e5ed; border-color: #3e5266; background: #152330; }
+.inline-block-actions .inline-block-grip { cursor: grab; }
+.inline-block-actions .inline-block-grip:active { cursor: grabbing; }
+.inline-block-actions .inline-block-delete:hover { color: #ffc7d1; border-color: #97576d; background: #301827; }
+.inline-block-actions button:disabled { opacity: .35; cursor: not-allowed; }
+.inline-block-actions button:focus-visible, .inline-block-command-option:focus-visible { outline: 2px solid #6ea8b0; outline-offset: 1px; }
+.inline-block-gap[data-drop-target="true"], .inline-add-block[data-drop-target="true"] { color: #b7e5ed; outline: 2px dashed #6ea8b0; outline-offset: -2px; background: #152330; }
+.inline-editor-announcement { margin: 0; color: #b7e5ed; font-size: .75rem; }
+.inline-editor-announcement:empty { display: none; }
+.inline-block-command-panel { margin-top: .5rem; overflow: hidden; border: 1px solid #3e5266; border-radius: 3px; background: #0c1020; }
+.inline-block-command-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem; padding: .65rem .85rem; color: #b7e5ed; font-size: .8rem; border-bottom: 1px solid #26344d; }
+.inline-block-command-heading small { color: #9cabbf; font-size: .7rem; }
+.inline-block-command-list { max-height: min(18rem, 45dvh); overflow-y: auto; overscroll-behavior: contain; }
+.inline-block-command-option { display: grid; gap: .15rem; width: 100%; min-height: 56px; padding: .65rem .85rem; border: 0; border-left: 2px solid transparent; background: transparent; color: #e4edf9; text-align: left; font: inherit; font-size: .85rem; }
+.inline-block-command-option small { color: #9cabbf; font-size: .75rem; line-height: 1.6; }
+.inline-block-command-option[aria-selected="true"], .inline-block-command-option:hover { border-left-color: #6ea8b0; background: #152330; }
+.inline-block-command-empty { padding: .75rem .85rem; color: #9cabbf; font-size: .8rem; }
 .inline-editor-toolbar button:disabled, .inline-add-block:disabled, .inline-block-gap:disabled { opacity: .45; cursor: not-allowed; }
-@media (max-width: 640px) { .inline-block-gap { min-height: 44px; } .inline-editor-toolbar { gap: .4rem; padding: .5rem; } .inline-block-source, .inline-block-preview { padding: .85rem; } }
+@media (hover: none), (pointer: coarse), (max-width: 640px) { .inline-block-actions { position: static; justify-content: flex-end; width: fit-content; max-width: 100%; margin: 0 0 .25rem auto; opacity: 1; pointer-events: auto; } .inline-block-actions button { width: 44px; min-height: 44px; } }
+@media (max-width: 640px) { .inline-block-gap { min-height: 44px; } .inline-editor-toolbar { position: static; gap: .4rem; padding: .5rem; } .inline-block-source, .inline-block-preview { padding: .85rem; } }
 @media (prefers-reduced-motion: reduce) { .inline-block-preview { transition: none; } }
 @media (min-width: 1100px) {
   .studio-layout { grid-template-columns: clamp(17rem, 19vw, 21rem) minmax(0, 1fr); }

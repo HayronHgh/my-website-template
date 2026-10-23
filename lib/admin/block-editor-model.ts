@@ -16,6 +16,28 @@ export function readDocument(source: string): EditorDocument {
   return { blocks, tail: source.slice(offset) };
 }
 export const writeDocument = (document: EditorDocument) => document.blocks.map((block) => block.before + block.text).join("") + document.tail;
+
+// Separators belong to positions, not to the moving content: moving the first
+// block into the middle must never concatenate two paragraphs or code fences.
+export function moveBlock(document: EditorDocument, id: string, gap: number): EditorDocument {
+  const from = document.blocks.findIndex((block) => block.id === id);
+  if (from < 0 || !Number.isInteger(gap) || gap < 0 || gap > document.blocks.length) return document;
+  const to = gap > from ? gap - 1 : gap;
+  if (from === to) return document;
+  const blocks = [...document.blocks];
+  const [block] = blocks.splice(from, 1);
+  blocks.splice(to, 0, block);
+  return { ...document, blocks: blocks.map((item, index) => ({ ...item, before: document.blocks[index].before })) };
+}
+
+export function removeBlock(document: EditorDocument, id: string): EditorDocument {
+  const index = document.blocks.findIndex((block) => block.id === id);
+  if (index < 0) return document;
+  if (document.blocks.length === 1) return { blocks: [{ ...document.blocks[0], text: "", before: "" }], tail: "" };
+  const blocks = document.blocks.filter((block) => block.id !== id);
+  if (index === 0) blocks[0] = { ...blocks[0], before: document.blocks[0].before };
+  return { ...document, blocks };
+}
 export function insertBlock(document: EditorDocument, index: number, text = "") {
   const blocks = [...document.blocks];
   const block = newBlock(text, index === 0 ? "" : "\n\n");

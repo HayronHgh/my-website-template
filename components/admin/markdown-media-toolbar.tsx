@@ -1,12 +1,15 @@
 "use client";
-import { useRef, useState, type RefObject } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, type Ref, type RefObject } from "react";
 import { ImagePlus, Video, X } from "lucide-react";
 import { adminRequest } from "@/components/admin/admin-api";
 
 type MediaKind = "image" | "youtube" | "video";
+export type MarkdownMediaHandle = { open: (kind: MediaKind) => boolean };
 type AssetResult = { assetPath: string; mimeType: string; size: number };
 type Props = {
   disabled?: boolean;
+  controlRef?: Ref<MarkdownMediaHandle>;
+  onDialogClose?: () => void;
   onChange: (value: string) => void;
   onError: (message: string) => void;
   onInsertSnippet?: (snippet: string) => void;
@@ -24,13 +27,19 @@ const withMediaSizing = (source: string, width: number, ratioWidth: number, rati
   return /^https?:\/\//i.test(source) ? url.toString() : `${url.pathname.replace(/^\//, "")}${url.search}${url.hash}`;
 };
 
-export function MarkdownMediaToolbar({ disabled, onChange, onError, onInsertSnippet, onStatus, slug, textareaRef, uploadUrl, value }: Props) {
+export function MarkdownMediaToolbar({ disabled, controlRef, onDialogClose, onChange, onError, onInsertSnippet, onStatus, slug, textareaRef, uploadUrl, value }: Props) {
   const [kind, setKind] = useState<MediaKind | null>(null); const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState(""); const [alt, setAlt] = useState(""); const [width, setWidth] = useState(720);
   const [ratio, setRatio] = useState<[number, number]>([16, 9]); const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(""); const drag = useRef<{ startX: number; width: number } | null>(null);
   const previewUrl = useRef("");
-  const close = () => { if (previewUrl.current) URL.revokeObjectURL(previewUrl.current); previewUrl.current = ""; setPreview(""); setKind(null); setFile(null); setUrl(""); setAlt(""); setWidth(720); setRatio([16, 9]); };
+  const dialog = useRef<HTMLDivElement>(null);
+  const operation = useRef(0);
+  useEffect(() => () => { operation.current++; if (previewUrl.current) URL.revokeObjectURL(previewUrl.current); }, []);
+  useEffect(() => { if (kind) dialog.current?.querySelector<HTMLInputElement>("input")?.focus(); }, [kind]);
+  const close = () => { operation.current++; if (previewUrl.current) URL.revokeObjectURL(previewUrl.current); previewUrl.current = ""; setPreview(""); setKind(null); setFile(null); setUrl(""); setAlt(""); setWidth(720); setRatio([16, 9]); onDialogClose?.(); };
+  const open = (next: MediaKind) => { if (disabled || busy) return false; operation.current++; setKind(next); setRatio([16, 9]); setFile(null); setUrl(""); setAlt(""); return true; };
+  useImperativeHandle(controlRef, () => ({ open }));
   const chooseFile = (next: File | null) => {
     if (previewUrl.current) URL.revokeObjectURL(previewUrl.current); previewUrl.current = next ? URL.createObjectURL(next) : ""; setPreview(previewUrl.current);
     setFile(next); if (!next || !next.type.startsWith("image/")) { setRatio([16, 9]); return; }
@@ -44,7 +53,7 @@ export function MarkdownMediaToolbar({ disabled, onChange, onError, onInsertSnip
     requestAnimationFrame(() => { textarea?.focus(); const caret = start + prefix.length + snippet.length + suffix.length; textarea?.setSelectionRange(caret, caret); });
   };
   async function confirm() {
-    if (!kind || busy) return; setBusy(true); onError("");
+    if (!kind || busy || disabled) return; const token = operation.current; setBusy(true); onError("");
     try {
       if (kind === "youtube") {
         const parsed = new URL(url); if (!/(?:youtube\.com|youtu\.be)$/i.test(parsed.hostname.replace(/^www\./, ""))) throw new Error("請輸入有效的 YouTube 網址。");
@@ -53,16 +62,17 @@ export function MarkdownMediaToolbar({ disabled, onChange, onError, onInsertSnip
         if (!file) throw new Error("請先選擇檔案。");
         const form = new FormData(); form.set("file", file); form.set("purpose", "media"); form.set("slug", slug);
         const result = await adminRequest<AssetResult>(uploadUrl ?? `/api/admin/projects/${encodeURIComponent(slug)}/assets`, { method: "POST", body: form });
+        if (operation.current !== token) return;
         const source = withMediaSizing(result.assetPath, width, ratio[0], ratio[1]);
         insert(kind === "image" ? `![${alt.trim() || "專案圖片"}](${result.assetPath} "media;width=${width};aspect=${ratio[0]}:${ratio[1]}")` : `[Video](${source})`);
       }
       onStatus("媒體已插入，儲存後公開頁才會更新。"); close();
-    } catch (cause) { onError(cause instanceof Error ? cause.message : "媒體插入失敗。"); } finally { setBusy(false); }
+    } catch (cause) { if (operation.current === token) onError(cause instanceof Error ? cause.message : "媒體插入失敗。"); } finally { setBusy(false); }
   }
   const options: Array<[MediaKind, string, typeof ImagePlus]> = [["image", "插入圖片", ImagePlus], ["youtube", "YouTube", Video], ["video", "MP4", Video]];
   return <div className="markdown-media-tools">
-    <div className="markdown-media-actions">{options.map(([value, label, Icon]) => <button disabled={disabled} key={value} onClick={() => { setKind(value); setRatio([16, 9]); setFile(null); }} type="button"><Icon className="h-4 w-4" />{label}</button>)}</div>
-    {kind ? <div aria-modal="true" className="media-dialog" role="dialog" aria-label="插入媒體">
+    <div className="markdown-media-actions">{options.map(([value, label, Icon]) => <button disabled={disabled || busy} key={value} onClick={() => { onDialogClose?.(); open(value); }} type="button"><Icon className="h-4 w-4" />{label}</button>)}</div>
+    {kind ? <div aria-modal="true" className="media-dialog" ref={dialog} role="dialog" aria-label="插入媒體" onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); } }}>
       <div className="media-dialog-header"><div><strong>{options.find(([value]) => value === kind)?.[1]}</strong><p>拖曳預覽右下角，會固定比例調整公開頁寬度。</p></div><button aria-label="關閉" onClick={close} type="button"><X className="h-4 w-4" /></button></div>
       {kind === "youtube" ? <label>YouTube 網址<input type="url" placeholder="https://www.youtube.com/watch?v=..." value={url} onChange={(event) => setUrl(event.target.value)} /></label> : <>
         <label>{kind === "image" ? "圖片檔案" : "MP4 檔案"}<input accept={kind === "image" ? "image/jpeg,image/png,image/webp,image/gif,image/avif" : "video/mp4"} onChange={(event) => chooseFile(event.target.files?.[0] ?? null)} type="file" /></label>
