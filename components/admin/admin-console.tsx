@@ -17,12 +17,10 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   PencilLine,
-  Redo2,
   RotateCcw,
   Save,
   Search,
   ShieldCheck,
-  Undo2,
   X,
 } from "lucide-react";
 import {
@@ -56,16 +54,6 @@ import {
 } from "@/lib/blog/slug";
 import { serializeFrontmatter } from "@/lib/content/frontmatter";
 import { formatAdminUpdatedAt } from "@/lib/admin/date";
-import {
-  canRedoMarkdown,
-  canUndoMarkdown,
-  createMarkdownHistory,
-  recordMarkdownEdit,
-  redoMarkdownHistory,
-  resetMarkdownHistory,
-  undoMarkdownHistory,
-  type MarkdownHistory,
-} from "@/lib/admin/editor-history";
 import {
   AUTO_SAVE_DELAY_MS,
   getRevisionSyncAction,
@@ -239,9 +227,6 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
   const [revision, setRevision] = useState<string | null>(null);
   const [form, setForm] = useState<ArticleForm>(() => createNewArticleForm(domain));
   const [baseline, setBaseline] = useState(() => serializeForm(createNewArticleForm(domain)));
-  const [markdownHistory, setMarkdownHistory] = useState(() =>
-    createMarkdownHistory(form.content),
-  );
   const [previewHtml, setPreviewHtml] = useState("");
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>("editor");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -273,7 +258,6 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     currentUpdatedAt?: string;
   } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const markdownHistoryRef = useRef<MarkdownHistory>(markdownHistory);
   const markdownCompositionRef = useRef(false);
   const articleRequestSequence = useRef(0);
   const listRequestSequence = useRef(0);
@@ -600,7 +584,6 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
         window.history.replaceState(window.history.state, "", url);
       }
       setRevision(result.article.revision);
-      resetMarkdownEditorHistory(nextForm.content);
       setForm(nextForm);
       setBaseline(nextBaseline);
       setHasAttemptedSubmit(false);
@@ -681,7 +664,6 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     failedAutoSaveSnapshotRef.current = null;
     setSelectedSlug(null);
     setRevision(null);
-    resetMarkdownEditorHistory(nextForm.content);
     setForm(nextForm);
     setBaseline(nextBaseline);
     setHasAttemptedSubmit(false);
@@ -763,58 +745,12 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     setMessage(previewWasCurrent ? "內容已變更；停止輸入 1 秒後會更新安全預覽。" : "");
   }
 
-  function commitMarkdownHistory(nextHistory: MarkdownHistory) {
-    markdownHistoryRef.current = nextHistory;
-    setMarkdownHistory(nextHistory);
-  }
-
-  function resetMarkdownEditorHistory(value: string) {
-    commitMarkdownHistory(
-      resetMarkdownHistory(markdownHistoryRef.current, value, {
-        direction: "none",
-        end: 0,
-        start: 0,
-      }),
-    );
-  }
-
-  function applyMarkdownHistory(nextHistory: MarkdownHistory) {
-    if (nextHistory === markdownHistoryRef.current) {
-      return;
-    }
-
-    commitMarkdownHistory(nextHistory);
-    updateField("content", nextHistory.present.value);
-  }
-
-  function performMarkdownHistoryAction(action: "redo" | "undo") {
-    applyMarkdownHistory(
-      action === "undo"
-        ? undoMarkdownHistory(markdownHistoryRef.current)
-        : redoMarkdownHistory(markdownHistoryRef.current),
-    );
-  }
-
   function handleInlineMarkdownChange(value: string) {
     if (value.length > 500000) {
       setError("Markdown 正文不可超過 500,000 個字元。");
       return;
     }
-    const nextHistory = recordMarkdownEdit(
-      markdownHistoryRef.current,
-      value,
-      {
-        direction: "none",
-        end: value.length,
-        start: value.length,
-      },
-      {
-        inputType: "insertReplacementText",
-        timestamp: window.performance.now(),
-      },
-    );
-    commitMarkdownHistory(nextHistory);
-    updateField("content", nextHistory.present.value);
+    updateField("content", value);
   }
 
   function handleMarkdownComposingChange(isComposing: boolean) {
@@ -1229,12 +1165,6 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
           setIsPreviewLoading(false);
           lastPreviewSnapshotRef.current = null;
           setPreviewHtml("");
-          const nextMarkdownHistory = resetMarkdownHistory(
-            markdownHistoryRef.current,
-            nextForm.content,
-          );
-          markdownHistoryRef.current = nextMarkdownHistory;
-          setMarkdownHistory(nextMarkdownHistory);
           setForm(nextForm);
           setBaseline(nextBaseline);
           setRevision(fullResult.article.revision);
@@ -1348,7 +1278,6 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
       failedAutoSaveSnapshotRef.current = null;
       setSelectedSlug(null);
       setRevision(null);
-      resetMarkdownEditorHistory(nextForm.content);
       setForm(nextForm);
       setBaseline(nextBaseline);
       setHasAttemptedSubmit(false);
@@ -2071,38 +2000,6 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
                     Markdown 編輯
                   </h2>
                   <div className="flex flex-wrap items-center justify-end gap-2">
-                    <button
-                      aria-label="復原 Markdown 編輯"
-                      className={`${disabledButtonClass} inline-flex items-center gap-1 rounded border border-[#30445f] px-2 py-1 font-mono text-[0.65rem] font-bold text-slate-300 hover:border-cyan-300/40 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50`}
-                      disabled={
-                        !canUndoMarkdown(markdownHistory) ||
-                        isArticleLoading ||
-                        isSaving ||
-                        isPublishedEditor
-                      }
-                      onClick={() => performMarkdownHistoryAction("undo")}
-                      title="復原 Markdown（Ctrl/⌘+Z）"
-                      type="button"
-                    >
-                      <Undo2 aria-hidden="true" className="h-3.5 w-3.5" />
-                      復原
-                    </button>
-                    <button
-                      aria-label="重做 Markdown 編輯"
-                      className={`${disabledButtonClass} inline-flex items-center gap-1 rounded border border-[#30445f] px-2 py-1 font-mono text-[0.65rem] font-bold text-slate-300 hover:border-cyan-300/40 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50`}
-                      disabled={
-                        !canRedoMarkdown(markdownHistory) ||
-                        isArticleLoading ||
-                        isSaving ||
-                        isPublishedEditor
-                      }
-                      onClick={() => performMarkdownHistoryAction("redo")}
-                      title="重做 Markdown（Ctrl/⌘+Shift+Z 或 Ctrl/⌘+Y）"
-                      type="button"
-                    >
-                      <Redo2 aria-hidden="true" className="h-3.5 w-3.5" />
-                      重做
-                    </button>
                     <span className="font-mono text-[0.65rem] text-slate-400">
                       UTF-8 / ATOMIC WRITE
                     </span>

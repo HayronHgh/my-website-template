@@ -3,6 +3,7 @@ export function splitMarkdownBlocks(source: string) {
   const blocks: string[] = [];
   let current: string[] = [];
   let fenceMarker = "";
+  let math = false;
 
   const flush = () => {
     const value = current.join("\n");
@@ -18,12 +19,14 @@ export function splitMarkdownBlocks(source: string) {
     const marker = line.match(/^\s*(```+|~~~+)/)?.[1] ?? "";
 
     if (!fenceMarker && marker) {
-      fenceMarker = marker[0];
-    } else if (fenceMarker && marker.startsWith(fenceMarker)) {
+      fenceMarker = marker;
+    } else if (fenceMarker && marker[0] === fenceMarker[0] && marker.length >= fenceMarker.length && /^\s*(`+|~+)\s*$/.test(line)) {
       fenceMarker = "";
     }
 
-    if (!fenceMarker && !line.trim()) {
+    if (!fenceMarker && /^\s*\$\$\s*$/.test(line)) math = !math;
+
+    if (!fenceMarker && !math && !line.trim()) {
       flush();
     } else {
       current.push(line);
