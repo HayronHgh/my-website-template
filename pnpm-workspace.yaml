@@ -3,6 +3,7 @@ packages:
   - "!dist/**"
 
 overrides:
+  dompurify: 3.4.17
   flatted: 3.4.2
   picomatch@<3: 2.3.2
   picomatch@>=4 <4.0.4: 4.0.4
