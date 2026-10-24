@@ -3,6 +3,14 @@ import { canHandleBlockKey, insertBlock, mergeBlock, moveBlock, readDocument, re
 import { splitMarkdownBlocks } from "@/lib/admin/markdown-blocks";
 import { createChartSnippet } from "@/lib/content/chart-spec";
 
+// Manually inserted blocks remain distinct in the live draft, even when the
+// text would be grouped as one section after reloading the Markdown document.
+function documentWithBlocks(...parts: string[]) {
+  let document = readDocument(parts[0] ?? "");
+  for (const text of parts.slice(1)) document = insertBlock(document, document.blocks.length, text).document;
+  return document;
+}
+
 describe("block editor draft", () => {
   it("does not intercept IME confirmation or modifier shortcuts", () => {
     const event = { isComposing: false, keyCode: 13, ctrlKey: false, metaKey: false, altKey: false };
@@ -16,7 +24,7 @@ describe("block editor draft", () => {
     expect(writeDocument(readDocument(source))).toBe(source);
   });
   it.each([0, 1, 2])("inserts at gap %i without changing existing block IDs", (index) => {
-    const original = readDocument("first\n\nlast");
+    const original = documentWithBlocks("first", "last");
     const next = insertBlock(original, index, "new");
     expect(next.document.blocks[index].text).toBe("new");
     expect(next.document.blocks.filter((block) => block.id !== next.id).map((block) => block.id)).toEqual(original.blocks.map((block) => block.id));
@@ -58,14 +66,15 @@ describe("block editor draft", () => {
     expect(writeDocument(readDocument(text))).toBe(text);
   });
   it("moves the first block to the end without concatenating Markdown", () => {
-    const document = readDocument("first\n\nsecond\n\nthird");
+    const document = documentWithBlocks("first", "second", "third");
     const moved = moveBlock(document, document.blocks[0].id, 3);
     expect(writeDocument(moved)).toBe("second\n\nthird\n\nfirst");
     expect(moved.blocks.map((block) => block.id)).toEqual([document.blocks[1].id, document.blocks[2].id, document.blocks[0].id]);
     expect(writeDocument(document)).toBe("first\n\nsecond\n\nthird");
   });
   it("moves the last block to the beginning and retains whitespace slots", () => {
-    const document = readDocument("\nfirst\n\n\nsecond\n\nthird\n");
+    const draft = documentWithBlocks("first", "second", "third");
+    const document = { ...draft, blocks: draft.blocks.map((block, index) => ({ ...block, before: ["\n", "\n\n\n", "\n\n"][index] })), tail: "\n" };
     const moved = moveBlock(document, document.blocks[2].id, 0);
     expect(writeDocument(moved)).toBe("\nthird\n\n\nfirst\n\nsecond\n");
     expect(moved.tail).toBe(document.tail);
@@ -85,7 +94,7 @@ describe("block editor draft", () => {
     }
   });
   it("ignores unknown, out-of-range and no-op moves", () => {
-    const document = readDocument("one\n\ntwo");
+    const document = documentWithBlocks("one", "two");
     const id = document.blocks[0].id;
     for (const gap of [-1, 0, 1, 3, 0.5, Number.NaN]) expect(moveBlock(document, id, gap)).toBe(document);
     expect(moveBlock(document, "missing", 1)).toBe(document);

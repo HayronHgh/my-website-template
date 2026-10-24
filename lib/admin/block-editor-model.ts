@@ -1,4 +1,4 @@
-import { splitMarkdownBlocks } from "./markdown-blocks";
+import { splitMarkdownSections } from "./markdown-sections";
 export type EditorBlock = { id: string; text: string; before: string };
 export type EditorDocument = { blocks: EditorBlock[]; tail: string };
 let sequence = 0;
@@ -7,7 +7,7 @@ export const newBlock = (text = "", before = "\n\n"): EditorBlock => ({ id: `blo
 export function readDocument(source: string): EditorDocument {
   let offset = 0;
   const blocks: EditorBlock[] = [];
-  for (const text of splitMarkdownBlocks(source)) {
+  for (const text of splitMarkdownSections(source)) {
     const start = source.indexOf(text, offset);
     if (start < 0) return { blocks: [newBlock(source, "")], tail: "" };
     blocks.push(newBlock(text, source.slice(offset, start)));

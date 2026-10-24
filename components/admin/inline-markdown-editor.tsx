@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, GitBranchPlus, GripVertical, Plus, Trash2, Undo2, R
 import { adminRequest } from "@/components/admin/admin-api";
 import { MarkdownMediaToolbar, type MarkdownMediaHandle } from "@/components/admin/markdown-media-toolbar";
 import { MarkdownChartToolbar } from "@/components/admin/markdown-chart-toolbar";
-import { canHandleBlockKey, insertBlock, mergeBlock, moveBlock, readDocument, removeBlock, splitBlock, usesLiteralEnter, writeDocument, type EditorDocument } from "@/lib/admin/block-editor-model";
+import { canHandleBlockKey, insertBlock, mergeBlock, moveBlock, readDocument, removeBlock, usesLiteralEnter, writeDocument, type EditorDocument } from "@/lib/admin/block-editor-model";
 import { matchBlockCommands, mermaidSnippet, slashQuery, type BlockCommand } from "@/lib/admin/block-commands";
 
 type Props = { disabled?: boolean; mediaUploadUrl?: string; onChange: (value: string) => void; onComposingChange?: (value: boolean) => void; onError: (value: string) => void; onStatus: (value: string) => void; previewUrl: string; slug: string; value: string };
@@ -225,7 +225,7 @@ function BlockEditor({ disabled, mediaUploadUrl, onChange, onComposingChange, on
     requestAnimationFrame(() => root.current?.querySelector<HTMLElement>(`[data-block-id="${insertionAnchor.current}"] .inline-block-preview`)?.focus());
   }
   function gap(index: number) {
-    return <button aria-label={`在第 ${index + 1} 個位置插入段落`} className="inline-block-gap" data-drop-target={dropGap === index || undefined} disabled={disabled} onClick={() => insert(index)} onDragEnter={(event) => dragOver(event, index)} onDragOver={(event) => dragOver(event, index)} onDrop={(event) => drop(event, index)} type="button"><Plus size={14} /><span>{dropGap === index ? "放在這裡" : "插入段落"}</span></button>;
+    return <button aria-label={`在第 ${index + 1} 個位置插入區塊`} title={dropGap === index ? "放在這裡" : "插入區塊"} className="inline-block-gap" data-drop-target={dropGap === index || undefined} disabled={disabled} onClick={() => insert(index)} onDragEnter={(event) => dragOver(event, index)} onDragOver={(event) => dragOver(event, index)} onDrop={(event) => drop(event, index)} type="button"><span className="inline-block-insert-pill" aria-hidden="true"><Plus size={15} /></span></button>;
   }
   const commands = menu ? matchBlockCommands(menu.query) : [];
 
@@ -244,7 +244,7 @@ function BlockEditor({ disabled, mediaUploadUrl, onChange, onComposingChange, on
       <button aria-label="重做" disabled={disabled || !history.redo} onClick={() => travel(true)} type="button"><Redo2 size={16} /></button>
       <span aria-live="polite">{loading ? "預覽更新中…" : `${document.blocks.length} 個區塊`}</span>
     </div>
-    <p className="inline-editor-hint" id={`block-help-${slug}`}>/ 快速插入 · 拖曳把手排序（或 Alt+↑↓）· Enter 新段落 · Shift+Enter 換行 · 點空白處預覽</p>
+    <p className="inline-editor-hint" id={`block-help-${slug}`}>/ 快速插入 · Enter 換行 · 以標題／分隔線分區 · 點空白處預覽</p>
     <p className="inline-editor-announcement" role="status" aria-live="polite">{announcement}</p>
     <div className="inline-editor-blocks">
       {document.blocks.map((block, index) => <Fragment key={block.id}>
@@ -314,11 +314,7 @@ function BlockEditor({ disabled, mediaUploadUrl, onChange, onComposingChange, on
               }
               if (event.key === "Enter") setMenu(null);
             }
-            if (event.key === "Enter" && !event.shiftKey && !usesLiteralEnter(block.text)) {
-              event.preventDefault();
-              const next = splitBlock(current.current, index, start, end);
-              commit(next.document, { id: next.id, start: 0, end: 0 });
-            } else if (event.key === "Backspace" && start === 0 && end === 0 && index > 0) {
+            if (event.key === "Backspace" && start === 0 && end === 0 && index > 0) {
               const previous = current.current.blocks[index - 1];
               if (block.text && (usesLiteralEnter(previous.text) || usesLiteralEnter(block.text))) return;
               event.preventDefault();
