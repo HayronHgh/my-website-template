@@ -578,7 +578,7 @@
       },
       "reader": {
         "noSelectionMessage": "Select an article to read.",
-        "backLabel": "Back to articles",
+        "backLabel": "Back",
         "relatedProjectLabel": "Related Project"
       },
       "series": {

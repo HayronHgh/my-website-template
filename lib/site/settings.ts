@@ -1,4 +1,5 @@
 import path from "node:path";
+import { getArticleBackLabel } from "@/lib/blog/navigation-copy";
 import { defaultFocus, focusSchema, type FocusData } from "@/lib/site/focus";
 import {
   adjustmentNotes as fallbackAdjustmentNotes,
@@ -312,7 +313,7 @@ const defaultPages: SitePages = {
       title: "Articles",
     },
     reader: {
-      backLabel: "Back to articles",
+      backLabel: "Back",
       noSelectionMessage: "Select an article to read.",
       relatedProjectLabel: "Related Project",
     },
@@ -599,6 +600,7 @@ function sanitizeRuntimeLinks(value: unknown, fallback: unknown): unknown {
 
 function resolvePages(source: SiteSettingsFile["pages"]): SitePages {
   const mergedPages = mergeRuntimeCopy(defaultPages, source);
+  mergedPages.blog.reader.backLabel = getArticleBackLabel(mergedPages.blog.reader.backLabel);
   return sanitizeRuntimeLinks(mergedPages, defaultPages) as SitePages;
 }
 
