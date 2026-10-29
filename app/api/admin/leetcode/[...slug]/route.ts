@@ -10,7 +10,7 @@ import {
 import { isSameOriginRequest } from "@/lib/admin/origin";
 import { updateArticleRequestSchema } from "@/lib/leetcode/requests";
 import { requireRequestSession } from "@/lib/admin/session";
-import { assertCmsWriteEnabled } from "@/lib/admin/write-policy";
+import { assertCmsWriteEnabled, assertCanonicalSaveMode } from "@/lib/admin/write-policy";
 import { z } from "zod";
 
 const progressRequestSchema = z.object({
@@ -68,6 +68,7 @@ export async function PUT(request: Request, { params }: AdminPostRouteContext) {
     const { slug } = await params;
     const body = await readJsonBody(request, updateArticleRequestSchema);
     const { saveMode, ...articleInput } = body;
+    assertCanonicalSaveMode(saveMode);
     const article = await articleStore.update(slug, articleInput, session.user.role, saveMode);
     return apiSuccess({ article });
   } catch (error) {

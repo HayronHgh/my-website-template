@@ -3,7 +3,7 @@ import { assertSafeArticleRoutePath } from "@/lib/admin/articles/slug";
 import { AdminApiError, apiSuccess, readJsonBody, toApiErrorResponse } from "@/lib/admin/http";
 import { isSameOriginRequest } from "@/lib/admin/origin";
 import { requireRequestSession } from "@/lib/admin/session";
-import { assertCmsWriteEnabled } from "@/lib/admin/write-policy";
+import { assertCmsWriteEnabled, assertCanonicalSaveMode } from "@/lib/admin/write-policy";
 import { updateResearchRequestSchema } from "@/lib/research/requests";
 import { researchStore } from "@/lib/research/store";
 
@@ -41,6 +41,7 @@ export async function PUT(request: Request, { params }: Context) {
     assertSafeArticleRoutePath(request, "/api/admin/research/");
     const body = await readJsonBody(request, updateResearchRequestSchema);
     const { saveMode, ...input } = body;
+    assertCanonicalSaveMode(saveMode);
     return apiSuccess({ article: await researchStore.update((await params).slug, input, session.user.role, saveMode) });
   } catch (error) {
     return toApiErrorResponse(error);

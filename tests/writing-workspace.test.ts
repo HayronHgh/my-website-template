@@ -11,6 +11,7 @@ import {
 } from "@/lib/admin/document-markdown";
 import { getMarkdownOutline } from "@/lib/content/outline";
 import { markdownToHtml } from "@/lib/blog/markdown";
+import { assertCanonicalSaveMode } from "@/lib/admin/write-policy";
 import { getSchema } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import { TableKit } from "@tiptap/extension-table";
@@ -55,6 +56,7 @@ async function fixture() {
   return { root, articles, copies };
 }
 describe("isolated working copies", () => {
+  it("rejects old-tab canonical autosaves while retaining explicit writes",()=>{expect(()=>assertCanonicalSaveMode("manual")).not.toThrow();expect(()=>assertCanonicalSaveMode("autosave")).toThrowError(expect.objectContaining({status:409,code:"working_copy_required"}));});
   it("keeps uploaded draft assets private until explicit publication", async () => {
     const { root, copies, articles } = await fixture();
     const copy = await copies.open("articles", "example", user);

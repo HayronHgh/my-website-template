@@ -10,3 +10,8 @@ export function assertCmsWriteEnabled(config: AdminConfig) {
     );
   }
 }
+
+/** Reject autosaves from old tabs after the working-copy rollout. */
+export function assertCanonicalSaveMode(mode: "manual" | "autosave") {
+  if (mode === "autosave") throw new AdminApiError(409, "working_copy_required", "自動儲存已改用獨立工作稿。請保留目前文字並重新載入新版編輯器。");
+}
