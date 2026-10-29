@@ -21,3 +21,4 @@ content/blog/**/.main*.tmp
 .env*
 !.env.example
 README.md
+content/.editor-workspace

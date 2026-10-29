@@ -20,10 +20,11 @@ export async function POST(request: Request) {
     requireRequestSession(request, ["admin", "editor"], config);
     const body = await readJsonBody(request, previewArticleRequestSchema);
     const { slug } = parseExistingArticleSlug(body.slug);
-    return apiSuccess({ html: await markdownToHtml(body.content, {
+    return apiSuccess({ outline: getMarkdownOutline(body.content), html: await markdownToHtml(body.content, {
       resolveAssetUrl: (assetPath) => getAdminResearchMediaUrl(slug, assetPath),
     }) });
   } catch (error) {
     return toApiErrorResponse(error);
   }
 }
+import { getMarkdownOutline } from "@/lib/content/outline";

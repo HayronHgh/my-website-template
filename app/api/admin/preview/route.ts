@@ -30,8 +30,9 @@ export async function POST(request: Request) {
     const html = await markdownToHtml(body.content, {
       resolveAssetUrl: (assetPath) => getAdminArticleMediaUrl(slug, assetPath),
     });
-    return apiSuccess({ html });
+    return apiSuccess({ html, outline: getMarkdownOutline(body.content) });
   } catch (error) {
     return toApiErrorResponse(error);
   }
 }
+import { getMarkdownOutline } from "@/lib/content/outline";

@@ -27,8 +27,9 @@ export async function POST(request: Request) {
     const body = await readJsonBody(request, previewArticleRequestSchema);
     parseExistingArticleSlug(body.slug);
     const html = await markdownToHtml(body.content);
-    return apiSuccess({ html });
+    return apiSuccess({ html, outline: getMarkdownOutline(body.content) });
   } catch (error) {
     return toApiErrorResponse(error);
   }
 }
+import { getMarkdownOutline } from "@/lib/content/outline";

@@ -32,6 +32,7 @@
 /content/leetcode/**/.main*.tmp
 
 # misc
+/content/.editor-workspace/
 .DS_Store
 *.pem
 

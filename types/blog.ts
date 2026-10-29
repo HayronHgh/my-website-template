@@ -21,6 +21,7 @@ export type BlogPostMeta = {
 export type BlogPost = BlogPostMeta & {
   content: string;
   html: string;
+  outline?: import("@/lib/content/outline").OutlineEntry[];
 };
 
 export type BlogPostListItem = BlogPostMeta & {

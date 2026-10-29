@@ -149,6 +149,7 @@ async function readPostBySlug(slug: string): Promise<BlogPost> {
   return {
     ...resolvedMeta,
     html,
+    outline: getMarkdownOutline(postSource.content),
   };
 }
 
@@ -200,3 +201,4 @@ export async function getHashtagIndex(): Promise<BlogHashtagIndex> {
     return index;
   }, {});
 }
+import { getMarkdownOutline } from "@/lib/content/outline";

@@ -798,6 +798,8 @@ export function AdminConsole({ initialSession, domain = "articles", initialSlug 
     saveMode: AdminSaveMode = "manual",
   ) {
     const isAutomatic = saveMode === "autosave";
+    // Legacy UI remains available for management, but never auto-writes main.md.
+    if (isAutomatic) return;
     const submittedForm = latestFormRef.current;
     const submittedSnapshot = serializeForm(submittedForm);
     const submittedSlug = selectedSlugRef.current;

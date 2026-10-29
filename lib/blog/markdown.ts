@@ -10,6 +10,7 @@ import { codeToTokens, type BundledLanguage, type SpecialLanguage } from "shiki"
 import { getVersionedBlogAssetUrl } from "@/lib/blog/assets";
 import { sanitizeMarkdownUrl } from "@/lib/content/url-policy";
 import { renderChartBlocks } from "@/lib/content/chart-renderer";
+import { headingAnchors } from "@/lib/content/outline";
 
 type MarkdownNode = {
   children?: unknown;
@@ -638,6 +639,7 @@ export async function markdownToHtml(
     .use(remarkRehype)
     .use(enhanceCodeBlocks)
     .use(rehypeSanitize, sanitizeSchema)
+    .use(headingAnchors)
     .use(renderChartBlocks)
     .use(renderMermaidBlocks)
     .use(enhanceSizedImages)

@@ -65,6 +65,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+import { ReadingTools } from "@/components/blog/reading-tools";
+import "./reading-writing.css";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -80,6 +83,7 @@ export default async function RootLayout({
         className={`${manrope.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <MermaidRenderer />
+        <ReadingTools />
         <RouteImagePreloader images={routeImagePreloads} />
         <div className="flex min-h-screen flex-col">
           <Navbar
