@@ -278,7 +278,7 @@ export function BlogPostShowcase({
         </PixelCard>
       ) : null}
 
-      <PixelCard accent="cyan" className="space-y-4 p-3!">
+      <section className="article-latest space-y-5">
       <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
         <div>
           <h2 className="font-mono text-xl font-black text-white">
@@ -326,7 +326,7 @@ export function BlogPostShowcase({
           {copy.emptyMessage}
         </p>
       )}
-      </PixelCard>
+      </section>
     </div>
   );
 }

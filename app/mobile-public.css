@@ -46,6 +46,9 @@
   .article-showcase h2 { font-size: 1.0625rem; line-height: 1.6; }
   [data-mobile-layout="article-list"] { display: block; min-height: 0; border: 0; border-top: 1px solid #30364e; border-radius: 0; padding: 1.25rem 0; background: transparent; box-shadow: none; }
   [data-mobile-layout="article-list"]:hover { background: transparent; box-shadow: none; }
+  [data-mobile-layout="article-list"]::before,
+  [data-mobile-layout="article-list"]::after { display: none; }
+  .article-latest > .grid { gap: .5rem; }
   [data-mobile-layout="article-list"] > div:last-child { display: none; }
   [data-mobile-layout="article-list"] h3 { font-family: var(--font-manrope), sans-serif; font-size: 1.125rem; line-height: 1.65; display: block; overflow: visible; overflow-wrap: anywhere; }
   [data-mobile-layout="article-list"] p { line-height: 1.8; }

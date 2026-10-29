@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ui } from "@/components/ui/pixel-theme";
 
 const destinations = [
   {
@@ -25,28 +24,15 @@ const articlesDestination = {
 
 export function ContentDomainSwitcher({ current = "articles" }: { current?: "articles" | "leetcode" | "research" }) {
   const cycle = [articlesDestination, ...destinations];
-  const currentIndex = cycle.findIndex((destination) => destination.href === `/${current}`);
-  const links = [
-    { destination: cycle[(currentIndex + cycle.length - 1) % cycle.length], direction: "previous" },
-    { destination: cycle[(currentIndex + 1) % cycle.length], direction: "next" },
-  ];
   return (
     <nav className="content-domain-switcher" aria-label="學習與研究分區">
-      {links.map(({ destination, direction }) => (
+      {cycle.map((destination) => (
         <Link
-          aria-label={`${direction === "previous" ? "上一個分區" : "下一個分區"}：${destination.label}`}
-          className={`${ui.panel} ${ui.panelHover}`}
-          data-direction={direction}
-          data-glow={destination.tone}
+          aria-current={destination.href === `/${current}` ? "page" : undefined}
           href={destination.href}
           key={destination.href}
         >
-          {direction === "previous" ? <span className="content-domain-arrow" aria-hidden>←</span> : null}
-          <span>
-            <strong>{destination.label}</strong>
-            <small>{destination.detail}</small>
-          </span>
-          {direction === "next" ? <span className="content-domain-arrow" aria-hidden>→</span> : null}
+          {destination.href === "/leetcode" ? "Algorithms" : destination.label}
         </Link>
       ))}
     </nav>

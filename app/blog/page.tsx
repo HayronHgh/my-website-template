@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { BlogSearchApp } from "@/components/blog/blog-search-app";
-import { ContentDomainSwitcher } from "@/components/content/content-domain-switcher";
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { Section } from "@/components/ui/section";
@@ -69,7 +68,6 @@ export default async function BlogPage() {
       />
 
       <Container className="mt-5 space-y-5">
-        <ContentDomainSwitcher />
         <BlogSearchApp
           copy={siteSettings.pages.blog}
           initialListing={initialListing}

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BlogPostShowcase } from "@/components/blog/blog-post-showcase";
 import { BlogReader } from "@/components/blog/blog-reader";
+import { ContentDomainSwitcher } from "@/components/content/content-domain-switcher";
 import { BlogSearchInput } from "@/components/blog/blog-search-input";
 import {
   addTagToQuery,
@@ -390,6 +391,8 @@ export function BlogSearchApp({
   }
 
   return (
+    <div className="space-y-5">
+      <ContentDomainSwitcher />
     <div className="article-browser grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px]">
       <div className="min-w-0 xl:order-1">
         <BlogPostShowcase
@@ -437,6 +440,7 @@ export function BlogSearchApp({
           </div>
         </details>
       </div>
+    </div>
     </div>
   );
 }
