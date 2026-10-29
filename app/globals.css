@@ -987,7 +987,6 @@ a {
 }
 
 .project-preview-compact {
-  aspect-ratio: 4 / 3;
   min-height: 0;
 }
 
@@ -1001,7 +1000,9 @@ a {
 }
 
 .project-preview-image {
+  background-color: #0b1220;
   background-repeat: no-repeat;
+  image-rendering: auto;
 }
 
 .project-preview-image::before,
@@ -1495,6 +1496,8 @@ a {
 
 .prose-content img {
   width: 100%;
+  height: auto;
+  image-rendering: auto;
   border-radius: 0.5rem;
   border: 1px solid rgba(125, 211, 252, 0.18);
 }

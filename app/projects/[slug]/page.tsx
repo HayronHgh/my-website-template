@@ -112,7 +112,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 className={cn(
                   `project-preview project-preview-${project.slug}`,
                   coverImageUrl && "project-preview-image",
-                  "max-h-[460px] min-h-64 w-full",
+                  "max-h-[460px] w-full",
                 )}
                 data-cover={project.cover}
                 role="img"

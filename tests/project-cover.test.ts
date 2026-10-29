@@ -13,7 +13,7 @@ describe("project cover appearance", () => {
   it("uses original image colors in the shared card/detail style", () => {
     const style = getProjectCoverStyle('/cover with spaces.webp', "50% 25%");
     expect(style).toEqual({ backgroundImage: 'url("/cover with spaces.webp")',
-      backgroundPosition: "50% 25%", backgroundSize: "cover", boxShadow: "none" });
+      backgroundPosition: "50% 25%", backgroundSize: "contain", boxShadow: "none" });
     expect(getProjectCoverStyle(undefined, "center")).toEqual({ backgroundPosition: "center" });
   });
   it("shows uploaded covers without a gradient, inset shadow or brightness filter", () => {
@@ -21,7 +21,7 @@ describe("project cover appearance", () => {
     const preview = card.props.children[0];
     expect(preview.props.style).toMatchObject({
       backgroundImage: 'url("/projects/assets/cover-test/cover.webp")',
-      backgroundPosition: "center", backgroundSize: "cover", boxShadow: "none",
+      backgroundPosition: "center", backgroundSize: "contain", boxShadow: "none",
     });
     expect(preview.props.className).not.toContain("brightness");
   });
