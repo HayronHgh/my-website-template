@@ -28,6 +28,7 @@ export function ReadingTools() {
 
   useEffect(() => {
     const mounted = new Map<HTMLElement, () => void>();
+    const observedHeadings = new WeakMap<HTMLElement, HTMLElement[]>();
     const sections = new Map<HTMLElement, IntersectionObserver>();
     const refresh = () => {
       if (location.pathname.startsWith("/admin")) {
@@ -46,7 +47,13 @@ export function ReadingTools() {
         ...document.querySelectorAll<HTMLElement>("main .prose-content"),
       ];
       for (const root of roots.current) {
-        if (mounted.has(root)) continue;
+        const headingNodes=[...root.querySelectorAll<HTMLElement>("h1[id],h2[id],h3[id]")];
+        const previous=observedHeadings.get(root);
+        const changedHeadings=previous&&(previous.length!==headingNodes.length||headingNodes.some((node,i)=>node!==previous[i]));
+        const unenhanced=[...root.querySelectorAll<HTMLElement>("table,.code-block,.mermaid-diagram,figure.markdown-chart")].some(node=>!node.parentElement?.classList.contains("reading-embed")&&(!node.closest(".mermaid-diagram")||node.matches(".mermaid-diagram")));
+        if (mounted.has(root)&&!changedHeadings&&!unenhanced) continue;
+        mounted.get(root)?.();sections.get(root)?.disconnect();mounted.delete(root);
+        observedHeadings.set(root,headingNodes);
         root.classList.add("reading-prose");
         const cleanups: (() => void)[] = [];
         for (const source of root.querySelectorAll<HTMLElement>(
