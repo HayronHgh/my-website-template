@@ -999,7 +999,7 @@ a {
   content: "";
 }
 
-.project-preview-image {
+.project-preview.project-preview-image {
   background-color: #0b1220;
   background-repeat: no-repeat;
   image-rendering: auto;
