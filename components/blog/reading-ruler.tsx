@@ -158,9 +158,9 @@ export function ReadingRuler({ headings }: {
         if (!state.active)
             return;
         const elapsed = time - state.time;
-        const delta = rulerDragStep(event.clientY - state.last, elapsed);
+        const delta = rulerDragStep(event.clientY - state.last);
         move(delta);
-        state.velocity = clamp(delta / Math.max(8, elapsed), -7, 7);
+        state.velocity = clamp(delta / Math.max(8, elapsed), -0.6, 0.6);
         state.last = event.clientY;
         state.time = time;
         state.movedAt = time;
@@ -187,7 +187,7 @@ export function ReadingRuler({ headings }: {
     const chapterIndex = Math.max(0, headings.findIndex(h => h.id === position.current));
     return <div ref={root} className="reading-ruler" data-active={dragging || open || undefined} data-scrubbing={dragging || undefined}>
     {dragging && createPortal(<div className="reading-scrub-overlay" aria-hidden="true"><div className="reading-scrub-shade" /><div className="reading-scrub-guide"><div className="reading-scrub-meta"><span>章節導覽</span><span>{String(chapterIndex + 1).padStart(2, "0")} / {String(headings.length).padStart(2, "0")}</span></div><p className="reading-scrub-neighbor">{headings[chapterIndex - 1]?.title ?? "文章開始"}</p><div className="reading-scrub-current"><span className="reading-scrub-marker" /><h2>{chapter?.title ?? "閱讀進度"}</h2></div><p className="reading-scrub-neighbor reading-scrub-next">{headings[chapterIndex + 1]?.title ?? "文章結尾"}</p><div className="reading-scrub-footer"><span>上下拖曳 · 放開繼續閱讀</span><strong>{percent}<small>%</small></strong></div><div className="reading-scrub-progress"><i style={{ width: `${percent}%` }} /></div></div></div>, document.body)}
-    <p id="reading-ruler-help" className="sr-only">按住上下拖曳閱讀，慢拖微調、快拖加速。方向鍵微調，Home 與 End 跳至文章兩端；手機長按放大章節導覽，桌面輕點開啟目錄。</p>
+    <p id="reading-ruler-help" className="sr-only">按住上下拖曳閱讀，以固定速度精細調整。方向鍵微調，Home 與 End 跳至文章兩端；手機長按放大章節導覽，桌面輕點開啟目錄。</p>
     {dragging && <output className="reading-ruler-hint">{chapter?.title ?? "閱讀進度"}<span>{percent}%</span></output>}
     <button ref={menuButton} type="button" className="reading-ruler-menu" aria-label="開啟章節目錄" aria-expanded={open} aria-controls="reading-ruler-chapters" onClick={() => { stop(); setOpen(!open); }}><span aria-hidden="true">≡</span></button>
     <div ref={track} className="reading-ruler-track" role="slider" tabIndex={0} aria-label="文章閱讀進度" aria-describedby="reading-ruler-help" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-valuetext={`${percent}%，${chapter?.title ?? ""}`} aria-orientation="vertical" onPointerDown={down} onPointerMove={drag} onPointerUp={event => up(event)} onPointerCancel={event => up(event, true)} onLostPointerCapture={() => { if (gesture.current)
@@ -214,7 +214,7 @@ export function ReadingRuler({ headings }: {
                 setOpen(false);
             }
         }}>
-      <div className="reading-ruler-window" aria-hidden="true"><div className="reading-ruler-scale" style={{ transform: `translateY(${76 - position.progress * 600}px)` }}>{Array.from({ length: 101 }, (_, index) => <i key={index} data-major={index % 10 === 0 || undefined}/>)}</div><span className="reading-ruler-needle"/></div>
+      <div className="reading-ruler-window" aria-hidden="true"><div className="reading-ruler-scale" style={{ transform: `translateY(calc(var(--reading-ruler-step) * ${-100 - position.progress * 100}))` }}>{Array.from({ length: 301 }, (_, index) => <i key={index} data-major={index % 10 === 0 || undefined}/>)}</div><span className="reading-ruler-needle"/></div>
     </div>
     <span className="reading-ruler-percent" aria-hidden="true">{percent}</span>
     {open && <nav id="reading-ruler-chapters" className="reading-ruler-chapters" aria-label="文章章節"><header><strong>章節目錄</strong><button type="button" aria-label="關閉章節目錄" onClick={() => { setOpen(false); menuButton.current?.focus({ preventScroll: true }); }}>×</button></header><ol>{headings.map((heading, index) => <li key={heading.id} data-depth={heading.depth}><a ref={index === 0 ? firstLink : undefined} href={`#${heading.id}`} aria-current={position.current === heading.id ? "location" : undefined} onClick={() => { setOpen(false); requestAnimationFrame(() => { const target = document.getElementById(heading.id); if (target) {
