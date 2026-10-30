@@ -2,6 +2,8 @@
 
 The public reader enhances existing Markdown HTML. Headings have stable `section-` anchors, a chapter outline, and full-screen table/code/diagram/chart viewers. The original content remains readable without JavaScript. Code copy uses original logical lines rather than displayed wrapping. SVG IDs and their styles/marker references are namespaced in viewers.
 
+The outline lives in a translucent ruler at the right viewport midpoint. Tap for chapters; hold/drag for relative scrolling with slow precision, bounded flick acceleration and time-based inertia. Arrow/Page keys and Home/End provide keyboard alternatives. Cancelled gestures, route changes, new page gestures and full-screen viewers stop momentum; reduced motion disables release inertia. The gesture target is 44px wide, while the visible scale is 22px. It never replaces normal page scrolling. Public readers share the same `Back` control and destination-specific link, with hard pixel frames and vertically stacked recommendations on phones.
+
 ## Authoring
 
 `/admin/articles`, `/admin/research`, and `/admin/leetcode` use Writing Studio. The existing management UI remains available with `?legacy=1`; automatic saves in that UI are disabled, and its manual management actions still operate on canonical articles. Project management is unchanged.

@@ -1,3 +1,4 @@
+import { BackControl } from "@/components/ui/back-control";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
@@ -78,10 +79,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
     <Section>
       <Container>
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <NeonButton accent="cyan" href="/projects" size="md" variant="ghost">
-            <PixelIcon className="h-4 w-4" name="projects" />
-            {pageCopy.actions.backToProjects}
-          </NeonButton>
+          <BackControl href="/projects" />
           <div className="flex flex-wrap gap-2">
             {project.caseStudyUrl ? (
               <NeonButton accent="purple" href={project.caseStudyUrl} size="md" variant="ghost">

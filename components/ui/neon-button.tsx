@@ -58,7 +58,7 @@ function getClassName({
   className?: string;
 }) {
   return cn(
-    "relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-[4px] border font-mono font-bold tracking-wide shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.06),0_0_12px_rgba(34,211,238,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030712]",
+    "pixel-control relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-[4px] border font-mono font-bold tracking-wide shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.06),0_0_12px_rgba(34,211,238,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030712]",
     "active:translate-y-px active:shadow-[inset_0_1px_0_rgba(0,0,0,0.65)]",
     sizeClasses[size],
     variantClasses[variant],

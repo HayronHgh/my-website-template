@@ -71,7 +71,7 @@ export function BlogCard({ compact, post, readLabel = "Read signal" }: BlogCardP
 
           <Link
             className={cn(
-              "inline-flex w-fit items-center rounded-[4px] border border-[#30445f] bg-[#101827] font-mono font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50",
+              "pixel-control inline-flex w-fit items-center rounded-[4px] border border-[#30445f] bg-[#101827] font-mono font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50",
               compact ? "mt-auto h-9 px-3 text-xs" : "mt-8 h-11 px-5 text-base",
             )}
             href={post.href}

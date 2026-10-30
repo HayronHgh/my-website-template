@@ -126,7 +126,7 @@ function BlogPostCard({
           </p>
           <div className="flex flex-wrap justify-end gap-2">
             <Link
-              className="inline-flex h-9 items-center gap-2 rounded-[4px] border border-[#30445f] bg-[#101827] px-3 font-mono text-xs font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+              className="pixel-control inline-flex h-9 items-center gap-2 rounded-[4px] border border-[#30445f] bg-[#101827] px-3 font-mono text-xs font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
               href={getBlogArticlePath(post.slug)}
               onClick={handleOpenPost}
             >
@@ -179,7 +179,7 @@ function RecommendedPostCard({
   };
 
   return (
-    <article className="group flex aspect-square min-w-0 flex-col overflow-hidden rounded-[6px] border border-[#26344d] bg-[#0b1220] p-4 shadow-[inset_0_0_0_1px_#111b2d,0_8px_22px_rgba(0,0,0,0.24)] transition-colors duration-200 hover:border-[#5f7c94] hover:bg-[#101827] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.055),0_10px_28px_rgba(0,0,0,0.28),0_0_14px_rgba(34,211,238,0.06)]">
+    <article className="article-recommendation pixel-card group flex sm:aspect-square min-w-0 flex-col overflow-hidden rounded-[6px] border border-[#26344d] bg-[#0b1220] p-4 shadow-[inset_0_0_0_1px_#111b2d,0_8px_22px_rgba(0,0,0,0.24)] transition-colors duration-200 hover:border-[#5f7c94] hover:bg-[#101827] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.055),0_10px_28px_rgba(0,0,0,0.28),0_0_14px_rgba(34,211,238,0.06)]">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2 font-mono text-[11px] text-[#8ea0c8]">
         <button
           className={cn(
@@ -214,7 +214,7 @@ function RecommendedPostCard({
           {post.readTimeMinutes} {copy.readTimeSuffix}
         </p>
         <Link
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[4px] border border-[#30445f] bg-[#101827] px-3 font-mono text-xs font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
+          className="pixel-control inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[4px] border border-[#30445f] bg-[#101827] px-3 font-mono text-xs font-bold text-[#b9dfe3] shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.045)] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50"
           href={getBlogArticlePath(post.slug)}
           onClick={handleOpenPost}
         >
@@ -264,7 +264,7 @@ export function BlogPostShowcase({
               Curated articles to start with
             </p>
           </div>
-          <div className="pixel-scrollbar grid grid-flow-col auto-cols-[82vw] gap-3 overflow-x-auto pb-2 sm:auto-cols-[44vw] lg:grid-flow-row lg:grid-cols-3 lg:auto-cols-auto lg:overflow-visible lg:pb-0">
+          <div className="article-recommendation-grid grid grid-cols-1 gap-4 md:grid-cols-3">
             {featuredPosts.map((post) => (
               <RecommendedPostCard
                 copy={copy}
@@ -288,7 +288,7 @@ export function BlogPostShowcase({
         </div>
         <div className="flex items-center gap-2 font-mono text-xs text-[#8ea0c8]">
           <button
-            className="inline-flex h-9 items-center rounded-[4px] border border-[#26344d] bg-[#0b1220] px-3 font-bold text-[#b9dfe3] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] disabled:cursor-not-allowed disabled:opacity-45"
+            className="pixel-control inline-flex h-9 items-center rounded-[4px] border border-[#26344d] bg-[#0b1220] px-3 font-bold text-[#b9dfe3] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] disabled:cursor-not-allowed disabled:opacity-45"
             disabled={!page.hasPreviousPage || isLoading}
             onClick={() => onPageChange(page.page - 1)}
             type="button"
@@ -299,7 +299,7 @@ export function BlogPostShowcase({
             {page.page} / {displayTotalPages}
           </span>
           <button
-            className="inline-flex h-9 items-center rounded-[4px] border border-[#26344d] bg-[#0b1220] px-3 font-bold text-[#b9dfe3] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] disabled:cursor-not-allowed disabled:opacity-45"
+            className="pixel-control inline-flex h-9 items-center rounded-[4px] border border-[#26344d] bg-[#0b1220] px-3 font-bold text-[#b9dfe3] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] disabled:cursor-not-allowed disabled:opacity-45"
             disabled={!page.hasNextPage || isLoading}
             onClick={() => onPageChange(page.page + 1)}
             type="button"

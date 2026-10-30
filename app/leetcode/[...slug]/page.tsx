@@ -1,5 +1,5 @@
+import { BackControl } from "@/components/ui/back-control";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
@@ -18,9 +18,7 @@ export default async function ProblemPage({ params }: Props) {
   const post = await getPublishedProblem((await params).slug.join("/"));
   if (!post) notFound();
   return <Section><Container><article className="content-panel reading-panel">
-    <Link href="/leetcode" className="content-back">
-      <span aria-hidden="true">←</span><span>Algorithm Practice</span>
-    </Link>
+    <BackControl href="/leetcode" />
     <p className="content-caption">{post.problem!.entryType === "note" ? "LeetCode / 學習筆記" : ["LeetCode", post.problem!.difficulty, post.problem!.language].filter(Boolean).join(" / ")}</p>
     <h1>{post.problem?.id ? <span className="mr-3 text-slate-400">#{post.problem.id}</span> : null}{cleanProblemTitle(post.title, post.problem?.id)}</h1><p className="content-summary">{post.description}</p>
     <p className="content-caption">{post.tags.length ? `${post.tags.join(" / ")} · ` : ""}<time dateTime={post.updatedAt}>更新 {formatProblemUpdatedAt(post.updatedAt)}</time></p>

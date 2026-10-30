@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
+import { ReadingRuler, type ReadingHeading } from "./reading-ruler";
 
-type Heading = { id: string; title: string; depth: number };
+type Heading = ReadingHeading;
 
 /** Progressive enhancement: the original table/code/SVG remains the source of truth. */
 export function ReadingTools() {
+  const pathname = usePathname();
   const [headings, setHeadings] = useState<Heading[]>([]);
-  const [current, setCurrent] = useState("");
-  const [open, setOpen] = useState(false);
   const [viewer, setViewer] = useState<{
     source: HTMLElement;
     title: string;
@@ -19,7 +19,6 @@ export function ReadingTools() {
   const [wrap, setWrap] = useState(true);
   const [fontSize, setFontSize] = useState(15);
   const [query, setQuery] = useState("");
-  const [rail, setRail] = useState<HTMLElement | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
   const returnScroll = useRef(0);
@@ -29,19 +28,15 @@ export function ReadingTools() {
   useEffect(() => {
     const mounted = new Map<HTMLElement, () => void>();
     const observedHeadings = new WeakMap<HTMLElement, HTMLElement[]>();
-    const sections = new Map<HTMLElement, IntersectionObserver>();
     const refresh = () => {
       if (location.pathname.startsWith("/admin")) {
         setHeadings((old) => (old.length ? [] : old));
-        setRail(null);
         return;
       }
       for (const [root, cleanup] of mounted)
         if (!root.isConnected) {
           cleanup();
           mounted.delete(root);
-          sections.get(root)?.disconnect();
-          sections.delete(root);
         }
       roots.current = [
         ...document.querySelectorAll<HTMLElement>("main .prose-content"),
@@ -52,7 +47,7 @@ export function ReadingTools() {
         const changedHeadings=previous&&(previous.length!==headingNodes.length||headingNodes.some((node,i)=>node!==previous[i]));
         const unenhanced=[...root.querySelectorAll<HTMLElement>("table,.code-block,.mermaid-diagram,figure.markdown-chart")].some(node=>!node.parentElement?.classList.contains("reading-embed")&&(!node.closest(".mermaid-diagram")||node.matches(".mermaid-diagram")));
         if (mounted.has(root)&&!changedHeadings&&!unenhanced) continue;
-        mounted.get(root)?.();sections.get(root)?.disconnect();mounted.delete(root);
+        mounted.get(root)?.();mounted.delete(root);
         observedHeadings.set(root,headingNodes);
         root.classList.add("reading-prose");
         const cleanups: (() => void)[] = [];
@@ -160,17 +155,6 @@ export function ReadingTools() {
             }
           });
         }
-        const observer = new IntersectionObserver(
-          (entries) => {
-            for (const e of entries)
-              if (e.isIntersecting) setCurrent(e.target.id);
-          },
-          { rootMargin: "-100px 0px -65% 0px" },
-        );
-        root
-          .querySelectorAll<HTMLElement>("h1[id],h2[id],h3[id]")
-          .forEach((h) => observer.observe(h));
-        sections.set(root, observer);
         mounted.set(root, () => cleanups.forEach((fn) => fn()));
       }
       const next = roots.current.flatMap((root) =>
@@ -182,20 +166,6 @@ export function ReadingTools() {
           }),
         ),
       );
-      const aside = roots.current.length
-        ? document.querySelector<HTMLElement>("main aside")
-        : null;
-      if (aside) {
-        let slot = aside.querySelector<HTMLElement>(
-          ":scope > .reading-outline-slot",
-        );
-        if (!slot) {
-          slot = document.createElement("div");
-          slot.className = "reading-outline-slot";
-          aside.prepend(slot);
-        }
-        setRail((previous) => (previous === slot ? previous : slot));
-      } else setRail(null);
       setHeadings((old) =>
         JSON.stringify(old) === JSON.stringify(next) ? old : next,
       );
@@ -210,7 +180,6 @@ export function ReadingTools() {
     refresh();
     return () => {
       observer.disconnect();
-      sections.forEach((o) => o.disconnect());
       mounted.forEach((fn) => fn());
     };
   }, []);
@@ -287,38 +256,9 @@ export function ReadingTools() {
       .querySelector(".reading-match")
       ?.scrollIntoView({ block: "center" });
   }
-  const outline =
-    headings.length > 1 ? (
-      <nav
-        className={`reading-outline ${rail ? "reading-outline-in-rail" : ""}`}
-        aria-label="文章章節"
-      >
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={() => setOpen(!open)}
-        >
-          章節 · {headings.find((h) => h.id === current)?.title ?? "目錄"}{" "}
-          <span>☰</span>
-        </button>
-        <ol hidden={!open}>
-          {headings.map((h) => (
-            <li key={h.id} data-depth={h.depth}>
-              <a
-                aria-current={current === h.id ? "location" : undefined}
-                href={`#${h.id}`}
-                onClick={() => setOpen(false)}
-              >
-                {h.title}
-              </a>
-            </li>
-          ))}
-        </ol>
-      </nav>
-    ) : null;
   return (
     <>
-      {rail ? createPortal(outline, rail) : outline}
+      {headings.length > 1 && !viewer && <ReadingRuler key={pathname} headings={headings} />}
       <dialog
         className="reading-dialog"
         ref={dialog}

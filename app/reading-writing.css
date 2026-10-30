@@ -94,46 +94,6 @@
   border: 0;
   border-radius: 0;
 }
-.reading-outline {
-  position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  z-index: 35;
-  width: min(320px, calc(100vw - 2rem));
-  border: 1px solid #315467;
-  border-radius: 6px;
-  background: #0b1220;
-  box-shadow: 0 6px 28px #0008;
-  color: #c6dce3;
-  font-size: 0.85rem;
-}
-.reading-outline > button {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem;
-  text-align: left;
-  min-height: 44px;
-}
-.reading-outline ol {
-  max-height: 50dvh;
-  overflow: auto;
-  margin: 0;
-  padding: 0.25rem 0.75rem 0.75rem;
-  list-style: none;
-}
-.reading-outline li[data-depth="3"] {
-  padding-left: 1rem;
-}
-.reading-outline a {
-  display: block;
-  padding: 0.5rem;
-}
-.reading-outline a[aria-current] {
-  color: #8ed2d8;
-  border-left: 2px solid;
-  background: #142536;
-}
 .reading-dialog {
   width: min(1400px, 96vw);
   height: 94dvh;
@@ -243,17 +203,6 @@
   border: 1px solid #315467;
   background: #0b1220;
 }
-@media (min-width: 1280px) {
-  .reading-outline-in-rail {
-    position: static;
-    width: 100%;
-    box-shadow: none;
-    margin-bottom: 1rem;
-  }
-  .reading-outline-in-rail ol[hidden] {
-    display: block;
-  }
-}
 @media (max-width: 640px) {
   .reading-prose .code-block:not(.reading-code-nowrap) .code-block-pre code {
     min-width: 0;
@@ -287,9 +236,6 @@
     :is(pre, code, .code-line, .code-line-content) {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
-  }
-  .reading-outline {
-    bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
 }
 

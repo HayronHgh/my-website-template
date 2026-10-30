@@ -1,6 +1,5 @@
+import { BackControl } from "@/components/ui/back-control";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
 import { ResearchExperimentPanel } from "@/components/research/research-experiment-panel";
@@ -23,9 +22,7 @@ export default async function ResearchEntryPage({ params }: Props) {
   if (!entry) notFound();
   return <Section><Container className="research-reading-layout">
     <article className="content-panel reading-panel">
-      <Link className="research-back" href="/research" aria-label="返回 Research">
-        <ArrowLeft size={16} strokeWidth={1.75} aria-hidden="true" /><span>Research</span>
-      </Link>
+      <BackControl href="/research" />
       <p className="content-caption">{entry.research?.area ?? "RESEARCH"} / {entry.research ? researchStageLabels[entry.research.stage] : "研究筆記"}</p>
       <h1>{entry.title}</h1><p className="content-summary">{entry.description}</p>
       <p className="content-caption">{entry.tags.join(" / ")} · {entry.date}</p>

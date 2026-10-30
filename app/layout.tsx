@@ -67,6 +67,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 import { ReadingTools } from "@/components/blog/reading-tools";
 import "./reading-writing.css";
+import "./public-reading.css";
 
 export default async function RootLayout({
   children,

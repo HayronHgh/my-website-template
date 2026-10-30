@@ -32,7 +32,7 @@ export const ui = {
   sectionTitle: "font-mono text-[18px] font-extrabold tracking-wide text-[#8ed2d8]",
   mutedText: "text-[#aeb9cc]",
   pixelButton:
-    "inline-flex h-10 items-center justify-center gap-2 rounded-[4px] border border-[#30445f] bg-[#101827] px-4 font-mono text-sm font-bold text-slate-100 shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_#253650] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50",
+    "pixel-control inline-flex h-10 items-center justify-center gap-2 rounded-[4px] border border-[#30445f] bg-[#101827] px-4 font-mono text-sm font-bold text-slate-100 shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_#253650] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50",
   metadataBadge:
     "inline-flex items-center rounded-[3px] border border-[#315467] bg-[#111c2f] px-3 py-1.5 font-mono font-bold text-[#d7e9ee]",
   tinyTag:
