@@ -84,6 +84,7 @@ button.pixel-control {
   -webkit-touch-callout: none;
 }
 .reading-ruler-track:focus-visible, .reading-ruler-menu:focus-visible { outline: 1px solid #8ed2d8; outline-offset: -2px; }
+.reading-ruler[data-active] .reading-ruler-track:focus-visible { outline: none; }
 .reading-ruler-window {
   position: relative;
   width: 22px;

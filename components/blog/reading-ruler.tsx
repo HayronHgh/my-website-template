@@ -135,7 +135,6 @@ export function ReadingRuler({ headings }: {
             return;
         stop();
         setOpen(false);
-        event.currentTarget.focus({ preventScroll: true });
         event.currentTarget.setPointerCapture(event.pointerId);
         gesture.current = { pointer: event.pointerId, start: event.clientY, last: event.clientY, time: performance.now(), movedAt: 0, velocity: 0, active: false, moved: false };
         hold.current = setTimeout(() => {
@@ -174,6 +173,7 @@ export function ReadingRuler({ headings }: {
         stop();
         if (event.currentTarget.hasPointerCapture(event.pointerId))
             event.currentTarget.releasePointerCapture(event.pointerId);
+        event.currentTarget.blur();
         if (cancelled)
             return;
         if (tapped)
