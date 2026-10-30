@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
-import { clamp, readingProgress, rulerCoastStep, rulerDragStep } from "@/lib/blog/reading-ruler";
+import { clamp, readingProgress, rulerDetent } from "@/lib/blog/reading-ruler";
 export type ReadingHeading = {
     id: string;
     title: string;
@@ -13,8 +13,9 @@ type Gesture = {
     start: number;
     last: number;
     time: number;
-    movedAt: number;
-    velocity: number;
+    offset: number;
+    index: number;
+    steppedAt: number;
     active: boolean;
     moved: boolean;
 };
@@ -32,10 +33,10 @@ export function ReadingRuler({ headings }: {
     const bounds = useRef({ start: 0, end: 0 });
     const gesture = useRef<Gesture | null>(null);
     const hold = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const coast = useRef(0);
+
     const reducedMotion = useRef(false);
     function stop() {
-        cancelAnimationFrame(coast.current);
+
         if (hold.current)
             clearTimeout(hold.current);
         gesture.current = null;
@@ -46,20 +47,17 @@ export function ReadingRuler({ headings }: {
         const next = clamp(window.scrollY + delta, 0, Math.min(max, Math.max(bounds.current.end, window.scrollY)));
         window.scrollTo({ top: next, behavior: "instant" });
     }
-    function release(velocity: number) {
-        if (reducedMotion.current || Math.abs(velocity) < 0.08)
-            return;
-        let previous = performance.now();
-        const frame = (time: number) => {
-            const step = rulerCoastStep(velocity, Math.min(time - previous, 50));
-            previous = time;
-            velocity = step.velocity;
-            const before = window.scrollY;
-            move(step.delta);
-            if (Math.abs(velocity) > 0.08 && Math.abs(window.scrollY - before) > 0.1)
-                coast.current = requestAnimationFrame(frame);
-        };
-        coast.current = requestAnimationFrame(frame);
+    function selectChapter(index: number, feedback = false) {
+        const heading = headings[index];
+        const element = heading && document.getElementById(heading.id);
+        if (!element) return;
+        const max = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+        const top = clamp(element.getBoundingClientRect().top + scrollY - 112, 0, max);
+        window.scrollTo({ top, behavior: "instant" });
+        setPosition({ progress: readingProgress(top, bounds.current.start, bounds.current.end), current: heading.id });
+        if (feedback && !reducedMotion.current) {
+            try { navigator.vibrate?.(8); } catch { /* Optional device feedback. */ }
+        }
     }
     useEffect(() => {
         let scheduled = 0;
@@ -73,7 +71,7 @@ export function ReadingRuler({ headings }: {
             const end = Math.max(start, Math.min(document.documentElement.scrollHeight - innerHeight, rect.bottom + window.scrollY - innerHeight + 80));
             bounds.current = { start, end };
             const visible = headings.filter(h => (document.getElementById(h.id)?.getBoundingClientRect().top ?? Infinity) <= 160);
-            const current = visible.at(-1)?.id ?? headings[0]?.id ?? "";
+            const current = gesture.current?.active ? headings[gesture.current.index]?.id ?? "" : visible.at(-1)?.id ?? headings[0]?.id ?? "";
             setPosition({ progress: readingProgress(window.scrollY, start, end), current });
         };
         const schedule = () => { if (!scheduled)
@@ -107,7 +105,7 @@ export function ReadingRuler({ headings }: {
             window.removeEventListener("keydown", interrupt);
             sizes.disconnect();
             cancelAnimationFrame(scheduled);
-            cancelAnimationFrame(coast.current);
+    
             if (hold.current)
                 clearTimeout(hold.current);
             gesture.current = null;
@@ -137,7 +135,7 @@ export function ReadingRuler({ headings }: {
         stop();
         setOpen(false);
         event.currentTarget.setPointerCapture(event.pointerId);
-        gesture.current = { pointer: event.pointerId, start: event.clientY, last: event.clientY, time: performance.now(), movedAt: 0, velocity: 0, active: false, moved: false };
+        gesture.current = { pointer: event.pointerId, start: event.clientY, last: event.clientY, time: performance.now(), offset: 0, index: Math.max(0, headings.findIndex(h => h.id === position.current)), steppedAt: 0, active: false, moved: false };
         hold.current = setTimeout(() => {
             if (gesture.current) {
                 gesture.current.active = true;
@@ -157,20 +155,24 @@ export function ReadingRuler({ headings }: {
         }
         if (!state.active)
             return;
-        const elapsed = time - state.time;
-        const delta = rulerDragStep(event.clientY - state.last);
-        move(delta);
-        state.velocity = clamp(delta / Math.max(8, elapsed), -0.6, 0.6);
+        const step = rulerDetent(state.offset, event.clientY - state.last, state.index, headings.length);
+        state.offset = step.offset;
+        if (step.index !== state.index && time - state.steppedAt >= 150) {
+            state.index = step.index;
+            state.offset = 0;
+            state.steppedAt = time;
+            selectChapter(state.index, true);
+        }
         state.last = event.clientY;
         state.time = time;
-        state.movedAt = time;
     }
+
     function up(event: PointerEvent<HTMLDivElement>, cancelled = false) {
         const state = gesture.current;
         if (!state || state.pointer !== event.pointerId)
             return;
         const tapped = !state.active && !state.moved;
-        const velocity = performance.now() - state.movedAt < 90 ? state.velocity : 0;
+        const selected = state.active && state.moved ? state.index : null;
         stop();
         if (event.currentTarget.hasPointerCapture(event.pointerId))
             event.currentTarget.releasePointerCapture(event.pointerId);
@@ -179,15 +181,15 @@ export function ReadingRuler({ headings }: {
             return;
         if (tapped)
             setOpen(!matchMedia("(max-width: 767px)").matches);
-        else
-            release(velocity);
+        else if (selected !== null)
+            selectChapter(selected);
     }
     const chapter = headings.find(h => h.id === position.current);
     const percent = Math.round(position.progress * 100);
     const chapterIndex = Math.max(0, headings.findIndex(h => h.id === position.current));
     return <div ref={root} className="reading-ruler" data-active={dragging || open || undefined} data-scrubbing={dragging || undefined}>
-    {dragging && createPortal(<div className="reading-scrub-overlay" aria-hidden="true"><div className="reading-scrub-shade" /><div className="reading-scrub-guide"><div className="reading-scrub-meta"><span>章節導覽</span><span>{String(chapterIndex + 1).padStart(2, "0")} / {String(headings.length).padStart(2, "0")}</span></div><p className="reading-scrub-neighbor">{headings[chapterIndex - 1]?.title ?? "文章開始"}</p><div className="reading-scrub-current"><span className="reading-scrub-marker" /><h2>{chapter?.title ?? "閱讀進度"}</h2></div><p className="reading-scrub-neighbor reading-scrub-next">{headings[chapterIndex + 1]?.title ?? "文章結尾"}</p><div className="reading-scrub-footer"><span>上下拖曳 · 放開繼續閱讀</span><strong>{percent}<small>%</small></strong></div><div className="reading-scrub-progress"><i style={{ width: `${percent}%` }} /></div></div></div>, document.body)}
-    <p id="reading-ruler-help" className="sr-only">按住上下拖曳閱讀，以固定速度精細調整。方向鍵微調，Home 與 End 跳至文章兩端；手機長按放大章節導覽，桌面輕點開啟目錄。</p>
+    {dragging && createPortal(<div className="reading-scrub-overlay" aria-hidden="true"><div className="reading-scrub-shade" /><div className="reading-scrub-guide"><div className="reading-scrub-meta"><span>章節導覽</span><span>{String(chapterIndex + 1).padStart(2, "0")} / {String(headings.length).padStart(2, "0")}</span></div><p className="reading-scrub-neighbor">{headings[chapterIndex - 1]?.title ?? "文章開始"}</p><div className="reading-scrub-current"><span className="reading-scrub-marker" /><h2 key={chapter?.id}>{chapter?.title ?? "閱讀進度"}</h2></div><p className="reading-scrub-neighbor reading-scrub-next">{headings[chapterIndex + 1]?.title ?? "文章結尾"}</p><div className="reading-scrub-footer"><span>每格一個章節 · 放開定位</span><strong>{percent}<small>%</small></strong></div><div className="reading-scrub-progress"><i style={{ width: `${percent}%` }} /></div></div></div>, document.body)}
+    <p id="reading-ruler-help" className="sr-only">按住上下拖曳，每格切換一個章節，放開定位。方向鍵切換章節，Home 與 End 跳至文章兩端；手機長按放大章節導覽，桌面輕點開啟目錄。</p>
     {dragging && <output className="reading-ruler-hint">{chapter?.title ?? "閱讀進度"}<span>{percent}%</span></output>}
     <button ref={menuButton} type="button" className="reading-ruler-menu" aria-label="開啟章節目錄" aria-expanded={open} aria-controls="reading-ruler-chapters" onClick={() => { stop(); setOpen(!open); }}><span aria-hidden="true">≡</span></button>
     <div ref={track} className="reading-ruler-track" role="slider" tabIndex={0} aria-label="文章閱讀進度" aria-describedby="reading-ruler-help" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-valuetext={`${percent}%，${chapter?.title ?? ""}`} aria-orientation="vertical" onPointerDown={down} onPointerMove={drag} onPointerUp={event => up(event)} onPointerCancel={event => up(event, true)} onLostPointerCapture={() => { if (gesture.current)
@@ -196,7 +198,7 @@ export function ReadingRuler({ headings }: {
             if (event.key in deltas) {
                 event.preventDefault();
                 stop();
-                move(deltas[event.key]);
+                selectChapter(clamp(chapterIndex + (deltas[event.key] > 0 ? 1 : -1), 0, headings.length - 1));
             }
             else if (event.key === "Home" || event.key === "End") {
                 event.preventDefault();
@@ -214,7 +216,7 @@ export function ReadingRuler({ headings }: {
                 setOpen(false);
             }
         }}>
-      <div className="reading-ruler-window" aria-hidden="true"><div className="reading-ruler-scale" style={{ transform: `translateY(calc(var(--reading-ruler-step) * ${-100 - position.progress * 100}))` }}>{Array.from({ length: 301 }, (_, index) => <i key={index} data-major={index % 10 === 0 || undefined}/>)}</div><span className="reading-ruler-needle"/></div>
+      <div className="reading-ruler-window" aria-hidden="true"><div className="reading-ruler-scale" style={{ transform: `translateY(calc(var(--reading-ruler-step) * ${-100 - chapterIndex * 4}))` }}>{Array.from({ length: Math.max(301, 201 + headings.length * 4) }, (_, index) => <i key={index} data-major={index % 4 === 0 || undefined} data-chapter={index >= 100 && index < 100 + headings.length * 4 && index % 4 === 0 || undefined}>{index >= 100 && index < 100 + headings.length * 4 && index % 4 === 0 && <b>{String((index - 100) / 4 + 1).padStart(2, "0")}</b>}</i>)}</div><span className="reading-ruler-needle"/></div>
     </div>
     <span className="reading-ruler-percent" aria-hidden="true">{percent}</span>
     {open && <nav id="reading-ruler-chapters" className="reading-ruler-chapters" aria-label="文章章節"><header><strong>章節目錄</strong><button type="button" aria-label="關閉章節目錄" onClick={() => { setOpen(false); menuButton.current?.focus({ preventScroll: true }); }}>×</button></header><ol>{headings.map((heading, index) => <li key={heading.id} data-depth={heading.depth}><a ref={index === 0 ? firstLink : undefined} href={`#${heading.id}`} aria-current={position.current === heading.id ? "location" : undefined} onClick={() => { setOpen(false); requestAnimationFrame(() => { const target = document.getElementById(heading.id); if (target) {
