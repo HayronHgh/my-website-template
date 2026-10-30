@@ -105,7 +105,7 @@ export function ReadingRuler({ headings }: {
             window.removeEventListener("keydown", interrupt);
             sizes.disconnect();
             cancelAnimationFrame(scheduled);
-    
+
             if (hold.current)
                 clearTimeout(hold.current);
             gesture.current = null;
