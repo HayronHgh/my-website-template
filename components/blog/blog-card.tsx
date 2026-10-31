@@ -29,7 +29,7 @@ export function BlogCard({ compact, post, readLabel = "Read signal" }: BlogCardP
           <span
             className={cn(
               "inline-flex max-w-full items-center gap-2 rounded-[3px] border border-[#315467] bg-[#111c2f] px-3 py-1.5 font-mono font-bold text-[#b9dfe3]",
-              compact && "px-2 py-1 text-[11px]",
+              compact && "px-2 py-1 text-xs",
             )}
           >
             <PixelIcon className={cn("h-4 w-4", compact && "h-3 w-3")} name="file" />
@@ -38,7 +38,7 @@ export function BlogCard({ compact, post, readLabel = "Read signal" }: BlogCardP
           <time
             className={cn(
               "inline-flex items-center gap-2 font-mono text-sm text-[#8ea0c8]",
-              compact && "gap-1.5 text-[11px]",
+              compact && "gap-1.5 text-xs",
             )}
             dateTime={post.date}
           >
@@ -50,9 +50,9 @@ export function BlogCard({ compact, post, readLabel = "Read signal" }: BlogCardP
         <div className="flex flex-1 flex-col">
           <h3
             className={cn(
-              "font-mono font-black tracking-tight text-white",
+              "font-heading font-extrabold text-white",
               compact
-                ? "clamp-2 mt-3 text-lg leading-7"
+                ? "clamp-3 mt-3 text-lg leading-7"
                 : "mt-6 text-[clamp(1.75rem,2.1vw,2.125rem)] leading-[1.2]",
             )}
           >

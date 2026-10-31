@@ -10,6 +10,13 @@
   --accent: #8ed2d8;
   --accent-strong: #c79658;
   --accent-soft: #132337;
+  --border-strong: #315467;
+  --control-border: #30445f;
+  --surface-raised: #101827;
+  --surface-bar: #0e1828;
+  --text-dim: #9fb4c9;
+  /* Hard pixel drop shadow under panels and buttons. */
+  --pixel-shadow: #03050e;
 }
 
 @theme inline {
@@ -22,7 +29,9 @@
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
-  --font-sans: var(--font-manrope);
+  --font-sans: var(--font-manrope), "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  /* Content titles: Manrope for Latin with a matching CJK sans, never the mono UI face. */
+  --font-heading: var(--font-heading);
   --font-mono: var(--font-jetbrains-mono);
 }
 
@@ -35,12 +44,14 @@ html {
 }
 
 body {
+  /* Declared here, not on :root: next/font puts --font-manrope on <body>. */
+  --font-heading: var(--font-manrope), "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   min-height: 100vh;
   background:
-    linear-gradient(180deg, #060817 0%, #090d1d 38%, #050714 100%),
+    linear-gradient(180deg, #060817 0%, #090d1d 38%, var(--background) 100%),
     linear-gradient(135deg, #060817 0%, #11182b 46%, #121427 72%, #07111f 100%);
   color: var(--foreground);
-  font-family: var(--font-manrope), sans-serif;
+  font-family: var(--font-manrope), "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
 }
 
 body::before {
@@ -101,7 +112,7 @@ a {
 }
 
 .pixel-scrollbar {
-  scrollbar-color: #6ea8b0 #0b1220;
+  scrollbar-color: #6ea8b0 var(--surface);
   scrollbar-width: thin;
 }
 
@@ -110,16 +121,16 @@ a {
 }
 
 .pixel-scrollbar::-webkit-scrollbar-track {
-  border: 1px solid #26344d;
+  border: 1px solid var(--border);
   border-radius: 3px;
-  background: #0b1220;
-  box-shadow: inset 0 0 0 1px #101827;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--surface-raised);
 }
 
 .pixel-scrollbar::-webkit-scrollbar-thumb {
-  border: 2px solid #0b1220;
+  border: 2px solid var(--surface);
   border-radius: 3px;
-  background: linear-gradient(180deg, #8ed2d8, #405d6f);
+  background: linear-gradient(180deg, var(--accent), #405d6f);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
     inset 0 -1px 0 #050914;
@@ -313,7 +324,7 @@ a {
   overflow: hidden;
   background:
     radial-gradient(circle at 50% 54%, rgba(88, 28, 135, 0.46), transparent 58%),
-    #050714;
+    var(--background);
   image-rendering: pixelated;
   isolation: isolate;
 }
@@ -1000,7 +1011,7 @@ a {
 }
 
 .project-preview.project-preview-image {
-  background-color: #0b1220;
+  background-color: var(--surface);
   background-repeat: no-repeat;
   image-rendering: auto;
 }
@@ -1396,7 +1407,7 @@ a {
   background: rgba(88, 28, 135, 0.22);
   padding: 0.18rem 0.45rem;
   color: #ddd6fe;
-  font-size: 0.68rem;
+  font-size: .75rem;
   font-weight: 800;
   line-height: 1;
   text-transform: uppercase;
@@ -1410,7 +1421,7 @@ a {
   padding: 0.2rem 0.5rem;
   color: #a5f3fc;
   font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 0.68rem;
+  font-size: .75rem;
   font-weight: 800;
   transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
 }
@@ -1558,7 +1569,7 @@ a {
   aspect-ratio: var(--media-aspect, 16 / 9);
   margin: 1.75rem auto;
   overflow: hidden;
-  border: 1px solid #30445f;
+  border: 1px solid var(--control-border);
   border-radius: 5px;
   background: #050914;
 }
@@ -1576,7 +1587,7 @@ a {
   margin: 1.75rem 0;
   padding: 1rem;
   overflow-x: auto;
-  border: 1px solid #30445f;
+  border: 1px solid var(--control-border);
   border-radius: 5px;
   background: #080d19;
   text-align: center;
@@ -1584,8 +1595,8 @@ a {
 .prose-content .mermaid-diagram svg { display: inline-block; max-width: 100%; height: auto; }
 .prose-content .mermaid-source[hidden] { display:none; }
 .diagram-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.75rem; font-size:.75rem; color:#aebbd0; }
-.diagram-toolbar :is(select,button) { border:1px solid #30445f; border-radius:3px; padding:.5rem .65rem; background:#101827; color:#b9dcdf; min-height:36px; cursor:pointer; }
-.diagram-toolbar :is(select,button):focus-visible,.diagram-viewport:focus-visible { outline:2px solid #8ed2d8; outline-offset:2px; }
+.diagram-toolbar :is(select,button) { border:1px solid var(--control-border); border-radius:3px; padding:.5rem .65rem; background:var(--surface-raised); color:#b9dcdf; min-height:36px; cursor:pointer; }
+.diagram-toolbar :is(select,button):focus-visible,.diagram-viewport:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .diagram-viewport { max-width:100%; overflow:auto; }
 .prose-content .diagram-natural svg { max-width:none !important; }
 .prose-content .mermaid-diagram[data-mermaid-state="error"] { color: #f0a8b8; text-align: left; }

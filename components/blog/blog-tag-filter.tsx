@@ -37,7 +37,7 @@ export function BlogTagFilter({
           return (
             <button
               className={cn(
-                "rounded-[3px] border px-2 py-1 font-mono text-[11px] font-bold transition duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200",
+                "rounded-[3px] border px-2 py-1 font-mono text-xs font-bold transition duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200",
                 isActive
                   ? "border-[#6ea8b0] bg-[#151e2f] text-[#b9dfe3] shadow-[inset_0_0_0_1px_#1c2b43]"
                   : "border-[#315467] bg-[#111c2f] text-[#d3c4e4] hover:border-[#6ea8b0]",

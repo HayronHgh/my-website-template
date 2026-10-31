@@ -94,7 +94,7 @@ export default async function RootLayout({
             routeImageMap={routeImageMap}
           />
           <main className="flex-1">{children}</main>
-          <Footer contactLinks={contactLinks} siteProfile={siteProfile} />
+          <Footer contactLinks={contactLinks} navigationItems={navigationItems} siteProfile={siteProfile} />
         </div>
       </body>
     </html>

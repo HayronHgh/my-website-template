@@ -48,21 +48,21 @@ export function DashboardSection({
             <div className="mt-3 grid gap-3 md:grid-cols-3">
               {strengths.map((strength) => (
                 <article
-                  className="flex min-h-[116px] min-w-0 flex-col rounded-[4px] border border-[#263f55] bg-[#0e1727] p-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)]"
+                  className="flex min-h-[124px] min-w-0 flex-col border border-[#263f55] bg-[#0e1727] p-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)]"
                   key={strength.name}
                 >
                   <div className="flex min-w-0 items-start justify-between gap-2">
-                    <h3 className="font-mono text-xs font-black leading-5 text-[#eef6ff]">
+                    <h3 className="font-heading text-sm font-extrabold leading-5 text-[#eef6ff]">
                       {strength.name}
                     </h3>
                   </div>
-                  <p className="clamp-2 mt-1 text-[11px] leading-4 text-[#9fb0c9]">
+                  <p className="clamp-2 mt-1 text-xs leading-5 text-[#a9b8cf]">
                     {strength.subtitle || strength.note}
                   </p>
-                  <div className="mt-auto flex min-w-0 gap-1.5 pt-2">
+                  <div className="mt-auto flex min-w-0 flex-wrap gap-1.5 pt-2">
                     {(strength.evidence ?? []).slice(0, 2).map((item) => (
                       <span
-                        className="max-w-[48%] truncate rounded-[3px] border border-[#315467] bg-[#111c2f] px-1.5 py-1 font-mono text-[9px] font-bold leading-none text-[#b9dfe3]"
+                        className="max-w-full truncate border border-[#315467] bg-[#111c2f] px-1.5 py-1 font-mono text-xs font-bold leading-none text-[#b9dfe3]"
                         key={item}
                       >
                         {item}

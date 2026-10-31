@@ -190,7 +190,7 @@ export function BlogSeriesSidebar({
           <span className="truncate">{copy.title}</span>
         </div>
         <button
-          className="rounded-[3px] border border-[#315467] bg-[#111c2f] px-2 py-1 font-mono text-[11px] font-bold text-[#b9dfe3] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f]"
+          className="rounded-[3px] border border-[#315467] bg-[#111c2f] px-2 py-1 font-mono text-xs font-bold text-[#b9dfe3] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f]"
           onClick={() => setSortOrder((currentSortOrder) =>
             currentSortOrder === "newest" ? "oldest" : "newest",
           )}
@@ -223,7 +223,7 @@ export function BlogSeriesSidebar({
                   key={post.slug}
                   onClick={handleOpenPost(post.slug)}
                 >
-                  <span className="clamp-2 font-mono text-sm font-semibold leading-6">
+                  <span className="clamp-2 font-heading text-sm font-bold leading-6">
                     {post.title}
                   </span>
                   <span className="mt-1 block font-mono text-xs text-[#7f8db3]">

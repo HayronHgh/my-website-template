@@ -100,7 +100,7 @@ export default async function ContactPage() {
                     <PixelIcon className="h-6 w-6" name={link.icon} />
                   </div>
                   <div className="min-w-0">
-                    <h2 className="font-mono text-lg font-bold text-white">{link.label}</h2>
+                    <h2 className="font-heading text-lg font-extrabold text-white">{link.label}</h2>
                     <p className="mt-2 truncate text-sm text-[#9fb0d8]">{link.value}</p>
                   </div>
                   <a

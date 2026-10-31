@@ -160,7 +160,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                       className="rounded-[4px] border border-[#26344d] bg-[#101827] p-3"
                       key={label}
                     >
-                      <p className="font-mono text-[10px] font-bold uppercase text-[#7f8ca8]">
+                      <p className="font-mono text-xs font-bold uppercase text-[#7f8ca8]">
                         {label}
                       </p>
                       <p className="mt-1 font-mono text-xs font-bold text-[#eef3ff]">
@@ -202,7 +202,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
 
               {project.publicBoundary ? (
                 <div className="rounded-[4px] border border-[#5d4b32] bg-[#151009] p-3 text-sm leading-6 text-[#e0c28f]">
-                  <p className="font-mono text-[11px] font-bold uppercase">
+                  <p className="font-mono text-xs font-bold uppercase">
                     {pageCopy.publicBoundaryTitle}
                   </p>
                   <p className="mt-1">{project.publicBoundary}</p>
@@ -226,7 +226,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                       <p className="clamp-2 font-mono text-sm font-bold leading-6 text-[#eef3ff]">
                         {post.title}
                       </p>
-                      <p className="mt-1 font-mono text-[11px] text-[#7f8db3]">
+                      <p className="mt-1 font-mono text-xs text-[#7f8db3]">
                         {formatDate(post.date)}
                       </p>
                     </a>

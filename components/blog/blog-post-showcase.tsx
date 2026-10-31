@@ -111,7 +111,7 @@ function BlogPostCard({
           href={getBlogArticlePath(post.slug)}
           onClick={handleOpenPost}
         >
-          <h3 className="clamp-2 font-mono text-xl font-black leading-7 text-white transition group-hover:text-cyan-100">
+          <h3 className="clamp-2 font-heading text-xl font-extrabold leading-8 text-white transition group-hover:text-cyan-100">
             {post.title}
           </h3>
           <p className="clamp-2 mt-3 max-w-[64ch] text-sm leading-6 text-[#aeb9cc]">
@@ -180,7 +180,7 @@ function RecommendedPostCard({
 
   return (
     <article className="article-recommendation pixel-card group flex sm:aspect-square min-w-0 flex-col overflow-hidden rounded-[6px] border border-[#26344d] bg-[#0b1220] p-4 shadow-[inset_0_0_0_1px_#111b2d,0_8px_22px_rgba(0,0,0,0.24)] transition-colors duration-200 hover:border-[#5f7c94] hover:bg-[#101827] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.055),0_10px_28px_rgba(0,0,0,0.28),0_0_14px_rgba(34,211,238,0.06)]">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 font-mono text-[11px] text-[#8ea0c8]">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 font-mono text-xs text-[#8ea0c8]">
         <button
           className={cn(
             "inline-flex max-w-full items-center gap-1 truncate rounded-[3px] border px-2 py-1 font-bold transition duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200",
@@ -200,7 +200,7 @@ function RecommendedPostCard({
         href={getBlogArticlePath(post.slug)}
         onClick={handleOpenPost}
       >
-        <h3 className="clamp-2 font-mono text-lg font-black leading-7 text-white transition group-hover:text-cyan-100">
+        <h3 className="clamp-2 font-heading text-lg font-extrabold leading-7 text-white transition group-hover:text-cyan-100">
           {post.title}
         </h3>
         <p className="clamp-2 mt-3 text-sm leading-6 text-[#aeb9cc]">
@@ -209,7 +209,7 @@ function RecommendedPostCard({
       </Link>
 
       <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#26344d] pt-3">
-        <p className="inline-flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-[#7f8db3]">
+        <p className="inline-flex min-w-0 items-center gap-1.5 font-mono text-xs text-[#7f8db3]">
           <PixelIcon className="h-3.5 w-3.5" name="clock" />
           {post.readTimeMinutes} {copy.readTimeSuffix}
         </p>

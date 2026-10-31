@@ -16,7 +16,7 @@ type ProjectCardProps = {
 };
 
 const tagClassName =
-  "max-w-28 truncate rounded-[3px] border border-[#315467] bg-[#111c2f] px-2 py-1 font-mono text-[11px] font-bold leading-none text-[#b9dfe3]";
+  "max-w-32 truncate border border-[#26344d] px-2 py-1 font-mono text-xs leading-none text-[#a9bccf]";
 
 const defaultLabels: ProjectCardLabels = {
   caseStudy: "Case Study",
@@ -109,7 +109,7 @@ export function ProjectCard({
           <div className="min-w-0">
             <h3
               className={cn(
-                "project-card-title font-mono font-bold text-white",
+                "project-card-title font-heading font-extrabold text-white",
                 compact ? "text-lg" : "text-xl",
               )}
             >
@@ -119,7 +119,7 @@ export function ProjectCard({
               {project.summary}
             </p>
           </div>
-          <span className={cn(tagClassName, "max-w-26 shrink-0")}>
+          <span className="project-card-category" data-glow={project.accent}>
             {project.category}
           </span>
         </div>
@@ -129,11 +129,16 @@ export function ProjectCard({
         )}
 
         <div className="flex flex-wrap gap-2">
-          {project.tech.map((tag) => (
+          {(compact ? project.tech.slice(0, 3) : project.tech).map((tag) => (
             <span className={tagClassName} key={tag} title={tag}>
               {tag}
             </span>
           ))}
+          {compact && project.tech.length > 3 ? (
+            <span className={tagClassName} title={project.tech.slice(3).join(", ")}>
+              +{project.tech.length - 3}
+            </span>
+          ) : null}
         </div>
 
         {shouldShowLinks ? (
@@ -143,7 +148,7 @@ export function ProjectCard({
                 accent={project.accent}
                 className={
                   compact
-                    ? "min-h-9 min-w-0 flex-1 px-3 py-1.5 text-[11px] sm:flex-none"
+                    ? "min-h-9 min-w-0 flex-1 px-3 py-1.5 text-xs sm:flex-none"
                     : undefined
                 }
                 href={project.detailsUrl}
@@ -159,7 +164,7 @@ export function ProjectCard({
                   accent={link.accent}
                   className={
                     compact
-                      ? "min-h-9 min-w-0 flex-1 px-3 py-1.5 text-[11px] sm:flex-none"
+                      ? "min-h-9 min-w-0 flex-1 px-3 py-1.5 text-xs sm:flex-none"
                       : undefined
                   }
                   external={link.external}

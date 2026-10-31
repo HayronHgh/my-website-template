@@ -80,9 +80,10 @@ export function Timeline({
             <div>
               <h3
                 className={cn(
-                  "font-mono font-extrabold text-white",
-                  compact ? "truncate text-xs font-semibold leading-5 text-[#d7deef]" : "text-sm leading-6 sm:text-base",
+                  "font-heading font-extrabold text-white",
+                  compact ? "truncate text-[13px] font-bold leading-5 text-[#d7deef]" : "text-sm leading-6 sm:text-base",
                 )}
+                title={compact ? item.title : undefined}
               >
                 {item.title}
               </h3>

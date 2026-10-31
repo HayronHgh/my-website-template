@@ -36,5 +36,5 @@ export const ui = {
   metadataBadge:
     "inline-flex items-center rounded-[3px] border border-[#315467] bg-[#111c2f] px-3 py-1.5 font-mono font-bold text-[#d7e9ee]",
   tinyTag:
-    "rounded-[3px] border border-[#315467] bg-[#111c2f] px-2 py-1 font-mono text-[11px] font-bold text-[#b9dfe3]",
+    "rounded-[3px] border border-[#315467] bg-[#111c2f] px-2 py-1 font-mono text-xs font-bold text-[#b9dfe3]",
 } as const;

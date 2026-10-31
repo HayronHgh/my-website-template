@@ -64,7 +64,7 @@ export default async function ProjectsPage() {
               key={stat.label}
             >
               <p className="font-mono text-2xl font-black text-[#8ed2d8]">{stat.value}</p>
-              <p className="mt-1 font-mono text-[11px] text-[#9fb0d8]">{stat.label}</p>
+              <p className="mt-1 font-mono text-xs text-[#9fb0d8]">{stat.label}</p>
             </div>
           ))}
         </div>

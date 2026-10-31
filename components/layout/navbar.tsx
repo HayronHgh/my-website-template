@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 import { Container } from "@/components/ui/container";
@@ -21,7 +20,7 @@ type NavbarProps = {
 const navItemBase =
   "inline-flex h-10 max-w-[8.5rem] items-center gap-2 rounded-[4px] border px-4 font-mono text-sm font-bold leading-none tracking-wide transition duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200";
 const navItemInactive =
-  "border-[#26344d] bg-[#101827]/90 text-slate-200 shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-[#6ea8b0] hover:bg-[#151e2f] hover:text-cyan-100 hover:shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.055),0_0_12px_rgba(34,211,238,0.08)]";
+  "border-[#26344d] bg-[#0b1220] text-slate-200 shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-[#6ea8b0] hover:bg-[#151e2f] hover:text-cyan-100 hover:shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.055),0_0_12px_rgba(34,211,238,0.08)]";
 const navItemActive =
   "border-[#6ea8b0] bg-[#151e2f] text-cyan-100 shadow-[inset_0_-2px_0_#050914,inset_0_1px_0_rgba(255,255,255,0.06),0_0_14px_rgba(34,211,238,0.1)]";
 
@@ -37,28 +36,16 @@ function isActivePath(pathname: string, item: NavigationItem) {
 
 export function Navbar({ brandName, navigationItems, role, routeImageMap }: NavbarProps) {
   const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
-
-  // Over the hero art the bar stays clear; once content scrolls under it, it turns solid.
-  useEffect(() => {
-    const update = () => setScrolled(window.scrollY > 24);
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
-  }, []);
 
   if (pathname.startsWith("/admin")) {
     return null;
   }
 
   return (
-    <header
-      className="site-header fixed top-0 z-50 w-full bg-linear-to-b from-[#050714]/72 via-[#050714]/38 to-transparent"
-      data-scrolled={scrolled || undefined}
-    >
+    <header className="site-header pointer-events-none fixed top-0 z-50 w-full">
       <Container className="flex h-[72px] items-center justify-between gap-4 py-2">
         <Link
-          className="group flex min-w-0 max-w-52 flex-col rounded-[4px] px-2 py-1 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
+          className="site-brand group pointer-events-auto flex min-w-0 max-w-52 flex-col rounded-[4px] px-2 py-1 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
           href="/"
         >
           <span className="truncate font-mono text-lg font-black tracking-wide text-white transition group-hover:text-cyan-100">
@@ -67,7 +54,7 @@ export function Navbar({ brandName, navigationItems, role, routeImageMap }: Navb
           <span className="truncate font-mono text-xs text-[#b7c2e0]">{role}</span>
         </Link>
 
-        <nav className="public-nav ml-auto hidden items-center gap-2 px-1.5 py-1.5 xl:flex">
+        <nav className="public-nav pointer-events-auto ml-auto hidden items-center gap-2 px-1.5 py-1.5 xl:flex">
           {navigationItems.map((item) => {
             const active = isActivePath(pathname, item);
 
@@ -91,7 +78,7 @@ export function Navbar({ brandName, navigationItems, role, routeImageMap }: Navb
           })}
         </nav>
 
-        <div className="xl:hidden">
+        <div className="pointer-events-auto xl:hidden">
           <MobileMenu
             navigationItems={navigationItems}
             pathname={pathname}

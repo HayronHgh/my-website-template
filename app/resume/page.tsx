@@ -99,7 +99,7 @@ export default async function ResumePage() {
                 <p className="truncate font-mono text-base font-black text-[#8ed2d8]">
                   {resolveProfileToken(item.value, siteProfile)}
                 </p>
-                <p className="mt-0.5 font-mono text-[11px] text-[#8fa0bf]">{item.label}</p>
+                <p className="mt-0.5 font-mono text-xs text-[#8fa0bf]">{item.label}</p>
               </div>
             </div>
           ))}
@@ -121,7 +121,7 @@ export default async function ResumePage() {
                 >
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                      <h3 className="font-mono text-lg font-bold leading-7 text-white">
+                      <h3 className="font-heading text-lg font-extrabold leading-7 text-white">
                         {item.title}
                       </h3>
                       <p className="mt-1 text-sm text-[#9fb0d8]">

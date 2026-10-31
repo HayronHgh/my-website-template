@@ -3,7 +3,7 @@
   margin: 1.8rem 0;
   min-width: 0;
   padding: clamp(1rem, 3vw, 1.6rem);
-  border: 1px solid #315467;
+  border: 1px solid var(--border-strong);
   border-top: 3px solid #67e8f9;
   border-radius: 3px;
   background: #070d19;
@@ -100,7 +100,7 @@
 .prose-content .chart-error > p { font-size: 0.875rem; }
 .prose-content .chart-error pre { max-height: 15rem; overflow: auto; }
 .chart-insert-control { display: flex; align-items: center; gap: 0.4rem; }
-.chart-insert-control select { max-width: 6.5rem; border: 1px solid #315467; border-radius: 3px; background: #0b1220; color: #cfe6f5; padding: 0.45rem; font-size: 0.8rem; }
+.chart-insert-control select { max-width: 6.5rem; border: 1px solid var(--border-strong); border-radius: 3px; background: var(--surface); color: #cfe6f5; padding: 0.45rem; font-size: 0.8rem; }
 .chart-insert-control select:focus-visible { outline: 2px solid #67e8f9; outline-offset: 2px; }
 @media (max-width: 600px) {
   .prose-content .chart-pie-layout { grid-template-columns: minmax(0, 1fr); }

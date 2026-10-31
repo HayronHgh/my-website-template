@@ -6,7 +6,7 @@
 .writing-upload {
   display: inline-flex;
   align-items: center;
-  border: 1px solid #315467;
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
   padding: 0.5rem;
   font-size: 0.8rem;
@@ -35,7 +35,7 @@
 .reading-prose h2 {
   margin-top: 3rem;
   padding-top: 1.25rem;
-  border-top: 1px solid #26344d;
+  border-top: 1px solid var(--border);
 }
 .reading-prose h3 {
   margin-top: 2rem;
@@ -48,10 +48,10 @@
   margin-block: 1.75rem;
   max-width: 100%;
   min-width: 0;
-  border: 1px solid #26344d;
+  border: 1px solid var(--border);
   border-radius: 6px;
   overflow: hidden;
-  background: #0b1220;
+  background: var(--surface);
 }
 .reading-embed-toolbar,
 .reading-view-controls {
@@ -60,12 +60,12 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: #101827;
+  background: var(--surface-raised);
   font-size: 0.8rem;
 }
 .reading-embed-toolbar > span {
   margin-right: auto;
-  color: #9fb4c9;
+  color: var(--text-dim);
 }
 .reading-embed-toolbar button,
 .reading-expand,
@@ -75,9 +75,9 @@
   padding: 0.5rem 0.75rem;
   color: #b9dfe3;
   cursor: pointer;
-  border: 1px solid #315467;
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
-  background: #0b1220;
+  background: var(--surface);
 }
 .reading-expand {
   margin: 0.5rem;
@@ -101,9 +101,9 @@
   max-width: 96vw;
   margin: auto;
   padding: 0;
-  border: 1px solid #315467;
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
-  background: #0b1220;
+  background: var(--surface);
   color: #e4edf9;
 }
 .reading-dialog[open] {
@@ -118,7 +118,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.6rem 1rem;
-  border-bottom: 1px solid #26344d;
+  border-bottom: 1px solid var(--border);
 }
 .reading-view-scroll {
   overflow: auto;
@@ -148,7 +148,7 @@
   position: sticky;
   left: 0;
   z-index: 1;
-  background: #101827;
+  background: var(--surface-raised);
 }
 .reading-view-canvas .diagram-viewport {
   overflow: visible;
@@ -200,8 +200,8 @@
   min-height: 44px;
   padding: 0.5rem;
   max-width: 180px;
-  border: 1px solid #315467;
-  background: #0b1220;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
 }
 @media (max-width: 640px) {
   .reading-prose .code-block:not(.reading-code-nowrap) .code-block-pre code {
@@ -258,9 +258,9 @@
 .writing-workspace button,
 .writing-top a {
   min-height: 40px;
-  border: 1px solid #315467;
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
-  background: #101827;
+  background: var(--surface-raised);
   padding: 0.45rem 0.75rem;
   color: #b9dfe3;
   cursor: pointer;
@@ -270,14 +270,14 @@
   cursor: default;
 }
 .writing-workspace :focus-visible {
-  outline: 2px solid #8ed2d8;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 .writing-workspace :is(input, textarea, select) {
-  border: 1px solid #26344d;
+  border: 1px solid var(--border);
   border-radius: 4px;
   padding: 0.65rem;
-  background: #0b1220;
+  background: var(--surface);
   color: #e4edf9;
   width: 100%;
 }
@@ -298,11 +298,11 @@
 }
 .writing-top [role="status"] {
   font-size: 0.8rem;
-  color: #9fb4c9;
+  color: var(--text-dim);
 }
 .writing-top small {
   font-weight: 400;
-  color: #9fb4c9;
+  color: var(--text-dim);
   margin-left: 0.5rem;
 }
 .writing-layout {
@@ -330,7 +330,7 @@
 .writing-list h2,
 .writing-outline h2 {
   margin-top: 1rem;
-  color: #9fb4c9;
+  color: var(--text-dim);
 }
 .writing-list small {
   display: block;
@@ -339,12 +339,12 @@
   margin-top: 0.35rem;
 }
 .writing-list [aria-current] {
-  border-color: #8ed2d8;
+  border-color: var(--accent);
   background: #142536;
 }
 .writing-document {
-  background: #0b1220;
-  border: 1px solid #26344d;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 1.5rem;
   min-width: 0;
@@ -360,9 +360,9 @@
   position: sticky;
   top: 85px;
   z-index: 20;
-  background: #0b1220;
+  background: var(--surface);
   padding: 0.5rem 0;
-  border-bottom: 1px solid #26344d;
+  border-bottom: 1px solid var(--border);
 }
 .document-prose {
   max-width: 72ch;
@@ -391,7 +391,7 @@
   overflow: hidden;
 }
 .writing-upload:focus-within {
-  outline: 2px solid #8ed2d8;
+  outline: 2px solid var(--accent);
 }
 .document-prose :is(h1, h2, h3) {
   font-size: 1.7em;
@@ -407,12 +407,12 @@
   list-style: revert;
 }
 .document-prose blockquote {
-  border-left: 3px solid #8ed2d8;
+  border-left: 3px solid var(--accent);
   padding-left: 1rem;
   color: #b8c8d6;
 }
 .document-prose a {
-  color: #8ed2d8;
+  color: var(--accent);
   text-decoration: underline;
 }
 .document-prose pre,
@@ -431,7 +431,7 @@
 }
 .document-prose td,
 .document-prose th {
-  border: 1px solid #315467;
+  border: 1px solid var(--border-strong);
   padding: 0.5rem;
   min-width: 80px;
   position: relative;
@@ -458,14 +458,14 @@
 }
 .composer-toolbar {
   padding: 0.5rem 0;
-  border-bottom: 1px solid #26344d;
+  border-bottom: 1px solid var(--border);
 }
 .composer-toolbar button {
   font-size: 0.8rem;
 }
 .composer-raw {
   margin: 1.5rem 0;
-  border: 1px solid #315467;
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
   padding: 0.75rem;
 }
@@ -478,9 +478,9 @@
   margin: 0.5rem 0 0;
 }
 .composer-menu {
-  border: 1px solid #8ed2d8;
+  border: 1px solid var(--accent);
   padding: 1rem;
-  background: #101827;
+  background: var(--surface-raised);
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -490,18 +490,18 @@
 }
 .composer-menu small {
   width: 100%;
-  color: #9fb4c9;
+  color: var(--text-dim);
 }
 .composer-order > div {
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.5rem;
-  border: 1px solid #315467;
+  border: 1px solid var(--border-strong);
   cursor: grab;
 }
 .writing-settings {
-  border-top: 1px solid #26344d;
+  border-top: 1px solid var(--border);
   padding-top: 1rem;
   margin-top: 2rem;
 }
@@ -568,7 +568,7 @@
   min-height: 40dvh;
   padding: 3rem 1rem;
   line-height: 2;
-  color: #9fb4c9;
+  color: var(--text-dim);
 }
 @media (max-width: 1100px) {
   .writing-layout {

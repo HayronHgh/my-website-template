@@ -34,7 +34,7 @@ export function BlogSeriesFilter({
           <span className="truncate">Series</span>
         </div>
         <button
-          className="rounded-[3px] border border-[#315467] bg-[#111c2f] px-2 py-1 font-mono text-[11px] font-bold text-[#b9dfe3] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] disabled:cursor-not-allowed disabled:opacity-45"
+          className="rounded-[3px] border border-[#315467] bg-[#111c2f] px-2 py-1 font-mono text-xs font-bold text-[#b9dfe3] transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] disabled:cursor-not-allowed disabled:opacity-45"
           disabled={!activeSeriesSlug}
           onClick={onToggleSortOrder}
           type="button"
@@ -60,7 +60,7 @@ export function BlogSeriesFilter({
               type="button"
             >
               <span className="truncate text-xs font-bold">{seriesOption.title}</span>
-              <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-[3px] border border-[#26344d] bg-[#0b1220] px-1.5 text-[11px] text-slate-300">
+              <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-[3px] border border-[#26344d] bg-[#0b1220] px-1.5 text-xs text-slate-300">
                 {seriesOption.count}
               </span>
             </button>
@@ -70,7 +70,7 @@ export function BlogSeriesFilter({
 
       {activeSeriesSlug ? (
         <button
-          className="font-mono text-[11px] font-bold text-[#8ed2d8] transition hover:text-cyan-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
+          className="font-mono text-xs font-bold text-[#8ed2d8] transition hover:text-cyan-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
           onClick={onClearSeries}
           type="button"
         >

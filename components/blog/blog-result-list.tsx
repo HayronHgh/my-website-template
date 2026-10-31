@@ -52,7 +52,7 @@ export function BlogResultList({
                     <PixelIcon className="h-3.5 w-3.5" name="clock" />
                     <time dateTime={post.date}>{formatDate(post.date)}</time>
                   </div>
-                  <h3 className="clamp-2 mt-3 font-mono text-lg font-bold leading-7 text-white">
+                  <h3 className="clamp-2 mt-3 font-heading text-lg font-extrabold leading-7 text-white">
                     {post.title}
                   </h3>
                   <p className="clamp-2 mt-2 text-sm leading-6 text-[#c7d2ee]">
