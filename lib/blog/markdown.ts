@@ -11,6 +11,7 @@ import { getVersionedBlogAssetUrl } from "@/lib/blog/assets";
 import { sanitizeMarkdownUrl } from "@/lib/content/url-policy";
 import { renderChartBlocks } from "@/lib/content/chart-renderer";
 import { headingAnchors } from "@/lib/content/outline";
+import { getResponsiveImageProperties } from "@/lib/content/responsive-images";
 
 type MarkdownNode = {
   children?: unknown;
@@ -530,6 +531,21 @@ const enhanceSizedImages = () => (tree: unknown) => {
   transform(tree as MarkdownNode);
 };
 
+const enhanceContentImages = () => (tree: unknown) => {
+  visitMarkdownNodes(tree, (node) => {
+    if (node.type !== "element" || node.tagName !== "img") return;
+    const properties = node.properties ?? {};
+    properties.loading = "lazy";
+    properties.decoding = "async";
+    const responsive = getResponsiveImageProperties(properties.src, properties.title);
+    if (responsive) {
+      Object.assign(properties, responsive);
+      delete properties.title;
+    }
+    node.properties = properties;
+  });
+};
+
 function getSingleLinkUrl(node: MarkdownNode) {
   if (!Array.isArray(node.children)) {
     return null;
@@ -642,6 +658,7 @@ export async function markdownToHtml(
     .use(headingAnchors)
     .use(renderChartBlocks)
     .use(renderMermaidBlocks)
+    .use(enhanceContentImages)
     .use(enhanceSizedImages)
     .use(embedStandaloneYouTubeLinks)
     .use(embedStandaloneMp4Links(resolveAssetUrl))

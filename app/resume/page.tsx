@@ -46,8 +46,8 @@ export default async function ResumePage() {
   const {
     pageImages,
     siteProfile,
-    skillItems,
   } = siteSettings;
+  const skillItems = resume?.skillItems ?? siteSettings.skillItems;
   const { resumeExperience, resumeSections, resumeSummary } = resume ?? siteSettings;
   const pageCopy = siteSettings.pages.resume;
   const resumeProjectHighlights = projects.filter((project) => resume ? resume.projectSlugs.includes(project.slug) : project.group === "featured");
