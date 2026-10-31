@@ -8,7 +8,7 @@ export function ProblemList({ result }: { result: ProblemPage }) {
   const { category, items, page, pageCount } = result;
   const firstPage = Math.max(1, Math.min(page - 2, pageCount - 4));
   const pages = Array.from({ length: Math.min(5, pageCount) }, (_, index) => firstPage + index);
-  const control = "inline-flex min-h-10 min-w-10 items-center justify-center rounded border border-[#30445f] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300";
+  const control = "inline-flex min-h-10 min-w-10 items-center justify-center border-2 border-[#30445f] bg-[#0e1828] font-mono font-bold hover:border-[#6ea8b0] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300";
 
   return <div className="content-panel">
     <nav className="workspace-actions" aria-label="內容分類">

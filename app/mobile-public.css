@@ -59,8 +59,6 @@
   .article-preview-card h3 { font-size: 1.125rem; line-height: 1.6; margin-top: 1rem; }
   .article-preview-card p { font-size: .9375rem; line-height: 1.8; }
   .article-preview-card a:last-child { margin-top: 1rem; min-height: 44px; }
-  .article-reader { padding: 1rem; }
-  .article-reader header :is(h1,h2) { font-size: 1.6rem; line-height: 1.5; overflow-wrap: anywhere; }
   .site-container .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
   .site-container .prose-content { font-size: 1rem; line-height: 1.9; overflow-wrap: anywhere; min-width: 0; }
   .site-container .prose-content h1 { font-size: 1.7rem; line-height: 1.5; }

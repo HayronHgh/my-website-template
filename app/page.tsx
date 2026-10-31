@@ -44,6 +44,11 @@ export default async function Home() {
           href: getBlogArticlePath(article.slug),
         })) }}
         practiceStats={{
+          difficulty: {
+            easy: problems.filter((problem) => problem.problem?.difficulty === "Easy").length,
+            medium: problems.filter((problem) => problem.problem?.difficulty === "Medium").length,
+            hard: problems.filter((problem) => problem.problem?.difficulty === "Hard").length,
+          },
           notes: problems.filter((problem) => problem.problem?.entryType === "note").length,
           published: problems.length,
           solved: problems.filter((problem) => problem.problem?.status === "Solved").length,

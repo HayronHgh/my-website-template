@@ -24,6 +24,7 @@ export function ReadingRuler({ headings }: {
 }) {
     const pathname = usePathname();
     const [position, setPosition] = useState({ progress: 0, current: "" });
+    const [marks, setMarks] = useState<number[]>([]);
     const [dragging, setDragging] = useState(false);
     const [open, setOpen] = useState(false);
     const root = useRef<HTMLDivElement>(null);
@@ -70,6 +71,12 @@ export function ReadingRuler({ headings }: {
             const start = Math.max(0, rect.top + window.scrollY - 112);
             const end = Math.max(start, Math.min(document.documentElement.scrollHeight - innerHeight, rect.bottom + window.scrollY - innerHeight + 80));
             bounds.current = { start, end };
+            // Chapter marks sit where each heading lands on the progress track.
+            const nextMarks = headings.map(h => {
+                const element = document.getElementById(h.id);
+                return element ? readingProgress(element.getBoundingClientRect().top + window.scrollY - 112, start, end) : 0;
+            });
+            setMarks(old => old.length === nextMarks.length && old.every((mark, i) => Math.abs(mark - nextMarks[i]) < 0.001) ? old : nextMarks);
             const visible = headings.filter(h => (document.getElementById(h.id)?.getBoundingClientRect().top ?? Infinity) <= 160);
             const current = gesture.current?.active ? headings[gesture.current.index]?.id ?? "" : visible.at(-1)?.id ?? headings[0]?.id ?? "";
             setPosition({ progress: readingProgress(window.scrollY, start, end), current });
@@ -189,9 +196,10 @@ export function ReadingRuler({ headings }: {
     const chapterIndex = Math.max(0, headings.findIndex(h => h.id === position.current));
     return <div ref={root} className="reading-ruler" data-active={dragging || open || undefined} data-scrubbing={dragging || undefined}>
     {dragging && createPortal(<div className="reading-scrub-overlay" aria-hidden="true"><div className="reading-scrub-shade" /><div className="reading-scrub-guide"><div className="reading-scrub-meta"><span>章節導覽</span><span>{String(chapterIndex + 1).padStart(2, "0")} / {String(headings.length).padStart(2, "0")}</span></div><p className="reading-scrub-neighbor">{headings[chapterIndex - 1]?.title ?? "文章開始"}</p><div className="reading-scrub-current"><span className="reading-scrub-marker" /><h2 key={chapter?.id}>{chapter?.title ?? "閱讀進度"}</h2></div><p className="reading-scrub-neighbor reading-scrub-next">{headings[chapterIndex + 1]?.title ?? "文章結尾"}</p><div className="reading-scrub-footer"><span>每格一個章節 · 放開定位</span><strong>{percent}<small>%</small></strong></div><div className="reading-scrub-progress"><i style={{ width: `${percent}%` }} /></div></div></div>, document.body)}
+    {createPortal(<span className="reading-progress-line" aria-hidden="true" style={{ width: `${percent}%` }}/>, document.body)}
     <p id="reading-ruler-help" className="sr-only">按住上下拖曳，每格切換一個章節，放開定位。方向鍵切換章節，Home 與 End 跳至文章兩端；手機長按放大章節導覽，桌面輕點開啟目錄。</p>
     {dragging && <output className="reading-ruler-hint">{chapter?.title ?? "閱讀進度"}<span>{percent}%</span></output>}
-    <button ref={menuButton} type="button" className="reading-ruler-menu" aria-label="開啟章節目錄" aria-expanded={open} aria-controls="reading-ruler-chapters" onClick={() => { stop(); setOpen(!open); }}><span aria-hidden="true">≡</span></button>
+    <button ref={menuButton} type="button" className="reading-ruler-menu" aria-label="開啟章節目錄" aria-expanded={open} aria-controls="reading-ruler-chapters" onClick={() => { stop(); setOpen(!open); }}><svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M0 1h3v3H0zM5 2h9v1H5zM0 6h3v3H0zM5 7h9v1H5zM0 11h3v3H0zM5 12h9v1H5z"/></svg></button>
     <div ref={track} className="reading-ruler-track" role="slider" tabIndex={0} aria-label="文章閱讀進度" aria-describedby="reading-ruler-help" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-valuetext={`${percent}%，${chapter?.title ?? ""}`} aria-orientation="vertical" onPointerDown={down} onPointerMove={drag} onPointerUp={event => up(event)} onPointerCancel={event => up(event, true)} onLostPointerCapture={() => { if (gesture.current)
         stop(); }} onContextMenu={event => event.preventDefault()} onKeyDown={event => {
             const deltas: Record<string, number> = { ArrowDown: 80, ArrowUp: -80, PageDown: innerHeight * 0.75, PageUp: -innerHeight * 0.75 };
@@ -216,9 +224,9 @@ export function ReadingRuler({ headings }: {
                 setOpen(false);
             }
         }}>
-      <div className="reading-ruler-window" aria-hidden="true"><div className="reading-ruler-scale" style={{ transform: `translateY(calc(var(--reading-ruler-step) * ${-100 - chapterIndex * 4}))` }}>{Array.from({ length: Math.max(301, 201 + headings.length * 4) }, (_, index) => <i key={index} data-major={index % 4 === 0 || undefined} data-chapter={index >= 100 && index < 100 + headings.length * 4 && index % 4 === 0 || undefined}>{index >= 100 && index < 100 + headings.length * 4 && index % 4 === 0 && <b>{String((index - 100) / 4 + 1).padStart(2, "0")}</b>}</i>)}</div><span className="reading-ruler-needle"/></div>
+      <div className="reading-ruler-window" aria-hidden="true"><span className="reading-ruler-fill" style={{ height: `${percent}%` }}/>{marks.map((mark, index) => <i key={headings[index]?.id ?? index} className="reading-ruler-mark" data-depth={headings[index]?.depth} data-current={index === chapterIndex || undefined} data-read={mark <= position.progress || undefined} style={{ top: `${mark * 100}%` }}><b>{String(index + 1).padStart(2, "0")}</b></i>)}<span className="reading-ruler-needle" style={{ top: `${percent}%` }}/></div>
     </div>
-    <span className="reading-ruler-percent" aria-hidden="true">{percent}</span>
+    <span className="reading-ruler-percent" aria-hidden="true">{percent}<small>%</small></span>
     {open && <nav id="reading-ruler-chapters" className="reading-ruler-chapters" aria-label="文章章節"><header><strong>章節目錄</strong><button type="button" aria-label="關閉章節目錄" onClick={() => { setOpen(false); menuButton.current?.focus({ preventScroll: true }); }}>×</button></header><ol>{headings.map((heading, index) => <li key={heading.id} data-depth={heading.depth}><a ref={index === 0 ? firstLink : undefined} href={`#${heading.id}`} aria-current={position.current === heading.id ? "location" : undefined} onClick={() => { setOpen(false); requestAnimationFrame(() => { const target = document.getElementById(heading.id); if (target) {
         target.tabIndex = -1;
         target.focus({ preventScroll: true });

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 import { Container } from "@/components/ui/container";
@@ -36,13 +37,25 @@ function isActivePath(pathname: string, item: NavigationItem) {
 
 export function Navbar({ brandName, navigationItems, role, routeImageMap }: NavbarProps) {
   const pathname = usePathname();
+  const [scrolled, setScrolled] = useState(false);
+
+  // Over the hero art the bar stays clear; once content scrolls under it, it turns solid.
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 24);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
 
   if (pathname.startsWith("/admin")) {
     return null;
   }
 
   return (
-    <header className="site-header fixed top-0 z-50 w-full bg-linear-to-b from-[#050714]/72 via-[#050714]/38 to-transparent">
+    <header
+      className="site-header fixed top-0 z-50 w-full bg-linear-to-b from-[#050714]/72 via-[#050714]/38 to-transparent"
+      data-scrolled={scrolled || undefined}
+    >
       <Container className="flex h-[72px] items-center justify-between gap-4 py-2">
         <Link
           className="group flex min-w-0 max-w-52 flex-col rounded-[4px] px-2 py-1 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-cyan-200"

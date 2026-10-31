@@ -1,14 +1,10 @@
 "use client";
 
 import { BackControl } from "@/components/ui/back-control";
-import Image from "next/image";
-import Link from "next/link";
+import { ArticleHeader } from "@/components/blog/article-header";
 import { MarkdownCopyButtons } from "@/components/blog/markdown-copy-buttons";
 import { PixelCard } from "@/components/ui/pixel-card";
-import { PixelIcon } from "@/components/ui/pixel-icon";
-import { ui } from "@/components/ui/pixel-theme";
 import { getRelatedProjectsForPost } from "@/lib/projects/relations";
-import { formatDate } from "@/lib/utils";
 import type { ProjectItem } from "@/data/site";
 import type { SiteSettings } from "@/lib/site/settings";
 import type { BlogPost } from "@/types/blog";
@@ -43,72 +39,15 @@ export function BlogReader({
   const relatedProjects = getRelatedProjectsForPost(post, projects, 3);
 
   return (
-    <PixelCard accent="purple" as="article" className="article-reader space-y-5">
-      <BackControl onClick={onBack} />
-
-      <header className="space-y-5">
-        <div className="flex flex-wrap gap-2">
-          {post.tags.map((tag) => (
-            <button
-              className={`${ui.tinyTag} inline-flex max-w-full items-center gap-1.5 leading-none transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50`}
-              key={tag}
-              onClick={() => onSelectTag(tag)}
-              type="button"
-            >
-              <span aria-hidden className="shrink-0 text-[#8ed2d8]">#</span>
-              <span className="truncate">{tag}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="space-y-4">
-          {post.series ? (
-            <p className="font-mono text-sm font-semibold uppercase text-violet-200">
-              {post.series.title}
-            </p>
-          ) : null}
-          <p className="inline-flex items-center gap-2 font-mono text-sm font-semibold uppercase text-cyan-200">
-            <PixelIcon className="h-4 w-4" name="clock" />
-            <time dateTime={post.date}>{formatDate(post.date)}</time>
-          </p>
-          <h2 className="font-mono text-3xl font-black leading-[1.15] text-white sm:text-5xl">
-            {post.title}
-          </h2>
-          <p className="text-base leading-8 text-[#c7d2ee] sm:text-lg">{post.summary}</p>
-        </div>
-
-        {post.coverImage ? (
-          <Image
-            alt=""
-            className="max-h-[28rem] w-full rounded-[5px] border border-[#26344d] object-cover"
-            height={675}
-            loading="lazy"
-            quality={75}
-            sizes="(max-width: 1280px) calc(100vw - 2rem), 860px"
-            src={post.coverImage}
-            width={1200}
-          />
-        ) : null}
-
-        {relatedProjects.length ? (
-          <div className="grid gap-2 sm:grid-cols-3">
-            {relatedProjects.map((project) => (
-              <Link
-                className="rounded-[4px] border border-[#26344d] bg-[#101827] p-3 transition duration-200 hover:border-[#6ea8b0] hover:bg-[#151e2f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
-                href={project.detailsUrl}
-                key={project.slug}
-              >
-                <p className="font-mono text-[11px] font-bold uppercase text-[#8ed2d8]">
-                  {copy.relatedProjectLabel}
-                </p>
-                <p className="clamp-2 mt-1 font-mono text-sm font-bold leading-6 text-white">
-                  {project.title}
-                </p>
-              </Link>
-            ))}
-          </div>
-        ) : null}
-      </header>
+    <PixelCard accent="purple" as="article" className="article-reader">
+      <ArticleHeader
+        back={<BackControl onClick={onBack} />}
+        headingLevel="h2"
+        onSelectTag={onSelectTag}
+        post={post}
+        relatedProjectLabel={copy.relatedProjectLabel}
+        relatedProjects={relatedProjects}
+      />
 
       <div className="prose-content" dangerouslySetInnerHTML={{ __html: post.html }} />
       <MarkdownCopyButtons />

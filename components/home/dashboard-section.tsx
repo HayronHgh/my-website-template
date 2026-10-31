@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FocusPanel } from "@/components/home/focus-panel";
+import { PracticePanel, type PracticeStats } from "@/components/home/practice-panel";
 import { BlogCard } from "@/components/blog/blog-card";
 import { ProjectCard } from "@/components/projects/project-card";
 import { Container } from "@/components/ui/container";
@@ -7,12 +8,6 @@ import { PixelCard } from "@/components/ui/pixel-card";
 import { Timeline } from "@/components/ui/timeline";
 import type { ProjectItem } from "@/data/site";
 import type { SiteSettings } from "@/lib/site/settings";
-
-type PracticeStats = {
-  notes: number;
-  published: number;
-  solved: number;
-};
 
 type DashboardSectionProps = {
   copy: SiteSettings["pages"]["home"]["dashboard"];
@@ -133,42 +128,7 @@ export function DashboardSection({
             </div>
           </PixelCard>
 
-          <PixelCard accent="amber" as="section" className="flex h-full flex-col">
-            <p className="pixel-section-kicker text-amber-100">
-              <span className="pixel-section-icon pixel-section-icon-skills" aria-hidden />
-              Algorithm Practice
-            </p>
-            <p className="mt-3 text-sm leading-6 text-[#b7c2d8]">
-              記錄解題思路、複雜度分析與複習筆記。
-            </p>
-
-            <dl className="mt-4 grid grid-cols-3 gap-2">
-              {[
-                ["Published", practiceStats.published],
-                ["Solved", practiceStats.solved],
-                ["Notes", practiceStats.notes],
-              ].map(([label, value]) => (
-                <div
-                  className="flex flex-col rounded-[4px] border border-amber-200/15 bg-[#101827] px-2 py-3 text-center"
-                  key={label}
-                >
-                  <dt className="order-2 mt-1 font-mono text-[9px] uppercase tracking-wide text-[#9fb0d8]">
-                    {label}
-                  </dt>
-                  <dd className="order-1 font-mono text-lg font-black text-amber-100">
-                    {value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-
-            <Link
-              className={`${sectionLinkClassName} mt-auto block w-fit self-end pt-4`}
-              href="/leetcode"
-            >
-              Browse practice notes -&gt;
-            </Link>
-          </PixelCard>
+          <PracticePanel stats={practiceStats} />
         </div>
       </Container>
     </section>
