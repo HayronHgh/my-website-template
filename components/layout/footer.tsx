@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import type { ContactLink, NavigationItem, SiteProfile } from "@/data/site";
@@ -13,12 +12,7 @@ type FooterProps = {
 };
 
 export function Footer({ contactLinks, navigationItems, siteProfile }: FooterProps) {
-  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
-
-  if (pathname.startsWith("/admin")) {
-    return null;
-  }
 
   return (
     <footer className="site-footer">

@@ -1,12 +1,21 @@
 # PortfolioKit
 
-A sanitized, file-driven developer portfolio template built with Next.js, TypeScript, Tailwind CSS, runtime Markdown, a protected multi-workspace Admin CMS, and a pixel-night terminal interface.
+A sanitized, file-driven developer portfolio template built with Next.js, TypeScript, Tailwind CSS, runtime Markdown, and a pixel-night terminal interface. It is a lightweight deployment: there is no admin console, login, or database.
 
-The goal is to let personal site settings, page images, project cards, project detail pages, and blog posts update from files without rebuilding the app. The built-in authenticated Admin console can create, edit, preview, publish, and recoverably archive Blog posts; site settings and projects remain file-managed. This is useful when the same Docker image keeps running while `content/` is mounted from a persistent volume or updated by a Git sync job.
+The goal is to let personal site settings, page images, project cards, project detail pages, articles, research notes, and LeetCode records update from files without rebuilding the app. The running app only reads `content/`; every content change is made by editing the Markdown or JSON files in `content/` directly. The same Docker image keeps running while `content/` is mounted from the host.
+
+## How Changes Ship
+
+| Change | How | Rebuild? |
+| --- | --- | --- |
+| Content: articles, research, LeetCode, projects, resume, site settings, images | Edit the files in the mounted `content/` directory on the server | No; picked up on the next request |
+| Code, styles, dependencies | Commit and push to `main` → GitHub Actions CI → signed webhook auto-deploys the server ([ops/macmini](ops/macmini/README.md)) | Yes, automatically |
+
+There is no in-browser editor. `/admin` and `/api/admin` do not exist and return 404.
 
 ## Live Example
 
-[Hayron's engineering portfolio](https://www.hayronhgh.com/) is a production deployment of PortfolioKit. It demonstrates the homepage engineering dashboard, project case studies, long-form articles, integrated algorithm practice, responsive mobile layouts, and the protected file-backed Admin workflow running with Docker.
+[Hayron's engineering portfolio](https://www.hayronhgh.com/) is a production deployment of PortfolioKit. It demonstrates the homepage engineering dashboard, project case studies, long-form articles, integrated algorithm practice, and responsive mobile layouts, served from Docker with file-mounted content.
 
 The live site uses private runtime content and branding. This repository keeps sanitized starter content so the template can be reused without publishing deployment data.
 
@@ -21,8 +30,6 @@ app/
   blog/[...slug]/page.tsx      Direct article route
   leetcode/page.tsx            Algorithm practice index
   research/                    Ranked research index and detail pages
-  admin/                       Protected editorial console and login
-  api/admin/                   Auth, session, article, and preview APIs
 
 content/
   site/
@@ -42,7 +49,7 @@ content/
       experiment.mjs           Trusted JavaScript experiment (optional)
 
 lib/
-  admin/                       JWT, RBAC, request policy, and article writes
+  content/article-reader.ts    Read-only loader for research and LeetCode trees
   projects/meta.ts             Runtime project metadata loader
   projects/details.ts          Project markdown loader
   projects/relations.ts        Blog/project relation matching
@@ -81,10 +88,7 @@ Project-to-blog relations work in two ways:
 - Explicit: blog `relatedProjects` points to a project slug.
 - Tag-based: project `relatedTags` overlaps with blog `tags`.
 
-The protected Admin workspace manages Articles, Research, LeetCode records, Projects, and Resume data while keeping each domain in its own file-backed content model. Its API/RBAC contract, environment variables, persistent-volume requirements, backups, archive recovery, and security boundaries are documented in:
-
-- [Admin CMS operations](docs/admin-cms-operations.md)
-- [Admin CMS architecture and threat model](docs/admin-cms-architecture.md)
+Each domain keeps its own file-backed content model; see [content workspaces](docs/content-workspaces.md) for the file layout and frontmatter of Articles, Research, LeetCode, Projects, and Resume. For large or structural content edits, run `pnpm validate:content` against a copy of the files before replacing them on the server.
 
 ## Validation And CI
 
@@ -175,15 +179,15 @@ Key reasons:
 - Runtime content keeps a small mtime cache so repeated reads avoid unnecessary markdown conversion.
 - Git-based content history remains simple and reviewable.
 
-The result is a small content system with a protected editorial console, while avoiding a database or external CMS service.
+The result is a small, read-only content system without a database, admin console, or external CMS service.
 
 ## Tradeoff
 
 This design intentionally accepts a few constraints:
 
-- The built-in Admin workspace edits Articles, Research, LeetCode, Projects, and Resume data. Site settings remain file/Git managed; project and resume writes are administrator-only. Project deletion moves the project and its assets to the recoverable `content/.trash/projects` archive; project version history is not provided.
-- Research experiments execute only pre-authored `experiment.mjs` files and accept numeric parameters declared by `experiment.json`. Public pages expose controls and designed results, never a code editor. The production Docker image enables this trusted-code player; non-Docker environments can keep `RESEARCH_RUNNER_ENABLED=false`. It is not an OS sandbox, so only administrator-authored scripts should be deployed.
-- CMS writes require one writable Node.js instance and a persistent filesystem shared by live Blog content and `content/.trash`; multi-writer and serverless ephemeral deployments are unsupported.
+- There is no in-browser editing. All content is edited as files; backups come from the host (the deploy script archives `content/` before each deploy) or from your own copy of the content.
+- Research experiments execute only pre-authored `experiment.mjs` files and accept numeric parameters declared by `experiment.json`. Public pages expose controls and designed results, never a code editor. The production Docker image enables this trusted-code player; non-Docker environments can keep `RESEARCH_RUNNER_ENABLED=false`. It is not an OS sandbox, so only scripts you wrote yourself should be deployed.
+- The app never writes to `content/`, so content can be mounted read-only.
 - Runtime file reads plus mtime cache are simpler than a database, but not ideal for very large content collections.
 - Markdown raw HTML is disabled and rendered HTML is passed through `rehype-sanitize`.
 - Personal page images can live under `content/site/assets`; add your own optimized WebP/AVIF assets when ready.
@@ -201,8 +205,6 @@ Open:
 ```txt
 http://localhost:3000
 ```
-
-To enable `/admin`, generate the JWT secret and password hash, configure `.env.local`, then follow the [Admin CMS quick start](docs/admin-cms-operations.md#本機快速啟動). The placeholders in `.env.example` are intentionally unusable.
 
 ## Editing Projects
 
@@ -278,18 +280,19 @@ Build the image:
 docker build -t portfolio-kit .
 ```
 
-The following is a public, read-only content deployment; the `:ro` Blog mount cannot support Admin writes:
+Run it with content mounted from the host (read-only is enough):
 
 ```bash
 docker run --rm -p 3000:3000 \
-  -e ADMIN_CMS_WRITE_ENABLED=false \
   -v ./content/site:/app/content/site:ro \
   -v ./content/blog:/app/content/blog:ro \
   -v ./content/projects:/app/content/projects:ro \
+  -v ./content/research:/app/content/research:ro \
+  -v ./content/leetcode:/app/content/leetcode:ro \
   portfolio-kit
 ```
 
-With this setup, editing mounted content on the host does not require rebuilding the Docker image. To enable Admin writes, mount the whole `/app/content` tree as one writable persistent volume, keep `blog` and `.trash/blog` on the same filesystem, and grant container UID/GID `1001:1001` access. See [Docker and persistent-volume operations](docs/admin-cms-operations.md#docker-與-persistent-volume).
+With this setup, editing mounted content on the host does not require rebuilding the Docker image. Mounting the whole tree with `-v ./content:/app/content:ro` works the same way.
 
 ## Standalone Dist Without Content
 
@@ -302,12 +305,8 @@ pnpm package:dist
 
 The generated `dist/portfolio-template-standalone` and zip intentionally do not
 include `content/`. Deploy the app shell once, then update site data by replacing
-or mounting content on the server. Mounting `content/site`, `content/blog`, and
-`content/projects` separately is a read-only topology and must use
-`ADMIN_CMS_WRITE_ENABLED=false`. A CMS writer must instead mount the whole
-`content` tree at `/app/content` as one writable persistent filesystem so Blog
-and `.trash/blog` share the same rename boundary. This prevents a packaged app
-update from accidentally overwriting live content.
+or mounting content on the server. This prevents a packaged app update from
+accidentally overwriting live content.
 
 ## Security Notes
 
@@ -318,12 +317,8 @@ update from accidentally overwriting live content.
 - Blog and project asset routes constrain paths to their content directories.
 - Site image assets served from `/site/assets` are constrained to `content/site/assets`.
 - Production dependency audit is enforced by CI with `pnpm audit:prod`.
-- The built-in Admin uses JWT/HttpOnly cookies, a configured user whitelist, admin/editor RBAC, Origin validation, strict schemas, slug path guards, revision conflicts, atomic writes, and recoverable archives.
-- Secrets and password hashes must be injected at runtime and must never be committed. Review the full [threat model](docs/admin-cms-architecture.md#威脅模型) before enabling writes.
-
-## Admin CMS Verification Status
-
-CI defines a non-root named-volume write smoke, but the production persistent-volume deployment has not yet been exercised locally through login, write, archive, restart, and persistence. The Admin responsive implementation has also not yet been verified with the Codex in-app Browser at target viewports. These are explicit pre-production checks, not completed claims; see [known verification status](docs/admin-cms-operations.md#尚未完成的實機驗證).
+- There is no login, session, or content write API; the only POST endpoint is the opt-in research experiment runner.
+- Deployment secrets (such as the webhook secret) live on the server and must never be committed.
 
 ## Commit Convention
 
@@ -345,6 +340,6 @@ feat, fix, docs, style, refactor, perf, test, chore, build, ci, revert
 
 ## Markdown 統計圖表
 
-Markdown 支援 `chart` 程式碼區塊（柱狀、圓餅、折線），後台工具列可直接插入模板。
+Markdown 支援 `chart` 程式碼區塊（柱狀、圓餅、折線），直接寫在 `content/` 的 Markdown 檔裡。
 語法與限制請看 [圖表使用說明](docs/markdown-charts.md)，完整示範在
 [statistical-charts.md](docs/examples/statistical-charts.md)。

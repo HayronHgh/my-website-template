@@ -38,14 +38,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          secret_pattern='(-----BEGIN ([A-Z0-9]+ )?PRIVATE KEY-----|A(KIA|SIA)[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{36,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{20,}|scrypt\$16384\$8\$5\$[A-Za-z0-9_-]{22,}\$[A-Za-z0-9_-]{86,}|^[[:space:]]*ADMIN_JWT_SECRET[[:space:]]*=[[:space:]]*[A-Za-z0-9_-]{43,}[[:space:]]*$)'
+          secret_pattern='(-----BEGIN ([A-Z0-9]+ )?PRIVATE KEY-----|A(KIA|SIA)[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{36,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{20,})'
 
           scan_status=0
           git grep --ignore-case -I --files-with-matches \
             --extended-regexp "$secret_pattern" -- . || scan_status=$?
 
           if [[ "$scan_status" -eq 0 ]]; then
-            echo "::error::Potential committed secret or password hash detected."
+            echo "::error::Potential committed secret detected."
             exit 1
           fi
 
@@ -96,31 +96,3 @@ jobs:
         run: docker build -t portfolio-template:ci .
         # Future tagging example:
         # docker build -t ghcr.io/<owner>/<repo>:${{ github.sha }} .
-
-      - name: Smoke test non-root writable content volume
-        shell: bash
-        run: |
-          set -euo pipefail
-          volume_name="portfolio-content-ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          cleanup() {
-            docker volume rm --force "$volume_name" >/dev/null 2>&1 || true
-          }
-          trap cleanup EXIT
-
-          docker volume create "$volume_name" >/dev/null
-          docker run --rm \
-            --mount "type=volume,source=${volume_name},target=/app/content" \
-            --entrypoint sh \
-            portfolio-template:ci \
-            -ec '
-              test "$(id -u)" = "1001"
-              test "$(id -g)" = "1001"
-              test -d /app/content/blog
-              test -d /app/content/.trash/blog
-              test -w /app/content/blog
-              test -w /app/content/.trash/blog
-              touch /app/content/blog/.cms-write-smoke
-              touch /app/content/.trash/blog/.cms-write-smoke
-              rm /app/content/blog/.cms-write-smoke
-              rm /app/content/.trash/blog/.cms-write-smoke
-            '

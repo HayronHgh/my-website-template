@@ -22,17 +22,15 @@
 /build
 /dist
 
-# recoverable CMS archives are runtime data
+# runtime-only content leftovers; never commit
 /content/.trash/
-
-# local CMS article history is runtime data
 /content/blog/**/main.[1-4].md
 /content/blog/**/.main*.tmp
 /content/leetcode/**/main.[1-4].md
 /content/leetcode/**/.main*.tmp
+/content/.editor-workspace/
 
 # misc
-/content/.editor-workspace/
 .DS_Store
 *.pem
 

@@ -1,4 +1,4 @@
-/* Shared by public Markdown and the CMS's server-rendered block previews. */
+/* Statistical charts rendered from Markdown `chart` blocks. */
 .prose-content .markdown-chart {
   margin: 1.8rem 0;
   min-width: 0;

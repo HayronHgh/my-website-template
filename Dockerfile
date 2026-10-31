@@ -38,7 +38,7 @@ COPY --chown=nextjs:nodejs --from=builder /app/content ./content
 COPY --chown=nextjs:nodejs --from=builder /app/.next/standalone ./
 COPY --chown=nextjs:nodejs --from=builder /app/.next/static ./.next/static
 
-RUN mkdir -p /app/content/blog /app/content/research /app/content/.trash/blog /app/content/.trash/research \
+RUN mkdir -p /app/content/blog /app/content/research \
     && chown -R nextjs:nodejs /app/content \
     && chmod -R u+rwX /app/content
 

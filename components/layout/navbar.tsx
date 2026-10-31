@@ -37,10 +37,6 @@ function isActivePath(pathname: string, item: NavigationItem) {
 export function Navbar({ brandName, navigationItems, role, routeImageMap }: NavbarProps) {
   const pathname = usePathname();
 
-  if (pathname.startsWith("/admin")) {
-    return null;
-  }
-
   return (
     <header className="site-header pointer-events-none fixed top-0 z-50 w-full">
       <Container className="flex h-[72px] items-center justify-between gap-4 py-2">

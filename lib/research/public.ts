@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { AdminApiError } from "@/lib/admin/http";
+import { ContentNotFoundError } from "@/lib/content/article-reader";
 import { markdownToHtml } from "@/lib/blog/markdown";
 import { parseSafeExistingBlogSlug } from "@/lib/blog/slug";
 import { getVersionedResearchAssetUrl } from "@/lib/research/assets";
@@ -68,7 +68,7 @@ export async function getPublishedResearchEntry(slug: string) {
       }),
     };
   } catch (error) {
-    if (error instanceof AdminApiError && [400, 404].includes(error.status)) return null;
+    if (error instanceof ContentNotFoundError) return null;
     throw error;
   }
 }

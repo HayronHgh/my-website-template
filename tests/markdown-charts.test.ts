@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { markdownToHtml } from "@/lib/blog/markdown";
 import { chartScale } from "@/lib/content/chart-renderer";
 import { chartTypes, createChartSnippet, parseChart } from "@/lib/content/chart-spec";
-import { splitMarkdownBlocks } from "@/lib/admin/markdown-blocks";
 
 const spec = {
   type: "bar", title: "完成題數", unit: "題", labels: ["一週", "二週", "三週"],
@@ -99,9 +98,4 @@ describe("Markdown statistical charts", () => {
       expect(scale.min).toBeLessThanOrEqual(Math.min(...values));
       expect(scale.max).toBeGreaterThanOrEqual(Math.max(...values));
     });
-
-  it("keeps a complete chart template in one editable Markdown block", () => {
-    const snippet = createChartSnippet("bar");
-    expect(splitMarkdownBlocks("Before\n\n" + snippet + "\n\nAfter")).toEqual(["Before", snippet, "After"]);
-  });
 });

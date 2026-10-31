@@ -41,7 +41,3 @@ export async function readTextFileWithMtimeCache(filePath: string) {
 export function stripByteOrderMark(value: string) {
   return value.charCodeAt(0) === 0xfeff ? value.slice(1) : value;
 }
-
-export function clearContentCache() {
-  mtimeCache.clear();
-}

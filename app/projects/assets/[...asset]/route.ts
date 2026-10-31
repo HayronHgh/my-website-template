@@ -38,7 +38,7 @@ export async function GET(request: Request, { params }: ProjectAssetRouteContext
     const stats = await fs.stat(filePath);
     const contentType =
       contentTypes[path.extname(filePath).toLocaleLowerCase()] ?? "application/octet-stream";
-    // Immutable only for explicitly fingerprinted WebP assets; mutable CMS uploads stay fresh.
+    // Immutable only for explicitly fingerprinted WebP assets; other files stay fresh.
     const fingerprinted = /\.[a-f0-9]{12}(?:-\d{3,4})?\.webp$/.test(path.basename(filePath));
 
     return createAssetFileResponse({

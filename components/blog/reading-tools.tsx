@@ -29,10 +29,6 @@ export function ReadingTools() {
     const mounted = new Map<HTMLElement, () => void>();
     const observedHeadings = new WeakMap<HTMLElement, HTMLElement[]>();
     const refresh = () => {
-      if (location.pathname.startsWith("/admin")) {
-        setHeadings((old) => (old.length ? [] : old));
-        return;
-      }
       for (const [root, cleanup] of mounted)
         if (!root.isConnected) {
           cleanup();

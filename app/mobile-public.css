@@ -1,4 +1,4 @@
-/* Narrow public layout. Desktop composition and admin workspace stay untouched. */
+/* Narrow public layout. Desktop composition stays untouched. */
 @media (min-width: 768px) {
   .article-filter-disclosure > summary { display: none; }
   .article-filter-disclosure > div { display: block; }

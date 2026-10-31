@@ -2,13 +2,13 @@ import Link from "next/link";
 import { Play } from "lucide-react";
 import { PixelIcon } from "@/components/ui/pixel-icon";
 import { researchStageLabels } from "@/lib/research/schema";
-import type { AdminArticleListItem } from "@/types/admin";
+import type { ContentArticleListItem } from "@/lib/content/article-reader";
 
-type ResearchEntry = AdminArticleListItem & { hasExperiment: boolean };
+type ResearchEntry = ContentArticleListItem & { hasExperiment: boolean };
 
 export function ResearchGrid({ entries }: { entries: ResearchEntry[] }) {
   if (!entries.length) {
-    return <div className="content-panel content-empty"><h2>研究紀錄整理中</h2><p>於後台發佈研究文章後，這裡會依研究排序呈現。</p></div>;
+    return <div className="content-panel content-empty"><h2>研究紀錄整理中</h2><p>在 content/research 加入已發佈的研究文章後，這裡會依研究排序呈現。</p></div>;
   }
   return (
     <div className="research-grid">

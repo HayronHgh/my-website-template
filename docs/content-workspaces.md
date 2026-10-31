@@ -1,13 +1,17 @@
 # Content workspaces
 
+The site has no admin console. Every content change is a direct edit of the files below, in the `content/` directory mounted into the running container (on the Mac mini deployment, the host's `content/` folder). Changes are picked up on the next request; no rebuild or deploy is needed.
+
 ## Ownership
 
-| Domain | Public URL | Source of truth | Admin |
-| --- | --- | --- | --- |
-| Articles | /articles | content/blog/<slug>/main.md | /admin/articles |
-| LeetCode | /leetcode | content/leetcode/<slug>/main.md | /admin/leetcode |
-| Projects | /projects | content/projects/<slug>/meta.json and main.md | /admin/projects |
-| Resume | /resume | content/resume/resume.json | /admin/resume |
+| Domain | Public URL | Source of truth |
+| --- | --- | --- |
+| Articles | /articles | content/blog/<slug>/main.md |
+| LeetCode | /leetcode | content/leetcode/<slug>/main.md |
+| Projects | /projects | content/projects/<slug>/meta.json and main.md |
+| Resume | /resume | content/resume/resume.json |
+| Research | /research | content/research/<slug>/main.md (+ optional experiment.json / experiment.mjs) |
+| Site | / and shared layout | content/site/site.json, focus.json and assets/ |
 
 Articles describe research, engineering methods, and decisions. LeetCode contains problem-specific solutions and review progress. Project metadata owns showcase cards; project Markdown owns case studies. Resume owns career information and explicitly selected project slugs, not copies of project cards.
 
@@ -17,13 +21,13 @@ The old /blog URLs redirect permanently to /articles; article storage and /api/b
 
 Common frontmatter: title, date, summary, tags, published.
 Additional flat fields: kind: leetcode, id (positive integer), difficulty (Easy/Medium/Hard), status (Todo/Attempted/Solved/Review), language.
-The workspace inserts nine sections: 題目與限制、我的直覺、解法與程式碼、正確性分析、時間複雜度、空間複雜度、邊界測試、優化與替代解法、參考與複習筆記.
+Problem pages use nine sections: 題目與限制、我的直覺、解法與程式碼、正確性分析、時間複雜度、空間複雜度、邊界測試、優化與替代解法、參考與複習筆記.
 Drafts may be incomplete; publication requires all nine populated sections. Same problem ID may have multiple solution slugs.
 Use absolute image URLs for LeetCode; this iteration does not add problem-local asset upload or serving.
 
 ## Legacy LeetCode migration
 
-Legacy records use `format: legacy` to keep their existing Markdown structure editable.
+Legacy records use `format: legacy` to keep their existing Markdown structure.
 `entryType` separates problem solutions, study notes (`note`), and unpublished reusable examples (`template`).
 Notes/templates use null for id, difficulty, status and language; they are not counted as solved problems.
 New problem records still require the v1 template unless explicitly designated legacy.
@@ -47,10 +51,10 @@ repaired without changing its wording; each such repair is recorded in the manif
 
 ## Editing and deployment
 
-- Articles and LeetCode keep direct preview, revision conflicts, and recoverable archive behavior. Published entries autosave after the one-second debounce; unpublished entries require an explicit draft save or publish action.
-- Project/resume forms use explicit save, schema validation, optimistic revision checks and atomic writes. Administrators can create an unpublished project folder, upload a 16:9 cover, and edit its card metadata or Markdown case study. Project deletion and version history are not provided.
-- Article and project Markdown use the same block-style editor: the focused block shows source while inactive blocks render through the sanitized public pipeline. Article media is stored beside the article; project media is stored under the project `assets/` directory. Images are limited to 12 MiB and MP4 files to 100 MiB.
+- Edit Markdown/JSON in `content/` directly (for example over SSH on the Mac mini). Keep a backup of the file before large edits; the deploy script also archives `content/` before every code deploy.
+- Publishing is the `published: true` frontmatter flag (or `"published": true` in project `meta.json`). Drafts stay `published: false`.
+- Article media lives beside the article's `main.md`; project media lives in the project's `assets/` directory; site images live in `content/site/assets/`.
 - Resume PDF is a separate asset and must be updated separately.
-- Keep runtime content backed up. Mount/persist the complete content directory on the Mac deployment, including the new leetcode and resume directories; do not overwrite private content with template fixtures.
-- Existing CI/CD configuration is unchanged. Run validate:content, typecheck, test:run, lint and build before deployment. The content validator now also checks LeetCode and resume.
-- ADMIN_CMS_WRITE_ENABLED=false remains a global write lock. No authentication settings were changed.
+- Do not overwrite private runtime content with the template fixtures in this repository.
+- Run `pnpm validate:content` against a copy of the content after structural changes; it checks articles, projects, site settings, LeetCode and resume.
+- Code changes are separate: push to `main`, CI must pass, and the signed webhook deploys the exact commit. Content is never part of that build.

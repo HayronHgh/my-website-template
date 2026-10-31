@@ -30,6 +30,15 @@ restarts after a crash, and resumes queued work. **After a Mac reboot, that user
 must log in and Docker Desktop must be running.** This is not a boot-time daemon.
 The Windows computer and this chat do not need to remain open.
 
+## Editing content (no deploy needed)
+
+The site has no admin console. All content changes are direct edits of the
+Markdown/JSON files in the deployment root's `content/` directory, which is
+mounted into the running container. The app picks up changes on the next
+request; nothing is rebuilt and this webhook is not involved. Back up a file
+before large edits. Only code changes go through push -> CI -> webhook deploy,
+and every deploy backs up `content/` first without overwriting it.
+
 ## Provision or restore
 
 Back up current `scripts/cd-template-update-safe.sh` and `nginx.conf` before
@@ -93,7 +102,7 @@ An old SHA is `skipped` when main has advanced. There is no polling of GitHub:
 GitHub must deliver the event. If the Mac/tunnel is offline, use GitHub's
 **Redeliver** once it is online (GitHub does not guarantee automatic retries).
 Logs, queue history and content backups should be reviewed/pruned periodically;
-this setup does not silently delete backups or publish admin status publicly.
+this setup does not silently delete backups or publish deploy status publicly.
 
 For host maintenance, disable the GitHub webhook first and use
 `launchctl bootout gui/$(id -u)/com.hayronhgh.website-cd`. Existing manual safe CD
