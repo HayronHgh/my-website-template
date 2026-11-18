@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { readResume } from "@/lib/resume/data";
-import { ProjectCard } from "@/components/projects/project-card";
 import { NeonButton } from "@/components/ui/neon-button";
 import { PageHero } from "@/components/ui/page-hero";
 import { PixelCard } from "@/components/ui/pixel-card";
@@ -9,7 +8,6 @@ import { ui } from "@/components/ui/pixel-theme";
 import { SkillCard } from "@/components/ui/skill-card";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import { getPublishedProjects } from "@/lib/projects/meta";
 import { getSiteSettings } from "@/lib/site/settings";
 import type { SiteSettings } from "@/lib/site/settings";
 
@@ -39,10 +37,7 @@ function resolveProfileToken(value: string, siteProfile: SiteSettings["siteProfi
 
 export default async function ResumePage() {
   const resume = await readResume();
-  const [projects, siteSettings] = await Promise.all([
-    getPublishedProjects(),
-    getSiteSettings(),
-  ]);
+  const siteSettings = await getSiteSettings();
   const {
     pageImages,
     siteProfile,
@@ -50,7 +45,6 @@ export default async function ResumePage() {
   const skillItems = resume?.skillItems ?? siteSettings.skillItems;
   const { resumeExperience, resumeSections, resumeSummary } = resume ?? siteSettings;
   const pageCopy = siteSettings.pages.resume;
-  const resumeProjectHighlights = projects.filter((project) => resume ? resume.projectSlugs.includes(project.slug) : project.group === "featured");
 
   return (
     <Section className="!pt-0 sm:!pt-0">
@@ -183,25 +177,6 @@ export default async function ResumePage() {
                   ))}
                 </div>
               </PixelCard>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-5">
-          <div className="flex items-center gap-2 text-amber-200">
-            <PixelIcon className="h-5 w-5" name="projects" />
-            <h2 className="font-mono text-2xl font-bold text-white">
-              {pageCopy.projectHighlightsTitle}
-            </h2>
-          </div>
-          <div className="grid gap-5 lg:grid-cols-3">
-            {resumeProjectHighlights.map((project) => (
-              <ProjectCard
-                compact
-                key={project.slug}
-                labels={siteSettings.pages.projectCard}
-                project={project}
-              />
             ))}
           </div>
         </div>
